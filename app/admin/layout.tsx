@@ -1,7 +1,9 @@
 import Link from "next/link";
 import Image from "next/image";
+import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 import { getAdminSession } from "@/lib/admin-auth";
+import { sayfaErisimiVarMi } from "@/lib/adminYetki";
 import { ToastProvider } from "@/components/Toast";
 import AdminNav from "./AdminNav";
 import AdminHeader from "./AdminHeader";
@@ -12,6 +14,12 @@ export default async function AdminLayout({ children }: { children: React.ReactN
   const session = await getAdminSession();
   if (!session) redirect("/giris?sonra=/admin");
 
+  // Sayfa bazlı erişim — özel role atanmış (sistemYoneticisiMi olmayan) bir
+  // hesap, kendisine izin verilmemiş bir sayfaya doğrudan URL ile girmeye
+  // çalışırsa Panel'e yönlendirilir (bkz. lib/adminYetki.ts).
+  const pathname = headers().get("x-pathname") ?? "/admin";
+  if (!sayfaErisimiVarMi(session, pathname)) redirect("/admin");
+
   return (
     <ToastProvider>
       <div className="min-h-screen grid lg:grid-cols-[248px_1fr] bg-zemin-acik">
@@ -21,7 +29,7 @@ export default async function AdminLayout({ children }: { children: React.ReactN
           </Link>
           <p className="font-mono text-[11px] uppercase tracking-[0.2em] text-zemin/45 mt-1 mb-8">Yönetim</p>
 
-          <AdminNav />
+          <AdminNav sistemYoneticisiMi={session.sistemYoneticisiMi} izinliSayfalar={session.izinliSayfalar} />
 
           <div className="mt-auto pt-6 border-t border-zemin/10">
             <p className="font-body text-xs text-zemin/50 truncate">{session.user?.email}</p>

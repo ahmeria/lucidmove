@@ -18,7 +18,12 @@ export async function middleware(req: NextRequest) {
     return NextResponse.redirect(new URL("/hesabim", req.url));
   }
 
-  return NextResponse.next();
+  // app/admin/layout.tsx Server Component'inde pathname'e doğrudan erişim
+  // yok — sayfa bazlı yetki kontrolü (bkz. lib/adminYetki.ts) için isteğin
+  // yolunu bir header'da taşıyoruz.
+  const headers = new Headers(req.headers);
+  headers.set("x-pathname", req.nextUrl.pathname);
+  return NextResponse.next({ request: { headers } });
 }
 
 export const config = {

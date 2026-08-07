@@ -52,6 +52,16 @@ html {
   pointer-events: none;
 }
 
+/* Yatayda kaydırılabilir şeritlerde (ör. yorumlar) kaydırma çubuğunu gizler —
+   dokunmatik/trackpad ile kaydırma davranışı olduğu gibi kalır. */
+.kaydirma-cubugu-gizli {
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+.kaydirma-cubugu-gizli::-webkit-scrollbar {
+  display: none;
+}
+
 /* Klavye odağı — erişilebilirlik */
 a:focus-visible,
 button:focus-visible,

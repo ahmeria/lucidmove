@@ -24,7 +24,7 @@ function VurgulaYildiz({ metin }: { metin: string }) {
 }
 
 export default async function Anasayfa({ searchParams }: { searchParams: { durum?: string } }) {
-  const [ayarlar, egitmen, planlar, kategoriler, kategorisizKurslar] = await Promise.all([
+  const [ayarlar, egitmen, planlar, kategoriler, kategorisizKurslar, yorumlar] = await Promise.all([
     getSiteSettings(),
     getInstructorProfile(),
     db.pricingPlan.findMany({ orderBy: { sira: "asc" } }),
@@ -42,6 +42,7 @@ export default async function Anasayfa({ searchParams }: { searchParams: { durum
       orderBy: [{ sira: "asc" }, { createdAt: "asc" }],
       include: { _count: { select: { lessons: true } } },
     }),
+    db.testimonial.findMany({ orderBy: [{ sira: "asc" }, { createdAt: "asc" }] }),
   ]);
 
   const bioParagraflari = paragraflaraAyir(egitmen.bio);
@@ -267,41 +268,33 @@ export default async function Anasayfa({ searchParams }: { searchParams: { durum
         </div>
       </section>
 
-      {/* YORUMLAR */}
-      <section className="relative container-nefes py-24 overflow-hidden">
-        <div className="blob w-[380px] h-[380px] bg-ikincil/10 top-0 right-0" />
-        <Canlandir className="relative text-center max-w-xl mx-auto mb-14">
-          <p className="font-mono text-xs tracking-[0.3em] uppercase text-vurgu mb-3">Üyelerimiz ne diyor</p>
-          <h2 className="font-display text-3xl sm:text-4xl font-bold text-metin">Pratikleriyle değişenler</h2>
-        </Canlandir>
+      {/* YORUMLAR — admin panelden yönetilir (bkz. app/admin/yorumlar). Kart
+          genişlikleri, üçten fazla kayıt olduğunda şeridin doğal olarak
+          yatayda kaydırılabilir hale gelmesi için sabitlenmiş durumda. */}
+      {yorumlar.length > 0 && (
+        <section className="relative container-nefes py-24 overflow-hidden">
+          <div className="blob w-[380px] h-[380px] bg-ikincil/10 top-0 right-0" />
+          <Canlandir className="relative text-center max-w-xl mx-auto mb-14">
+            <p className="font-mono text-xs tracking-[0.3em] uppercase text-vurgu mb-3">Üyelerimiz ne diyor</p>
+            <h2 className="font-display text-3xl sm:text-4xl font-bold text-metin">Pratikleriyle değişenler</h2>
+          </Canlandir>
 
-        <div className="relative grid sm:grid-cols-3 gap-6">
-          {[
-            {
-              isim: "Elif K.",
-              rol: "6 aydır üye",
-              yorum: "Stüdyoya gidecek vaktim hiç olmadı. Artık sabah kahvemi içmeden önce 20 dakikamı ayırabiliyorum.",
-            },
-            {
-              isim: "Mert A.",
-              rol: "1 yıldır üye",
-              yorum: "Aynı eğitmenle ilerlemek büyük fark yaratıyor. Her ders bir öncekinin üzerine kuruluyor gibi hissettiriyor.",
-            },
-            {
-              isim: "Sena T.",
-              rol: "3 aydır üye",
-              yorum: "Başlangıç seviyesinden hiç korkmadım; tempo gerçekten kendi hızınıza bırakılıyor.",
-            },
-          ].map((y, i) => (
-            <Canlandir key={y.isim} gecikme={i * 90} className="bg-kart border border-cizgi rounded-[1.5rem] p-7 shadow-organik">
-              <p className="font-display text-vurgu text-3xl leading-none mb-3">&ldquo;</p>
-              <p className="font-body text-sm text-metin/75 leading-relaxed">{y.yorum}</p>
-              <p className="font-body text-sm text-metin mt-6 font-medium">{y.isim}</p>
-              <p className="font-mono text-xs text-metin/45">{y.rol}</p>
-            </Canlandir>
-          ))}
-        </div>
-      </section>
+          <div className="relative flex gap-6 overflow-x-auto snap-x snap-mandatory kaydirma-cubugu-gizli -mx-6 px-6 sm:mx-0 sm:px-0">
+            {yorumlar.map((y, i) => (
+              <Canlandir
+                key={y.id}
+                gecikme={i * 90}
+                className="shrink-0 snap-start w-[85vw] sm:w-[calc((100%-3rem)/3)] bg-kart border border-cizgi rounded-[1.5rem] p-7 shadow-organik"
+              >
+                <p className="font-display text-vurgu text-3xl leading-none mb-3">&ldquo;</p>
+                <p className="font-body text-sm text-metin/75 leading-relaxed">{y.yorum}</p>
+                <p className="font-body text-sm text-metin mt-6 font-medium">{y.isim}</p>
+                <p className="font-mono text-xs text-metin/45">{y.rol}</p>
+              </Canlandir>
+            ))}
+          </div>
+        </section>
+      )}
     </div>
   );
 }

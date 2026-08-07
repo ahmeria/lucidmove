@@ -1,11 +1,58 @@
+import { Suspense } from "react";
+import Link from "next/link";
 import { db } from "@/lib/db";
 import { getSiteSettings } from "@/lib/settings";
+import { analitikOzetiniGetir } from "@/lib/analitikVerisi";
 import { StatKart } from "@/components/admin/Kart";
 import { UyeIkonu, AbonelikIkonu, GelirIkonu, MesajIkonu, KursIkonu, AnalitikIkonu } from "@/components/admin/StatIkonlari";
+import { AnalyticsPanel } from "@/components/admin/charts/AnalyticsPanel";
 
 export const dynamic = "force-dynamic";
 
-export default async function AdminDashboard() {
+const GUN_SECENEKLERI = [7, 28, 90];
+
+function GunSecici({ gun }: { gun: number }) {
+  return (
+    <div className="flex items-center gap-1 rounded-full bg-zemin p-1">
+      {GUN_SECENEKLERI.map((g) => (
+        <Link
+          key={g}
+          href={`/admin?gun=${g}`}
+          scroll={false}
+          className={`rounded-full px-3 py-1.5 font-body text-sm transition-colors ${
+            g === gun ? "bg-vurgu text-white shadow-organik" : "text-metin/60 hover:bg-cizgi/50"
+          }`}
+        >
+          {g} gün
+        </Link>
+      ))}
+    </div>
+  );
+}
+
+function AnalitikIskeleti() {
+  return (
+    <div className="space-y-4">
+      <div className="h-6 w-40 animate-pulse rounded bg-zemin" />
+      <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+        {[0, 1, 2, 3].map((i) => (
+          <div key={i} className="h-24 animate-pulse rounded-xl border border-cizgi bg-kart" />
+        ))}
+      </div>
+      <div className="h-72 animate-pulse rounded-2xl border border-cizgi bg-kart" />
+    </div>
+  );
+}
+
+// GA çağrısı saniyeler sürebiliyor; yüklenene kadar sayfanın kalanı beklemesin
+// diye ayrı bir Server Component + Suspense içinde (dishekimihaber'deki aynı desen).
+async function AnalitikBolumu({ gun }: { gun: number }) {
+  return <AnalyticsPanel veri={await analitikOzetiniGetir(gun)} />;
+}
+
+export default async function AdminDashboard({ searchParams }: { searchParams: { gun?: string } }) {
+  const gun = GUN_SECENEKLERI.includes(Number(searchParams.gun)) ? Number(searchParams.gun) : 28;
+
   const ayBasi = new Date();
   ayBasi.setDate(1);
   ayBasi.setHours(0, 0, 0, 0);
@@ -25,7 +72,7 @@ export default async function AdminDashboard() {
     ]);
 
   return (
-    <div>
+    <div className="space-y-8">
       <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
         <StatKart etiket="Toplam üye" deger={uyeSayisi} href="/admin/uyelikler" renk="vurgu" ikon={UyeIkonu} />
         <StatKart
@@ -61,9 +108,19 @@ export default async function AdminDashboard() {
           deger={ayarlar.gaMeasurementId ? ayarlar.gaMeasurementId : "Bağlı değil"}
           href="/admin/ayarlar"
           renk={ayarlar.gaMeasurementId ? "ikincil" : "amber"}
-          altYazi={ayarlar.gaMeasurementId ? "Raporları Google Analytics'te görüntüleyin" : "Ayarlar'dan bağlayın"}
+          altYazi={ayarlar.gaMeasurementId ? "Raporları aşağıda görüntüleyin" : "Ayarlar'dan bağlayın"}
           ikon={AnalitikIkonu}
         />
+      </div>
+
+      <div>
+        <div className="flex flex-wrap items-center justify-between gap-3 mb-4">
+          <p className="font-mono text-xs uppercase tracking-wide text-metin/40">Trafik</p>
+          <GunSecici gun={gun} />
+        </div>
+        <Suspense key={gun} fallback={<AnalitikIskeleti />}>
+          <AnalitikBolumu gun={gun} />
+        </Suspense>
       </div>
     </div>
   );

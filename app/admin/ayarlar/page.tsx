@@ -1,6 +1,7 @@
 import { notFound } from "next/navigation";
 import { getAdminSession } from "@/lib/admin-auth";
 import { getSiteSettings, getInstructorProfile } from "@/lib/settings";
+import { analitikAyarlariniAl } from "@/lib/analitikVerisi";
 import Kart from "@/components/admin/Kart";
 import SayfaBasligi from "@/components/admin/SayfaBasligi";
 import AyarlarSekmeleri from "./AyarlarSekmeleri";
@@ -15,22 +16,31 @@ export default async function AdminAyarlar() {
   const session = await getAdminSession();
   if (!session?.sistemYoneticisiMi) notFound();
 
-  const [ayarlar, profil] = await Promise.all([getSiteSettings(), getInstructorProfile()]);
+  const [ayarlar, profil, analitik] = await Promise.all([
+    getSiteSettings(),
+    getInstructorProfile(),
+    analitikAyarlariniAl(),
+  ]);
 
   return (
     <div>
       <SayfaBasligi sag={<AyarlarSekmeleri />} />
 
       <div className="space-y-6">
-        <div className="grid lg:grid-cols-2 gap-6">
-          <Kart baslik="Para Birimi">
-            <ParaBirimiForm paraBirimi={ayarlar.paraBirimi} paraBirimiGosterimi={ayarlar.paraBirimiGosterimi} />
-          </Kart>
+        <Kart baslik="Para Birimi">
+          <ParaBirimiForm paraBirimi={ayarlar.paraBirimi} paraBirimiGosterimi={ayarlar.paraBirimiGosterimi} />
+        </Kart>
 
-          <Kart baslik="Google Analytics">
-            <GoogleAnalyticsForm gaMeasurementId={ayarlar.gaMeasurementId} />
-          </Kart>
-        </div>
+        {/* Data API kurulum adımları eklenince bu kart hayli uzadı — Para
+            Birimi'yle yan yana sıkıştırmak yerine tam genişlik tek başına. */}
+        <Kart baslik="Google Analytics">
+          <GoogleAnalyticsForm
+            gaMeasurementId={ayarlar.gaMeasurementId}
+            gaPropertyId={analitik.propertyId}
+            servisHesabiVarMi={analitik.servisHesabiVarMi}
+            servisHesabiEmail={analitik.servisHesabiEmail}
+          />
+        </Kart>
 
         <Kart baslik="Site & İletişim">
           <SiteAyarlariForm ayarlar={ayarlar} />

@@ -23,7 +23,10 @@ export default async function AdminKullanicilar() {
   const session = await getAdminSession();
   if (!session?.sistemYoneticisiMi) notFound();
 
+  // Üye (UYE) rolündeki hesaplar artık burada değil — onlar için bkz.
+  // /admin/uyeler. Burası yalnızca admin erişimi olan hesapları yönetir.
   const kullanicilar = await db.user.findMany({
+    where: { role: "ADMIN" },
     orderBy: { createdAt: "asc" },
     include: {
       subscriptions: {
@@ -41,7 +44,7 @@ export default async function AdminKullanicilar() {
       <SayfaBasligi sag={<AyarlarSekmeleri />} />
 
       <div className="mb-6 max-w-xs">
-        <StatKart etiket="Toplam kullanıcı" deger={kullanicilar.length} renk="vurgu" ikon={UyeIkonu} />
+        <StatKart etiket="Toplam admin" deger={kullanicilar.length} renk="vurgu" ikon={UyeIkonu} />
       </div>
 
       <Kart dolgu={false} className="overflow-x-auto">

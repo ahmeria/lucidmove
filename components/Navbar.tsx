@@ -49,7 +49,10 @@ export default function Navbar() {
           </Link>
 
           {session ? (
-            <Link href={hesabimHref} className="text-sm font-body text-white/90 hover:text-white">
+            <Link
+              href={hesabimHref}
+              className="text-sm font-body text-white/90 hover:text-white border border-white/40 hover:border-white/70 rounded-full px-4 py-1.5 transition-colors"
+            >
               {hesabimEtiketi}
             </Link>
           ) : (

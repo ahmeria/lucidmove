@@ -60,6 +60,15 @@ function UyelerIkonu({ className }: IkonProps) {
   );
 }
 
+function YorumlarIkonu({ className }: IkonProps) {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" className={className}>
+      <path d="M4 5.5A1.5 1.5 0 0 1 5.5 4h13A1.5 1.5 0 0 1 20 5.5v9a1.5 1.5 0 0 1-1.5 1.5H10l-4.5 4v-4H5.5A1.5 1.5 0 0 1 4 14.5Z" strokeLinejoin="round" />
+      <path d="M8 9.5c0-1 .8-1.5 1.5-1.5S11 8.5 11 9.5c0 1.3-1.5 1.6-1.5 2.7M14.5 9.5c0-1 .8-1.5 1.5-1.5s1.5.5 1.5 1.5c0 1.3-1.5 1.6-1.5 2.7" strokeLinecap="round" />
+    </svg>
+  );
+}
+
 function MesajlarIkonu({ className }: IkonProps) {
   return (
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" className={className}>
@@ -169,6 +178,7 @@ export function adminNavGruplariniAl(): AdminNavGrubu[] {
       ogeler: [
         { href: "/admin/kategoriler", label: "Kategoriler", ikon: KategorilerIkonu },
         { href: "/admin/kurslar", label: "Kurslar", ikon: KurslarIkonu },
+        { href: "/admin/yorumlar", label: "Yorumlar", ikon: YorumlarIkonu },
       ],
     },
     {
@@ -192,13 +202,13 @@ export function adminNavGruplariniAl(): AdminNavGrubu[] {
 // aynı bu listeden besleniyor — tek kaynak.
 export const AYARLAR_OGELERI: AdminNavOge[] = [
   { href: "/admin/ayarlar", label: "Genel Ayarlar", exact: true, ikon: GenelAyarlarIkonu },
-  { href: "/admin/ayarlar/entegrasyon", label: "Entegrasyon", ikon: EntegrasyonIkonu },
   { href: "/admin/ayarlar/kullanicilar", label: "Kullanıcılar", ikon: KullanicilarIkonu },
   { href: "/admin/ayarlar/roller", label: "Roller", ikon: RollerIkonu },
+  { href: "/admin/ayarlar/entegrasyon", label: "Entegrasyon", ikon: EntegrasyonIkonu },
+  { href: "/admin/ayarlar/guncelleme", label: "Güncelleme", ikon: GuncellemeIkonu },
   { href: "/admin/ayarlar/cache", label: "Cache", ikon: CacheIkonu },
   { href: "/admin/ayarlar/yedekleme", label: "Yedekleme", ikon: YedeklemeIkonu },
   { href: "/admin/ayarlar/loglar", label: "Sistem Logları", ikon: LoglarIkonu },
-  { href: "/admin/ayarlar/guncelleme", label: "Güncelleme", ikon: GuncellemeIkonu },
 ];
 
 // Header'daki "şu an neredeyim" başlığı — en uzun eşleşen href kazanır (ör.

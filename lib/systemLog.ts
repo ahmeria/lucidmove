@@ -2,7 +2,7 @@ import { db } from "@/lib/db";
 
 interface LogKaydiGirdisi {
   seviye: "INFO" | "ERROR";
-  kategori: string; // "auth" | "kategori" | "kurs" | "ders" | "kullanici" | "uyelik" | "cache"
+  kategori: string; // "auth" | "kategori" | "kurs" | "ders" | "kullanici" | "uyelik" | "cache" | "yorum" | "rol"
   aksiyon: string; // "login" | "login_basarisiz" | "olustur" | "guncelle" | "sil" | "temizle"
   kaynakEtiketi?: string;
   mesaj?: string;

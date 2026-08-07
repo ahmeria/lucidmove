@@ -10,12 +10,18 @@ export async function getAdminSession() {
 
   const kullanici = await db.user.findUnique({
     where: { id: session.user.id },
-    select: { role: true, sistemYoneticisiMi: true },
+    select: { role: true, sistemYoneticisiMi: true, adminRole: { select: { sayfalar: true } } },
   });
   if (kullanici?.role !== "ADMIN") return null;
 
   // sistemYoneticisiMi: /admin/ayarlar/** bölümüne (Genel Ayarlar, Kullanıcılar,
   // Roller, Cache, Yedekleme, Sistem Logları) erişim yetkisi — her admin değil,
-  // yalnızca bu işaretli hesap(lar) görebilir/girebilir.
-  return { ...session, sistemYoneticisiMi: kullanici.sistemYoneticisiMi };
+  // yalnızca bu işaretli hesap(lar) görebilir/girebilir. izinliSayfalar: özel
+  // role atanmışsa sayfa bazında kısıtlama (bkz. lib/adminYetki.ts) — atanmamışsa
+  // null, yani Ayarlar dışındaki tüm sayfalara eski/varsayılan erişim.
+  return {
+    ...session,
+    sistemYoneticisiMi: kullanici.sistemYoneticisiMi,
+    izinliSayfalar: kullanici.adminRole ? (kullanici.adminRole.sayfalar as string[]) : null,
+  };
 }

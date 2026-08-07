@@ -5,6 +5,8 @@ import { db } from "@/lib/db";
 import Kart from "@/components/admin/Kart";
 import SayfaBasligi from "@/components/admin/SayfaBasligi";
 import AyarlarSekmeleri from "../AyarlarSekmeleri";
+import { adminNavGruplariniAl } from "../../admin-nav-data";
+import RolYonetimi from "./RolYonetimi";
 
 export const dynamic = "force-dynamic";
 
@@ -12,26 +14,38 @@ export default async function AdminRoller() {
   const session = await getAdminSession();
   if (!session?.sistemYoneticisiMi) notFound();
 
-  const [uyeSayisi, adminler] = await Promise.all([
+  const [uyeSayisi, adminler, ozelRoller] = await Promise.all([
     db.user.count({ where: { role: "UYE" } }),
     db.user.findMany({
       where: { role: "ADMIN" },
       orderBy: { createdAt: "asc" },
-      select: { id: true, ad: true, email: true, sistemYoneticisiMi: true },
+      select: { id: true, ad: true, email: true, sistemYoneticisiMi: true, adminRole: { select: { ad: true } } },
+    }),
+    db.adminRole.findMany({
+      orderBy: { createdAt: "asc" },
+      include: { _count: { select: { kullanicilar: true } } },
     }),
   ]);
+
+  // İkon bileşenleri sunucu->istemci sınıra taşınamaz (fonksiyon, serileştirilemez)
+  // — sayfa grubu/etiket verisini sade bir yapıya indirgeyip öyle geçiyoruz.
+  const sayfaGruplari = adminNavGruplariniAl().map((g) => ({
+    baslik: g.baslik ?? "Diğer",
+    sayfalar: g.ogeler.map((o) => ({ href: o.href, label: o.label })),
+  }));
 
   return (
     <div>
       <SayfaBasligi sag={<AyarlarSekmeleri />} />
 
       <p className="font-body text-sm text-metin/60 mb-6 max-w-2xl">
-        LucidMove sabit iki rol kullanır — dinamik rol/izin tanımlama yok. Admin hesapları içinde yalnızca{" "}
-        <strong className="text-metin">sistem yöneticisi</strong> işaretli olanlar bu Ayarlar bölümüne erişebilir;
-        işareti Kullanıcılar sayfasından değiştirebilirsiniz.
+        Üye ve admin ayrımı sabittir. Admin hesapları içinde yalnızca{" "}
+        <strong className="text-metin">sistem yöneticisi</strong> işaretli olanlar bu Ayarlar bölümüne erişebilir —
+        bu, özel rollerle devredilemeyen, tek bir üst yetki düzeyidir. Diğer adminlerin hangi panel sayfalarını
+        görebileceğini aşağıda oluşturacağınız özel rollerle sınırlayabilirsiniz.
       </p>
 
-      <div className="grid sm:grid-cols-2 gap-6">
+      <div className="grid sm:grid-cols-2 gap-6 mb-6">
         <Kart>
           <p className="font-mono text-xs uppercase tracking-wide text-vurgu-dark">Üye</p>
           <p className="font-display text-2xl font-bold text-metin mt-1">{uyeSayisi}</p>
@@ -45,8 +59,8 @@ export default async function AdminRoller() {
           <p className="font-mono text-xs uppercase tracking-wide text-vurgu-dark">Admin</p>
           <p className="font-display text-2xl font-bold text-metin mt-1">{adminler.length}</p>
           <p className="font-body text-sm text-metin/60 mt-3">
-            Kategori/kurs/ders içeriğini, fiyatlandırmayı, üyelikleri ve mesajları yönetir. Sistem yöneticisi
-            işareti olmadan Ayarlar bölümünü göremez.
+            Sistem yöneticisi olmayan adminlerin panel erişimi, kendilerine atanmış özel role (varsa) ya da
+            varsayılan içerik-yönetimi erişimine göre belirlenir.
           </p>
 
           <div className="mt-5 pt-5 border-t border-cizgi space-y-2">
@@ -62,7 +76,9 @@ export default async function AdminRoller() {
                       Sistem yöneticisi
                     </span>
                   ) : (
-                    <span className="font-mono text-[10px] uppercase tracking-wide text-metin/35">İçerik admini</span>
+                    <span className="font-mono text-[10px] uppercase tracking-wide text-metin/35">
+                      {a.adminRole?.ad ?? "Varsayılan admin"}
+                    </span>
                   )}
                   <Link href={`/admin/ayarlar/kullanicilar/${a.id}/duzenle`} className="text-vurgu hover:text-vurgu-dark">
                     Düzenle
@@ -73,6 +89,10 @@ export default async function AdminRoller() {
           </div>
         </Kart>
       </div>
+
+      <Kart baslik="Özel roller">
+        <RolYonetimi roller={ozelRoller.map((r) => ({ ...r, sayfalar: r.sayfalar as string[] }))} sayfaGruplari={sayfaGruplari} />
+      </Kart>
     </div>
   );
 }

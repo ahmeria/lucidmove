@@ -3,10 +3,25 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { adminNavGruplariniAl } from "./admin-nav-data";
+import { sayfaErisimiVarMi } from "@/lib/adminYetki";
 
-export default function AdminNav() {
+export default function AdminNav({
+  sistemYoneticisiMi,
+  izinliSayfalar,
+}: {
+  sistemYoneticisiMi: boolean;
+  izinliSayfalar: string[] | null;
+}) {
   const pathname = usePathname();
-  const gruplar = adminNavGruplariniAl();
+  // Kendisine izin verilmemiş sayfalar özel rollü hesaplarda sidebar'da hiç
+  // görünmez (bkz. lib/adminYetki.ts — aynı kontrol app/admin/layout.tsx'te
+  // doğrudan URL girişine karşı da uygulanıyor).
+  const gruplar = adminNavGruplariniAl()
+    .map((grup) => ({
+      ...grup,
+      ogeler: grup.ogeler.filter((oge) => sayfaErisimiVarMi({ sistemYoneticisiMi, izinliSayfalar }, oge.href)),
+    }))
+    .filter((grup) => grup.ogeler.length > 0);
 
   return (
     <nav className="flex flex-col gap-5">

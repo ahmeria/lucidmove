@@ -52,6 +52,13 @@ model User {
   // sayıda) hesap işareti — Kullanıcılar/Roller/Cache/Yedekleme/Sistem Logları bu
   // bayrağı gerektirir (bkz. lib/admin-auth.ts > getAdminSession).
   sistemYoneticisiMi Boolean   @default(false)
+  // Özel panel rolü (bkz. AdminRole) — yalnızca sayfa bazında kısıtlı erişimi
+  // olan admin hesapları için kullanılır. null: sistemYoneticisiMi hariç eski/
+  // varsayılan admin davranışı (Ayarlar dışındaki tüm sayfalara erişim, bkz.
+  // lib/adminYetki.ts). sistemYoneticisiMi=true olan hesaplarda bu alan
+  // anlamsızdır — her zaman tam erişim vardır.
+  adminRoleId        String?
+  adminRole          AdminRole? @relation(fields: [adminRoleId], references: [id], onDelete: SetNull)
   profilFotoUrl      String?   @db.VarChar(512)
   emailVerified      DateTime?
   createdAt          DateTime  @default(now())
@@ -64,11 +71,28 @@ model User {
   backups       Backup[]
 }
 
+// Admin panelinde özel/kısıtlı erişimli roller — admin panelden oluşturulur
+// (bkz. app/admin/ayarlar/roller). Ayarlar bölümü bilerek bu mekanizmanın
+// dışında tutuldu (kullanıcı yönetimi, yedekleme, güncelleme gibi hassas
+// işlemler yalnızca sistemYoneticisiMi ile açılabilir — bir özel role yanlışlıkla
+// bu yetkiler verilemez, bkz. lib/adminYetki.ts).
+model AdminRole {
+  id        String   @id @default(cuid())
+  ad        String   @unique @db.VarChar(100)
+  // İzin verilen admin sayfalarının href listesi (ör. ["/admin/kategoriler",
+  // "/admin/kurslar"]) — admin-nav-data.tsx'teki hreflerle eşleşir.
+  sayfalar  Json
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  kullanicilar User[]
+}
+
 // Admin panel denetim günlüğü — giriş denemeleri + admin işlemleri (bkz. lib/systemLog.ts).
 model SystemLog {
   id       String @id @default(cuid())
   seviye   String // "INFO" | "ERROR"
-  kategori String // "auth" | "kategori" | "kurs" | "ders" | "kullanici" | "uyelik" | "cache" | "yedekleme" | "guncelleme"
+  kategori String // "auth" | "kategori" | "kurs" | "ders" | "kullanici" | "uyelik" | "cache" | "yedekleme" | "guncelleme" | "yorum" | "rol"
   aksiyon  String // "login" | "login_basarisiz" | "olustur" | "guncelle" | "sil" | "temizle" | "iptal" | "hata"
 
   kaynakEtiketi String? // insan-okunabilir özet (örn. kurs başlığı) — kayıt silinse de okunur kalır
@@ -225,8 +249,14 @@ model SiteSettings {
 
   // Google Analytics 4 Measurement ID (ör. "G-XXXXXXXXXX") — doluysa app/(site)/layout.tsx
   // gtag.js'i yalnızca herkese açık sayfalarda enjekte eder (admin panelinde hiç yüklenmez).
-  // Yalnızca istemci tarafı izleme kodu — gerçek raporlama (GA4 Data API) bu kapsamda yok.
+  // Bu, veriyi TOPLAYAN taraf. Aşağıdaki ikisi ise TOPLANAN veriyi panele geri OKUYAN taraf
+  // (GA4 Data API) — birbirinden bağımsız, biri olmadan diğeri çalışmaz (bkz. lib/analitikVerisi.ts).
   gaMeasurementId String? @db.VarChar(20)
+  // GA4 mülk kimliği (Property ID) — Data API isteklerinde "properties/{id}" olarak kullanılır.
+  gaPropertyId String? @db.VarChar(30)
+  // Servis hesabı JSON anahtarı — AES-256-GCM ile şifreli saklanır (bkz. lib/crypto.ts),
+  // düz metin olarak asla DB'ye yazılmaz.
+  gaServiceAccount String? @db.Text
 
   updatedAt DateTime @updatedAt
 }
@@ -257,6 +287,19 @@ model PricingPlan {
   vurgulu    Boolean  @default(false)
   sira       Int      @default(0)
   updatedAt  DateTime @updatedAt
+}
+
+// Anasayfa "Pratikleriyle değişenler" bölümü — admin panelden yönetilir
+// (bkz. app/admin/yorumlar). Birden fazla kayıt olduğunda anasayfada yatayda
+// kaydırılabilir bir şeride dönüşür (bkz. app/(site)/page.tsx > YORUMLAR).
+model Testimonial {
+  id        String   @id @default(cuid())
+  isim      String   @db.VarChar(100)
+  rol       String   @db.VarChar(100)
+  yorum     String   @db.Text
+  sira      Int      @default(0)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }
 
 model ContactMessage {

@@ -1,15 +1,20 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
+import bcrypt from "bcryptjs";
 import { getAdminSession } from "@/lib/admin-auth";
 import { db } from "@/lib/db";
 import { logKaydet } from "@/lib/systemLog";
 
+// sifre opsiyonel — boş bırakılırsa mevcut şifre değişmez. Doluysa en az 8
+// karakter (kayıt formuyla aynı kural, bkz. app/api/auth/register/route.ts).
 const kullaniciSemasi = z.object({
   ad: z.string().min(2),
   email: z.string().email(),
   telefon: z.string().trim().max(32).optional().or(z.literal("")),
   role: z.enum(["UYE", "ADMIN"]),
   sistemYoneticisiMi: z.boolean(),
+  adminRoleId: z.string().nullable().optional(),
+  sifre: z.string().min(8, "Şifre en az 8 karakter olmalı").optional().or(z.literal("")),
 });
 
 export async function PATCH(req: Request, { params }: { params: { id: string } }) {
@@ -20,10 +25,12 @@ export async function PATCH(req: Request, { params }: { params: { id: string } }
   if (!govde.success) {
     return NextResponse.json({ hata: "Geçersiz form verisi" }, { status: 400 });
   }
-  const { ad, email, telefon, role } = govde.data;
+  const { ad, email, telefon, role, sifre } = govde.data;
   // Üye rolüne düşen bir hesap sistem yöneticisi olamaz — istemci bunu zaten
-  // gizliyor ama sunucu tarafında da zorluyoruz.
+  // gizliyor ama sunucu tarafında da zorluyoruz. Aynı şekilde sistem yöneticisi
+  // zaten tam erişime sahip olduğu için özel bir role atanması anlamsız.
   const sistemYoneticisiMi = role === "ADMIN" ? govde.data.sistemYoneticisiMi : false;
+  const adminRoleId = role === "ADMIN" && !sistemYoneticisiMi ? govde.data.adminRoleId || null : null;
 
   const kendisiMi = params.id === session.user?.id;
   if (kendisiMi && role !== "ADMIN") {
@@ -48,13 +55,22 @@ export async function PATCH(req: Request, { params }: { params: { id: string } }
   try {
     const kullanici = await db.user.update({
       where: { id: params.id },
-      data: { ad, email: email.toLowerCase(), telefon: telefon || null, role, sistemYoneticisiMi },
+      data: {
+        ad,
+        email: email.toLowerCase(),
+        telefon: telefon || null,
+        role,
+        sistemYoneticisiMi,
+        adminRoleId,
+        ...(sifre && { passwordHash: await bcrypt.hash(sifre, 12) }),
+      },
     });
     await logKaydet({
       seviye: "INFO",
       kategori: "kullanici",
       aksiyon: "guncelle",
       kaynakEtiketi: kullanici.email,
+      mesaj: sifre ? "Şifre admin tarafından değiştirildi" : undefined,
       userId: session.user?.id,
       kullaniciEtiketi: session.user?.email,
     });
