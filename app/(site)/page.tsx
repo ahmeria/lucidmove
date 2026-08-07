@@ -1,0 +1,304 @@
+import Link from "next/link";
+import Image from "next/image";
+import UyelikClient from "@/app/(site)/uyelik/UyelikClient";
+import { db } from "@/lib/db";
+import { getSiteSettings, getInstructorProfile, satirlaraAyir, paragraflaraAyir, formatFiyat } from "@/lib/settings";
+
+// "Nefesinizin *hızında* bir yoga pratiği." -> yıldızlar arasındaki kısım vurgulanır.
+function VurgulaYildiz({ metin }: { metin: string }) {
+  const parcalar = metin.split(/\*(.+?)\*/);
+  return (
+    <>
+      {parcalar.map((parca, i) =>
+        i % 2 === 1 ? (
+          <em key={i} className="not-italic text-vurgu">
+            {parca}
+          </em>
+        ) : (
+          <span key={i}>{parca}</span>
+        )
+      )}
+    </>
+  );
+}
+
+export default async function Anasayfa({ searchParams }: { searchParams: { durum?: string } }) {
+  const [ayarlar, egitmen, planlar, kategoriler, kategorisizKurslar] = await Promise.all([
+    getSiteSettings(),
+    getInstructorProfile(),
+    db.pricingPlan.findMany({ orderBy: { sira: "asc" } }),
+    db.category.findMany({
+      orderBy: { sira: "asc" },
+      include: {
+        courses: {
+          orderBy: [{ sira: "asc" }, { createdAt: "asc" }],
+          include: { _count: { select: { lessons: true } } },
+        },
+      },
+    }),
+    db.course.findMany({
+      where: { categoryId: null },
+      orderBy: [{ sira: "asc" }, { createdAt: "asc" }],
+      include: { _count: { select: { lessons: true } } },
+    }),
+  ]);
+
+  const bioParagraflari = paragraflaraAyir(egitmen.bio);
+  const sertifikalar = satirlaraAyir(egitmen.sertifikalar);
+  const yaklasim = satirlaraAyir(egitmen.yaklasim);
+  const instagramHandle = "@" + ayarlar.instagramUrl.replace(/\/$/, "").split("/").pop();
+
+  const kursGruplari = [
+    ...kategoriler.filter((k) => k.courses.length > 0).map((k) => ({ baslik: k.ad, kurslar: k.courses })),
+    ...(kategorisizKurslar.length > 0 ? [{ baslik: "Diğer", kurslar: kategorisizKurslar }] : []),
+  ];
+
+  return (
+    <div>
+      {/* HERO */}
+      <section className="relative h-[92vh] min-h-[640px] w-full overflow-hidden">
+        <Image
+          src="https://images.unsplash.com/photo-1544367567-0f2fcb009e0b?q=80&w=1800&auto=format&fit=crop"
+          alt="Yoga pratiği yapan bir kadın"
+          fill
+          priority
+          sizes="100vw"
+          className="object-cover"
+        />
+        <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/25 to-black/50" />
+
+        <div className="relative h-full container-nefes flex flex-col justify-end pb-16 sm:pb-24">
+          <div className="max-w-xl animate-riseIn">
+            <h1 className="font-display text-4xl sm:text-6xl font-bold leading-[1.08] text-white">
+              <VurgulaYildiz metin={ayarlar.heroBaslik} />
+            </h1>
+            <p className="font-body text-base sm:text-lg text-white/80 mt-5 max-w-md leading-relaxed">
+              {ayarlar.heroAltBaslik}
+            </p>
+            <div className="flex flex-wrap items-center gap-4 mt-8">
+              <Link
+                href="#uyelik"
+                className="bg-koyu text-white px-7 py-3.5 rounded-full font-body text-sm hover:bg-koyu/80 transition-colors inline-flex items-center gap-2"
+              >
+                {ayarlar.heroCtaBirincil} <span aria-hidden>→</span>
+              </Link>
+              <Link
+                href="#kurslar"
+                className="bg-zemin/90 text-metin px-6 py-3 rounded-full font-body text-sm hover:bg-zemin transition-colors"
+              >
+                {ayarlar.heroCtaIkincil}
+              </Link>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* ÜYELİK / FİYATLANDIRMA */}
+      {/* Not: bölüm koşulsuz render edilir (yalnızca içerik dallanır) — aksi halde
+          admin tüm planları silerse "#uyelik" çapası DOM'dan kaybolur ve navbar/footer/
+          hero'daki tüm "#uyelik" linkleri sessizce hiçbir yere gitmez. */}
+      <section id="uyelik" className="container-nefes py-24 scroll-mt-20">
+        <div className="text-center max-w-xl mx-auto mb-12">
+          <p className="font-mono text-xs tracking-[0.3em] uppercase text-vurgu mb-3">{ayarlar.uyelikEyebrow}</p>
+          <h2 className="font-display text-3xl sm:text-4xl font-bold text-metin">{ayarlar.uyelikBaslik}</h2>
+          <p className="font-body text-metin/70 mt-3">{ayarlar.uyelikAltBaslik}</p>
+        </div>
+
+        {planlar.length === 0 ? (
+          <p className="font-body text-metin/60 text-center">Şu anda tanımlı bir üyelik planı yok.</p>
+        ) : (
+          <UyelikClient
+            baslangicDurum={searchParams.durum}
+            planlar={planlar.map((p) => ({
+              plan: p.plan,
+              baslik: p.baslik,
+              fiyat: formatFiyat(p.fiyat.toNumber(), ayarlar),
+              periyot: p.periyot,
+              aciklama: p.aciklama,
+              ozellikler: satirlaraAyir(p.ozellikler),
+              rozet: p.rozet,
+              vurgulu: p.vurgulu,
+            }))}
+          />
+        )}
+      </section>
+
+      {/* KURSLAR */}
+      <section id="kurslar" className="container-nefes py-24 scroll-mt-20">
+        <div className="text-center max-w-xl mx-auto mb-14">
+          <p className="font-mono text-xs tracking-[0.3em] uppercase text-vurgu mb-3">Kütüphane</p>
+          <h2 className="font-display text-3xl sm:text-4xl font-bold text-metin">Kurslar</h2>
+          <p className="font-body text-metin/70 mt-3">
+            Her kurs, tek bir temaya odaklanan bir ders serisidir. Üyeler tüm derslere sınırsız erişebilir; her
+            kursta bir tanıtım dersi ücretsizdir.
+          </p>
+        </div>
+
+        {kursGruplari.length === 0 ? (
+          <p className="font-body text-metin/60 text-center">Henüz kurs eklenmedi.</p>
+        ) : (
+          <div className="space-y-16">
+            {kursGruplari.map((grup) => (
+              <div key={grup.baslik}>
+                <h3 className="font-display text-xl font-bold text-metin mb-6">{grup.baslik}</h3>
+                <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                  {grup.kurslar.map((k) => (
+                    <Link
+                      key={k.id}
+                      href={`/kurslar/${k.slug}`}
+                      className="group bg-kart border border-cizgi rounded-[1.5rem] overflow-hidden shadow-organik hover:shadow-organik-hover hover:border-ikincil transition-all"
+                    >
+                      {k.kapakUrl && (
+                        <div className="relative aspect-[4/3] overflow-hidden">
+                          <Image
+                            src={k.kapakUrl}
+                            alt={k.baslik}
+                            fill
+                            sizes="(min-width: 1024px) 33vw, (min-width: 640px) 50vw, 100vw"
+                            className="object-cover group-hover:scale-105 transition-transform duration-500"
+                          />
+                        </div>
+                      )}
+                      <div className="p-6">
+                        <span className="font-mono text-xs text-ikincil-dark">{k.seviye}</span>
+                        <h4 className="font-display text-xl font-bold text-metin mt-3">{k.baslik}</h4>
+                        <p className="font-body text-sm text-metin/60 mt-2 line-clamp-2">{k.aciklama}</p>
+                        <p className="font-body text-xs text-metin/45 mt-4">{k._count.lessons} ders</p>
+                      </div>
+                    </Link>
+                  ))}
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+      </section>
+
+      {/* GALERİ */}
+      <section className="container-nefes pb-24">
+        <div className="text-center max-w-xl mx-auto mb-10">
+          <p className="font-mono text-xs tracking-[0.3em] uppercase text-vurgu mb-3">Stüdyodan kareler</p>
+          <h2 className="font-display text-3xl sm:text-4xl font-bold text-metin">Pratiğin içinden</h2>
+        </div>
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+          {[
+            "https://images.unsplash.com/photo-1544367567-0f2fcb009e0b?q=80&w=600&auto=format&fit=crop",
+            "https://images.unsplash.com/photo-1552196563-55cd4e45efb3?q=80&w=600&auto=format&fit=crop",
+            "https://images.unsplash.com/photo-1599901860904-17e6ed7083a0?q=80&w=600&auto=format&fit=crop",
+            "https://images.unsplash.com/photo-1506126613408-eca07ce68773?q=80&w=600&auto=format&fit=crop",
+          ].map((src, i) => (
+            <div
+              key={src}
+              className={`relative aspect-square rounded-2xl overflow-hidden ${i % 2 === 1 ? "sm:mt-8" : ""}`}
+            >
+              <Image
+                src={src}
+                alt="Stüdyodan bir kare"
+                fill
+                sizes="(min-width: 640px) 25vw, 50vw"
+                className="object-cover"
+              />
+            </div>
+          ))}
+        </div>
+      </section>
+
+      {/* HAKKIMDA */}
+      <section id="hakkimda" className="bg-koyu text-zemin scroll-mt-20">
+        <div className="container-nefes py-24 grid lg:grid-cols-[0.9fr_1.1fr] gap-14 items-start">
+          <div className="relative aspect-[4/5] foto-organik overflow-hidden lg:sticky lg:top-28">
+            <Image
+              src={egitmen.portreUrl}
+              alt={egitmen.ad}
+              fill
+              sizes="(min-width: 1024px) 45vw, 100vw"
+              className="object-cover"
+            />
+          </div>
+
+          <div>
+            <p className="font-mono text-xs tracking-[0.3em] uppercase text-vurgu mb-4">Eğitmen</p>
+            <h2 className="font-display text-3xl sm:text-4xl font-bold leading-tight">Merhaba, ben {egitmen.ad}.</h2>
+            <div className="font-body text-zemin/75 mt-6 space-y-5 leading-relaxed max-w-xl">
+              {bioParagraflari.map((p, i) => (
+                <p key={i}>{p}</p>
+              ))}
+            </div>
+
+            <div className="mt-10 grid sm:grid-cols-2 gap-6">
+              <div className="bg-zemin/5 border border-zemin/15 rounded-[1.5rem] p-6">
+                <p className="font-mono text-xs text-vurgu uppercase tracking-[0.2em]">Sertifikalar</p>
+                <ul className="font-body text-sm text-zemin/80 mt-3 space-y-1.5">
+                  {sertifikalar.map((s, i) => (
+                    <li key={i}>{s}</li>
+                  ))}
+                </ul>
+              </div>
+              <div className="bg-zemin/5 border border-zemin/15 rounded-[1.5rem] p-6">
+                <p className="font-mono text-xs text-vurgu uppercase tracking-[0.2em]">Yaklaşım</p>
+                <ul className="font-body text-sm text-zemin/80 mt-3 space-y-1.5">
+                  {yaklasim.map((y, i) => (
+                    <li key={i}>{y}</li>
+                  ))}
+                </ul>
+              </div>
+            </div>
+
+            <div className="flex flex-wrap items-center gap-5 mt-10">
+              <Link
+                href="#uyelik"
+                className="inline-block bg-vurgu text-white px-7 py-3.5 rounded-full font-body text-sm hover:bg-vurgu-dark transition-colors"
+              >
+                Derslerime katılın
+              </Link>
+              <Link
+                href={ayarlar.instagramUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="font-body text-sm text-zemin/70 hover:text-zemin border-b border-zemin/30 hover:border-zemin transition-colors"
+              >
+                {instagramHandle} →
+              </Link>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* YORUMLAR */}
+      <section className="relative container-nefes py-24 overflow-hidden">
+        <div className="blob w-[380px] h-[380px] bg-ikincil/10 top-0 right-0" />
+        <div className="relative text-center max-w-xl mx-auto mb-14">
+          <p className="font-mono text-xs tracking-[0.3em] uppercase text-vurgu mb-3">Üyelerimiz ne diyor</p>
+          <h2 className="font-display text-3xl sm:text-4xl font-bold text-metin">Pratikleriyle değişenler</h2>
+        </div>
+
+        <div className="relative grid sm:grid-cols-3 gap-6">
+          {[
+            {
+              isim: "Elif K.",
+              rol: "6 aydır üye",
+              yorum: "Stüdyoya gidecek vaktim hiç olmadı. Artık sabah kahvemi içmeden önce 20 dakikamı ayırabiliyorum.",
+            },
+            {
+              isim: "Mert A.",
+              rol: "1 yıldır üye",
+              yorum: "Aynı eğitmenle ilerlemek büyük fark yaratıyor. Her ders bir öncekinin üzerine kuruluyor gibi hissettiriyor.",
+            },
+            {
+              isim: "Sena T.",
+              rol: "3 aydır üye",
+              yorum: "Başlangıç seviyesinden hiç korkmadım; tempo gerçekten kendi hızınıza bırakılıyor.",
+            },
+          ].map((y) => (
+            <div key={y.isim} className="bg-kart border border-cizgi rounded-[1.5rem] p-7 shadow-organik">
+              <p className="font-display text-vurgu text-3xl leading-none mb-3">&ldquo;</p>
+              <p className="font-body text-sm text-metin/75 leading-relaxed">{y.yorum}</p>
+              <p className="font-body text-sm text-metin mt-6 font-medium">{y.isim}</p>
+              <p className="font-mono text-xs text-metin/45">{y.rol}</p>
+            </div>
+          ))}
+        </div>
+      </section>
+    </div>
+  );
+}

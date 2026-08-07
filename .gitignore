@@ -1,0 +1,19 @@
+node_modules
+.next
+.env
+.env.local
+*.log
+.DS_Store
+next-env.d.ts
+*.tsbuildinfo
+
+# Araç/editör yerel yapılandırması — uygulama kodunun parçası değil, repoya girmez.
+.claude/
+.idea/
+
+# Veritabanı yedekleri (bkz. lib/backup.ts) — hasta/üye verisi içerebilir, repoya girmez.
+/storage/backups/
+
+# Kullanıcı yüklemeleri (kurs videoları, profil fotoğrafları vb.) — büyük, kişisel
+# veri içerebilir ve içerik olarak sunucuda ayrıca tutulur; repoya girmez.
+/public/uploads/

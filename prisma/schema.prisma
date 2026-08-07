@@ -1,0 +1,268 @@
+// LucidMove — Veritabanı Şeması
+// MySQL/MariaDB kullanılıyor (cPanel'in varsayılan veritabanı türü).
+// Kurulum için README.md dosyasına bakın.
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+enum PlanType {
+  AYLIK
+  YILLIK
+}
+
+enum SubscriptionStatus {
+  AKTIF
+  IPTAL_EDILDI
+  SUresi_DOLDU
+  BEKLEMEDE
+}
+
+enum PaymentStatus {
+  BASARILI
+  BASARISIZ
+  BEKLEMEDE
+}
+
+enum Role {
+  UYE
+  ADMIN
+}
+
+enum FiligranDurumu {
+  BEKLIYOR
+  ISLENIYOR
+  HAZIR
+  HATA
+}
+
+model User {
+  id                 String    @id @default(cuid())
+  ad                 String
+  email              String    @unique
+  telefon            String?   @db.VarChar(32)
+  passwordHash       String
+  role               Role      @default(UYE)
+  // Admin'ler içinde yalnızca /admin/ayarlar/** bölümüne erişebilen tekil (ya da az
+  // sayıda) hesap işareti — Kullanıcılar/Roller/Cache/Yedekleme/Sistem Logları bu
+  // bayrağı gerektirir (bkz. lib/admin-auth.ts > getAdminSession).
+  sistemYoneticisiMi Boolean   @default(false)
+  profilFotoUrl      String?   @db.VarChar(512)
+  emailVerified      DateTime?
+  createdAt          DateTime  @default(now())
+  updatedAt          DateTime  @updatedAt
+
+  subscriptions Subscription[]
+  payments      Payment[]
+  progress      LessonProgress[]
+  systemLogs    SystemLog[]
+  backups       Backup[]
+}
+
+// Admin panel denetim günlüğü — giriş denemeleri + admin işlemleri (bkz. lib/systemLog.ts).
+model SystemLog {
+  id       String @id @default(cuid())
+  seviye   String // "INFO" | "ERROR"
+  kategori String // "auth" | "kategori" | "kurs" | "ders" | "kullanici" | "uyelik" | "cache" | "yedekleme" | "guncelleme"
+  aksiyon  String // "login" | "login_basarisiz" | "olustur" | "guncelle" | "sil" | "temizle" | "iptal" | "hata"
+
+  kaynakEtiketi String? // insan-okunabilir özet (örn. kurs başlığı) — kayıt silinse de okunur kalır
+  mesaj         String? @db.Text
+
+  userId        String?
+  user          User?   @relation(fields: [userId], references: [id], onDelete: SetNull)
+  kullaniciEtiketi String? // olay anındaki ad/e-posta anlık görüntüsü (kullanıcı silinse de kalır)
+
+  createdAt DateTime @default(now())
+
+  @@index([kategori, createdAt])
+  @@index([seviye, createdAt])
+}
+
+// Manuel tetiklenen veritabanı yedekleri (bkz. lib/backup.ts). Dosyalar public/ dışında,
+// storage/backups/ altında tutulur — bu tablo yalnızca meta veriyi taşır.
+model Backup {
+  id           String   @id @default(cuid())
+  dosyaAdi     String   @db.VarChar(255)
+  dosyaBoyutu  Int // byte
+  tur          String // "manuel" | "otomatik" (şu an yalnızca "manuel" üretiliyor)
+  durum        String // "basarili" | "basarisiz"
+  hataMesaji   String?  @db.Text
+  createdAt    DateTime @default(now())
+  createdById  String?
+  createdBy    User?    @relation(fields: [createdById], references: [id], onDelete: SetNull)
+}
+
+model Subscription {
+  id                 String             @id @default(cuid())
+  user               User               @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId             String
+  plan               PlanType
+  status             SubscriptionStatus @default(BEKLEMEDE)
+  iyzicoSubscriptionRef String?         @unique
+  startedAt          DateTime           @default(now())
+  currentPeriodEnd   DateTime
+  cancelledAt        DateTime?
+  createdAt          DateTime           @default(now())
+  updatedAt          DateTime           @updatedAt
+
+  payments Payment[]
+
+  @@index([userId])
+}
+
+model Payment {
+  id             String        @id @default(cuid())
+  user           User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId         String
+  subscription   Subscription? @relation(fields: [subscriptionId], references: [id])
+  subscriptionId String?
+  iyzicoPaymentId String?      @unique
+  tutar          Decimal       @db.Decimal(10, 2)
+  paraBirimi     String        @default("TRY")
+  durum          PaymentStatus @default(BEKLEMEDE)
+  createdAt      DateTime      @default(now())
+
+  @@index([userId])
+}
+
+model Category {
+  id        String   @id @default(cuid())
+  ad        String   @db.VarChar(255)
+  slug      String   @unique
+  aciklama  String?  @db.Text
+  sira      Int      @default(0)
+  createdAt DateTime @default(now())
+
+  courses Course[]
+}
+
+model Course {
+  id          String   @id @default(cuid())
+  slug        String   @unique
+  baslik      String
+  aciklama    String   @db.Text
+  seviye      String   // Başlangıç / Orta / İleri
+  kapakUrl    String?  @db.VarChar(512)
+  tanitimVideoUrl String? @db.VarChar(512) // YouTube linki ya da /uploads/videos/... yerel dosya yolu
+  sira        Int      @default(0)
+  createdAt   DateTime @default(now())
+
+  category   Category? @relation(fields: [categoryId], references: [id])
+  categoryId String?
+
+  lessons Lesson[]
+
+  @@index([categoryId])
+}
+
+model Lesson {
+  id          String   @id @default(cuid())
+  course      Course   @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  courseId    String
+  slug        String
+  baslik      String
+  aciklama    String?  @db.Text // video özeti / içerik bilgisi
+  sureDakika  Int
+  kaynakVideoUrl String @db.VarChar(512) // admin'in yüklediği ham dosya — /uploads/videos/kaynak/...
+  videoUrl    String?  @db.VarChar(512) // filigranlanmış, üyeye servis edilen son video
+  filigranDurumu FiligranDurumu @default(BEKLIYOR)
+  ucretsizMi  Boolean  @default(false) // tanıtım için ücretsiz izlenebilir mi
+  sira        Int      @default(0)
+  createdAt   DateTime @default(now())
+
+  progress LessonProgress[]
+
+  @@unique([courseId, slug])
+}
+
+model LessonProgress {
+  id         String   @id @default(cuid())
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId     String
+  lesson     Lesson   @relation(fields: [lessonId], references: [id], onDelete: Cascade)
+  lessonId   String
+  tamamlandi Boolean  @default(false)
+  updatedAt  DateTime @updatedAt
+
+  @@unique([userId, lessonId])
+}
+
+// Tekil satır (id: "ana") — site geneli metinler, iletişim bilgisi, SEO.
+// Admin panelinden "Genel Ayarlar" sayfasında düzenlenir.
+model SiteSettings {
+  id String @id @default("ana")
+
+  siteBasligi     String @db.VarChar(255)
+  siteAciklamasi  String @db.Text
+
+  heroEyebrow      String @db.VarChar(255)
+  heroBaslik       String @db.Text
+  heroAltBaslik    String @db.Text
+  heroCtaBirincil  String @db.VarChar(100)
+  heroCtaIkincil   String @db.VarChar(100)
+
+  uyelikEyebrow    String @db.VarChar(255)
+  uyelikBaslik     String @db.Text
+  uyelikAltBaslik  String @db.Text
+
+  iletisimEmail    String @db.VarChar(255)
+  calismaSaatleri  String @db.VarChar(255)
+  instagramUrl     String @db.VarChar(512)
+  footerTagline    String @db.Text
+
+  // Para birimi: yalnızca EKRANDA GÖSTERİM biçimini etkiler — Iyzico ödeme tutarı her
+  // zaman PricingPlan.fiyat'tan (TL) hesaplanır, bu alan tutarı DEĞİŞTİRMEZ.
+  paraBirimi         String @default("TRY") @db.VarChar(3) // "TRY" | "USD" | "EUR"
+  // "ONCE_SEMBOL" -> "₺299,90" | "SONRA_SEMBOL" -> "299,90 ₺" | "KOD" -> "TRY 299,90"
+  paraBirimiGosterimi String @default("ONCE_SEMBOL") @db.VarChar(20)
+
+  // Google Analytics 4 Measurement ID (ör. "G-XXXXXXXXXX") — doluysa app/(site)/layout.tsx
+  // gtag.js'i yalnızca herkese açık sayfalarda enjekte eder (admin panelinde hiç yüklenmez).
+  // Yalnızca istemci tarafı izleme kodu — gerçek raporlama (GA4 Data API) bu kapsamda yok.
+  gaMeasurementId String? @db.VarChar(20)
+
+  updatedAt DateTime @updatedAt
+}
+
+// Tekil satır (id: "ana") — eğitmen profili. Admin panelinden düzenlenir.
+model InstructorProfile {
+  id String @id @default("ana")
+
+  ad                  String @db.VarChar(255)
+  bio                 String @db.Text // paragraflar boş satırla ayrılır
+  sertifikalar        String @db.Text // satır satır liste
+  yaklasim            String @db.Text // satır satır liste
+  portreUrl           String @db.VarChar(512)
+  hakkimdaTeaserOzet  String @db.Text // ana sayfadaki kısa tanıtım metni
+
+  updatedAt DateTime @updatedAt
+}
+
+model PricingPlan {
+  id         String   @id @default(cuid())
+  plan       PlanType @unique
+  baslik     String   @db.VarChar(100)
+  fiyat      Decimal  @db.Decimal(10, 2)
+  periyot    String   @db.VarChar(50)
+  aciklama   String   @db.Text
+  ozellikler String   @db.Text // satır satır liste
+  rozet      String?  @db.VarChar(100)
+  vurgulu    Boolean  @default(false)
+  sira       Int      @default(0)
+  updatedAt  DateTime @updatedAt
+}
+
+model ContactMessage {
+  id         String   @id @default(cuid())
+  ad         String   @db.VarChar(255)
+  email      String   @db.VarChar(255)
+  mesaj      String   @db.Text
+  okunduMu   Boolean  @default(false)
+  createdAt  DateTime @default(now())
+}

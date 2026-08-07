@@ -1,0 +1,108 @@
+import Link from "next/link";
+import { notFound } from "next/navigation";
+import { getAdminSession } from "@/lib/admin-auth";
+import { db } from "@/lib/db";
+import Kart, { StatKart } from "@/components/admin/Kart";
+import AyarlarSekmeleri from "../AyarlarSekmeleri";
+import KullaniciSilButonu from "./KullaniciSilButonu";
+
+export const dynamic = "force-dynamic";
+
+const ROL_ETIKETI: Record<string, string> = { UYE: "Üye", ADMIN: "Admin" };
+
+function uyelikRozetiniAl(abonelik: { status: string; currentPeriodEnd: Date } | undefined) {
+  if (!abonelik) return { metin: "Üyeliksiz", sinif: "bg-metin/10 text-metin/50" };
+  if (abonelik.currentPeriodEnd <= new Date()) return { metin: "Süresi doldu", sinif: "bg-metin/10 text-metin/50" };
+  if (abonelik.status === "IPTAL_EDILDI") return { metin: "İptal edildi", sinif: "bg-amber-100 text-amber-800" };
+  return { metin: "Aktif", sinif: "bg-emerald-100 text-emerald-800" };
+}
+
+export default async function AdminKullanicilar() {
+  const session = await getAdminSession();
+  if (!session?.sistemYoneticisiMi) notFound();
+
+  const kullanicilar = await db.user.findMany({
+    orderBy: { createdAt: "asc" },
+    include: {
+      subscriptions: {
+        where: { status: { in: ["AKTIF", "IPTAL_EDILDI"] } },
+        orderBy: { createdAt: "desc" },
+        take: 1,
+      },
+    },
+  });
+
+  const sistemYoneticisiSayisi = kullanicilar.filter((k) => k.sistemYoneticisiMi).length;
+
+  return (
+    <div>
+      <p className="font-mono text-xs uppercase tracking-[0.2em] text-vurgu mb-2">Ayarlar</p>
+      <h1 className="font-display text-3xl font-bold text-metin mb-6">Kullanıcılar</h1>
+
+      <AyarlarSekmeleri />
+
+      <div className="mb-6 max-w-xs">
+        <StatKart etiket="Toplam kullanıcı" deger={kullanicilar.length} renk="vurgu" />
+      </div>
+
+      <Kart dolgu={false} className="overflow-x-auto">
+        <table className="w-full text-left font-body text-sm">
+          <thead>
+            <tr className="bg-zemin border-b border-cizgi text-metin/50 text-xs uppercase tracking-wide">
+              <th className="px-5 py-3">Ad</th>
+              <th className="px-5 py-3">İletişim</th>
+              <th className="px-5 py-3">Rol</th>
+              <th className="px-5 py-3">Üyelik</th>
+              <th className="px-5 py-3">Kayıt</th>
+              <th className="px-5 py-3"></th>
+            </tr>
+          </thead>
+          <tbody>
+            {kullanicilar.map((k) => {
+              const rozet = uyelikRozetiniAl(k.subscriptions[0]);
+              return (
+                <tr key={k.id} className="border-b border-cizgi last:border-0 hover:bg-zemin/60 transition-colors">
+                  <td className="px-5 py-3">
+                    <p className="text-metin font-medium">{k.ad}</p>
+                    {k.sistemYoneticisiMi && (
+                      <span className="font-mono text-[10px] uppercase tracking-wide text-vurgu-dark">
+                        Sistem yöneticisi
+                      </span>
+                    )}
+                  </td>
+                  <td className="px-5 py-3 text-metin/60">
+                    <p>{k.email}</p>
+                    {k.telefon && <p className="text-xs text-metin/45">{k.telefon}</p>}
+                  </td>
+                  <td className="px-5 py-3 text-metin/60">{ROL_ETIKETI[k.role] ?? k.role}</td>
+                  <td className="px-5 py-3">
+                    <span className={`font-mono text-[11px] uppercase tracking-wide px-2.5 py-1 rounded-full ${rozet.sinif}`}>
+                      {rozet.metin}
+                    </span>
+                  </td>
+                  <td className="px-5 py-3 text-metin/60">
+                    {new Intl.DateTimeFormat("tr-TR", { dateStyle: "medium" }).format(k.createdAt)}
+                  </td>
+                  <td className="px-5 py-3 text-right space-x-4 whitespace-nowrap">
+                    <Link
+                      href={`/admin/ayarlar/kullanicilar/${k.id}/duzenle`}
+                      className="text-vurgu hover:text-vurgu-dark"
+                    >
+                      Düzenle
+                    </Link>
+                    <KullaniciSilButonu
+                      kullaniciId={k.id}
+                      kullaniciAdi={k.ad}
+                      kendisiMi={k.id === session.user?.id}
+                      tekSistemYoneticisiMi={k.sistemYoneticisiMi && sistemYoneticisiSayisi <= 1}
+                    />
+                  </td>
+                </tr>
+              );
+            })}
+          </tbody>
+        </table>
+      </Kart>
+    </div>
+  );
+}

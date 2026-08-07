@@ -1,0 +1,50 @@
+import { notFound } from "next/navigation";
+import { getAdminSession } from "@/lib/admin-auth";
+import { db } from "@/lib/db";
+import Kart from "@/components/admin/Kart";
+import AyarlarSekmeleri from "../AyarlarSekmeleri";
+import CacheTemizleButonu from "./CacheTemizleButonu";
+
+export const dynamic = "force-dynamic";
+
+export default async function AdminCache() {
+  const session = await getAdminSession();
+  if (!session?.sistemYoneticisiMi) notFound();
+
+  const sonTemizleme = await db.systemLog.findFirst({
+    where: { kategori: "cache", aksiyon: "temizle" },
+    orderBy: { createdAt: "desc" },
+  });
+
+  return (
+    <div>
+      <p className="font-mono text-xs uppercase tracking-[0.2em] text-vurgu mb-2">Ayarlar</p>
+      <h1 className="font-display text-3xl font-bold text-metin mb-6">Cache</h1>
+
+      <AyarlarSekmeleri />
+
+      <p className="font-body text-sm text-metin/60 mb-6 max-w-2xl">
+        Anasayfa, kurs ve ders sayfalarının önbelleğini elle tazeler. Normalde içerik değişiklikleri (kurs/ders/kategori
+        düzenleme) ilgili sayfayı zaten otomatik tazeler — bu buton yalnızca beklenmedik bir tutarsızlık durumunda
+        güvenlik supabı olarak kullanılır.
+      </p>
+
+      <Kart className="max-w-xl">
+        <p className="font-body text-sm text-metin/70 mb-4">
+          {sonTemizleme ? (
+            <>
+              Son temizlenme:{" "}
+              <span className="text-metin font-medium">
+                {new Intl.DateTimeFormat("tr-TR", { dateStyle: "medium", timeStyle: "short" }).format(sonTemizleme.createdAt)}
+              </span>{" "}
+              — {sonTemizleme.kullaniciEtiketi ?? "bilinmiyor"}
+            </>
+          ) : (
+            "Henüz manuel bir önbellek temizleme yapılmadı."
+          )}
+        </p>
+        <CacheTemizleButonu />
+      </Kart>
+    </div>
+  );
+}
