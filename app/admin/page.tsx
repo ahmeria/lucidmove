@@ -1,6 +1,7 @@
 import { db } from "@/lib/db";
 import { getSiteSettings } from "@/lib/settings";
 import { StatKart } from "@/components/admin/Kart";
+import { UyeIkonu, AbonelikIkonu, GelirIkonu, MesajIkonu, KursIkonu, AnalitikIkonu } from "@/components/admin/StatIkonlari";
 
 export const dynamic = "force-dynamic";
 
@@ -25,31 +26,43 @@ export default async function AdminDashboard() {
 
   return (
     <div>
-      <p className="font-mono text-xs uppercase tracking-[0.2em] text-vurgu mb-2">Yönetim</p>
-      <h1 className="font-display text-3xl font-bold text-metin mb-8">Panel</h1>
-
       <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
-        <StatKart etiket="Toplam üye" deger={uyeSayisi} href="/admin/uyelikler" renk="vurgu" />
-        <StatKart etiket="Aktif abonelik" deger={aktifAbonelikSayisi} href="/admin/uyelikler" renk="ikincil" />
+        <StatKart etiket="Toplam üye" deger={uyeSayisi} href="/admin/uyelikler" renk="vurgu" ikon={UyeIkonu} />
+        <StatKart
+          etiket="Aktif abonelik"
+          deger={aktifAbonelikSayisi}
+          href="/admin/uyelikler"
+          renk="ikincil"
+          ikon={AbonelikIkonu}
+        />
         <StatKart
           etiket="Bu ay gelir"
           deger={`₺${(buAyGelir._sum.tutar ?? 0).toString()}`}
           href="/admin/uyelikler"
           renk="ikincil"
+          ikon={GelirIkonu}
         />
         <StatKart
           etiket="Okunmamış mesaj"
           deger={okunmamisMesajSayisi}
           href="/admin/mesajlar"
           renk={okunmamisMesajSayisi > 0 ? "amber" : "vurgu"}
+          ikon={MesajIkonu}
         />
-        <StatKart etiket="Kurs / ders" deger={`${kursSayisi} / ${dersSayisi}`} href="/admin/kurslar" renk="vurgu" />
+        <StatKart
+          etiket="Kurs / ders"
+          deger={`${kursSayisi} / ${dersSayisi}`}
+          href="/admin/kurslar"
+          renk="vurgu"
+          ikon={KursIkonu}
+        />
         <StatKart
           etiket="Google Analytics"
           deger={ayarlar.gaMeasurementId ? ayarlar.gaMeasurementId : "Bağlı değil"}
           href="/admin/ayarlar"
           renk={ayarlar.gaMeasurementId ? "ikincil" : "amber"}
           altYazi={ayarlar.gaMeasurementId ? "Raporları Google Analytics'te görüntüleyin" : "Ayarlar'dan bağlayın"}
+          ikon={AnalitikIkonu}
         />
       </div>
     </div>

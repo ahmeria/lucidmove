@@ -1,6 +1,7 @@
 import Link from "next/link";
 import Image from "next/image";
 import UyelikClient from "@/app/(site)/uyelik/UyelikClient";
+import Canlandir from "@/components/Canlandir";
 import { db } from "@/lib/db";
 import { getSiteSettings, getInstructorProfile, satirlaraAyir, paragraflaraAyir, formatFiyat } from "@/lib/settings";
 
@@ -98,74 +99,79 @@ export default async function Anasayfa({ searchParams }: { searchParams: { durum
           admin tüm planları silerse "#uyelik" çapası DOM'dan kaybolur ve navbar/footer/
           hero'daki tüm "#uyelik" linkleri sessizce hiçbir yere gitmez. */}
       <section id="uyelik" className="container-nefes py-24 scroll-mt-20">
-        <div className="text-center max-w-xl mx-auto mb-12">
+        <Canlandir className="text-center max-w-xl mx-auto mb-12">
           <p className="font-mono text-xs tracking-[0.3em] uppercase text-vurgu mb-3">{ayarlar.uyelikEyebrow}</p>
           <h2 className="font-display text-3xl sm:text-4xl font-bold text-metin">{ayarlar.uyelikBaslik}</h2>
           <p className="font-body text-metin/70 mt-3">{ayarlar.uyelikAltBaslik}</p>
-        </div>
+        </Canlandir>
 
         {planlar.length === 0 ? (
           <p className="font-body text-metin/60 text-center">Şu anda tanımlı bir üyelik planı yok.</p>
         ) : (
-          <UyelikClient
-            baslangicDurum={searchParams.durum}
-            planlar={planlar.map((p) => ({
-              plan: p.plan,
-              baslik: p.baslik,
-              fiyat: formatFiyat(p.fiyat.toNumber(), ayarlar),
-              periyot: p.periyot,
-              aciklama: p.aciklama,
-              ozellikler: satirlaraAyir(p.ozellikler),
-              rozet: p.rozet,
-              vurgulu: p.vurgulu,
-            }))}
-          />
+          <Canlandir gecikme={100}>
+            <UyelikClient
+              baslangicDurum={searchParams.durum}
+              planlar={planlar.map((p) => ({
+                plan: p.plan,
+                baslik: p.baslik,
+                fiyat: formatFiyat(p.fiyat.toNumber(), ayarlar),
+                periyot: p.periyot,
+                aciklama: p.aciklama,
+                ozellikler: satirlaraAyir(p.ozellikler),
+                rozet: p.rozet,
+                vurgulu: p.vurgulu,
+              }))}
+            />
+          </Canlandir>
         )}
       </section>
 
       {/* KURSLAR */}
-      <section id="kurslar" className="container-nefes py-24 scroll-mt-20">
-        <div className="text-center max-w-xl mx-auto mb-14">
+      <section id="kurslar" className="relative container-nefes py-24 scroll-mt-20 overflow-hidden">
+        <div className="blob w-[380px] h-[380px] bg-vurgu/10 top-0 right-0" />
+
+        <Canlandir className="relative text-center max-w-xl mx-auto mb-14">
           <p className="font-mono text-xs tracking-[0.3em] uppercase text-vurgu mb-3">Kütüphane</p>
           <h2 className="font-display text-3xl sm:text-4xl font-bold text-metin">Kurslar</h2>
           <p className="font-body text-metin/70 mt-3">
             Her kurs, tek bir temaya odaklanan bir ders serisidir. Üyeler tüm derslere sınırsız erişebilir; her
             kursta bir tanıtım dersi ücretsizdir.
           </p>
-        </div>
+        </Canlandir>
 
         {kursGruplari.length === 0 ? (
-          <p className="font-body text-metin/60 text-center">Henüz kurs eklenmedi.</p>
+          <p className="relative font-body text-metin/60 text-center">Henüz kurs eklenmedi.</p>
         ) : (
-          <div className="space-y-16">
+          <div className="relative space-y-16">
             {kursGruplari.map((grup) => (
               <div key={grup.baslik}>
                 <h3 className="font-display text-xl font-bold text-metin mb-6">{grup.baslik}</h3>
                 <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
-                  {grup.kurslar.map((k) => (
-                    <Link
-                      key={k.id}
-                      href={`/kurslar/${k.slug}`}
-                      className="group bg-kart border border-cizgi rounded-[1.5rem] overflow-hidden shadow-organik hover:shadow-organik-hover hover:border-ikincil transition-all"
-                    >
-                      {k.kapakUrl && (
-                        <div className="relative aspect-[4/3] overflow-hidden">
-                          <Image
-                            src={k.kapakUrl}
-                            alt={k.baslik}
-                            fill
-                            sizes="(min-width: 1024px) 33vw, (min-width: 640px) 50vw, 100vw"
-                            className="object-cover group-hover:scale-105 transition-transform duration-500"
-                          />
+                  {grup.kurslar.map((k, i) => (
+                    <Canlandir key={k.id} gecikme={(i % 3) * 80}>
+                      <Link
+                        href={`/kurslar/${k.slug}`}
+                        className="group block bg-kart border border-cizgi rounded-[1.5rem] overflow-hidden shadow-organik hover:shadow-organik-hover hover:border-ikincil transition-all"
+                      >
+                        {k.kapakUrl && (
+                          <div className="relative aspect-[4/3] overflow-hidden">
+                            <Image
+                              src={k.kapakUrl}
+                              alt={k.baslik}
+                              fill
+                              sizes="(min-width: 1024px) 33vw, (min-width: 640px) 50vw, 100vw"
+                              className="object-cover group-hover:scale-105 transition-transform duration-500"
+                            />
+                          </div>
+                        )}
+                        <div className="p-6">
+                          <span className="font-mono text-xs text-ikincil-dark">{k.seviye}</span>
+                          <h4 className="font-display text-xl font-bold text-metin mt-3">{k.baslik}</h4>
+                          <p className="font-body text-sm text-metin/60 mt-2 line-clamp-2">{k.aciklama}</p>
+                          <p className="font-body text-xs text-metin/45 mt-4">{k._count.lessons} ders</p>
                         </div>
-                      )}
-                      <div className="p-6">
-                        <span className="font-mono text-xs text-ikincil-dark">{k.seviye}</span>
-                        <h4 className="font-display text-xl font-bold text-metin mt-3">{k.baslik}</h4>
-                        <p className="font-body text-sm text-metin/60 mt-2 line-clamp-2">{k.aciklama}</p>
-                        <p className="font-body text-xs text-metin/45 mt-4">{k._count.lessons} ders</p>
-                      </div>
-                    </Link>
+                      </Link>
+                    </Canlandir>
                   ))}
                 </div>
               </div>
@@ -176,10 +182,10 @@ export default async function Anasayfa({ searchParams }: { searchParams: { durum
 
       {/* GALERİ */}
       <section className="container-nefes pb-24">
-        <div className="text-center max-w-xl mx-auto mb-10">
+        <Canlandir className="text-center max-w-xl mx-auto mb-10">
           <p className="font-mono text-xs tracking-[0.3em] uppercase text-vurgu mb-3">Stüdyodan kareler</p>
           <h2 className="font-display text-3xl sm:text-4xl font-bold text-metin">Pratiğin içinden</h2>
-        </div>
+        </Canlandir>
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
           {[
             "https://images.unsplash.com/photo-1544367567-0f2fcb009e0b?q=80&w=600&auto=format&fit=crop",
@@ -187,10 +193,7 @@ export default async function Anasayfa({ searchParams }: { searchParams: { durum
             "https://images.unsplash.com/photo-1599901860904-17e6ed7083a0?q=80&w=600&auto=format&fit=crop",
             "https://images.unsplash.com/photo-1506126613408-eca07ce68773?q=80&w=600&auto=format&fit=crop",
           ].map((src, i) => (
-            <div
-              key={src}
-              className={`relative aspect-square rounded-2xl overflow-hidden ${i % 2 === 1 ? "sm:mt-8" : ""}`}
-            >
+            <Canlandir key={src} gecikme={i * 70} className={`relative aspect-square rounded-2xl overflow-hidden ${i % 2 === 1 ? "sm:mt-8" : ""}`}>
               <Image
                 src={src}
                 alt="Stüdyodan bir kare"
@@ -198,7 +201,7 @@ export default async function Anasayfa({ searchParams }: { searchParams: { durum
                 sizes="(min-width: 640px) 25vw, 50vw"
                 className="object-cover"
               />
-            </div>
+            </Canlandir>
           ))}
         </div>
       </section>
@@ -206,7 +209,7 @@ export default async function Anasayfa({ searchParams }: { searchParams: { durum
       {/* HAKKIMDA */}
       <section id="hakkimda" className="bg-koyu text-zemin scroll-mt-20">
         <div className="container-nefes py-24 grid lg:grid-cols-[0.9fr_1.1fr] gap-14 items-start">
-          <div className="relative aspect-[4/5] foto-organik overflow-hidden lg:sticky lg:top-28">
+          <Canlandir className="relative aspect-[4/5] foto-organik overflow-hidden lg:sticky lg:top-28">
             <Image
               src={egitmen.portreUrl}
               alt={egitmen.ad}
@@ -214,9 +217,9 @@ export default async function Anasayfa({ searchParams }: { searchParams: { durum
               sizes="(min-width: 1024px) 45vw, 100vw"
               className="object-cover"
             />
-          </div>
+          </Canlandir>
 
-          <div>
+          <Canlandir gecikme={100}>
             <p className="font-mono text-xs tracking-[0.3em] uppercase text-vurgu mb-4">Eğitmen</p>
             <h2 className="font-display text-3xl sm:text-4xl font-bold leading-tight">Merhaba, ben {egitmen.ad}.</h2>
             <div className="font-body text-zemin/75 mt-6 space-y-5 leading-relaxed max-w-xl">
@@ -260,17 +263,17 @@ export default async function Anasayfa({ searchParams }: { searchParams: { durum
                 {instagramHandle} →
               </Link>
             </div>
-          </div>
+          </Canlandir>
         </div>
       </section>
 
       {/* YORUMLAR */}
       <section className="relative container-nefes py-24 overflow-hidden">
         <div className="blob w-[380px] h-[380px] bg-ikincil/10 top-0 right-0" />
-        <div className="relative text-center max-w-xl mx-auto mb-14">
+        <Canlandir className="relative text-center max-w-xl mx-auto mb-14">
           <p className="font-mono text-xs tracking-[0.3em] uppercase text-vurgu mb-3">Üyelerimiz ne diyor</p>
           <h2 className="font-display text-3xl sm:text-4xl font-bold text-metin">Pratikleriyle değişenler</h2>
-        </div>
+        </Canlandir>
 
         <div className="relative grid sm:grid-cols-3 gap-6">
           {[
@@ -289,13 +292,13 @@ export default async function Anasayfa({ searchParams }: { searchParams: { durum
               rol: "3 aydır üye",
               yorum: "Başlangıç seviyesinden hiç korkmadım; tempo gerçekten kendi hızınıza bırakılıyor.",
             },
-          ].map((y) => (
-            <div key={y.isim} className="bg-kart border border-cizgi rounded-[1.5rem] p-7 shadow-organik">
+          ].map((y, i) => (
+            <Canlandir key={y.isim} gecikme={i * 90} className="bg-kart border border-cizgi rounded-[1.5rem] p-7 shadow-organik">
               <p className="font-display text-vurgu text-3xl leading-none mb-3">&ldquo;</p>
               <p className="font-body text-sm text-metin/75 leading-relaxed">{y.yorum}</p>
               <p className="font-body text-sm text-metin mt-6 font-medium">{y.isim}</p>
               <p className="font-mono text-xs text-metin/45">{y.rol}</p>
-            </div>
+            </Canlandir>
           ))}
         </div>
       </section>

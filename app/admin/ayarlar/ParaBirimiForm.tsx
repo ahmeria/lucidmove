@@ -45,7 +45,7 @@ export default function ParaBirimiForm({
   }
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-5 font-body max-w-2xl">
+    <form onSubmit={handleSubmit} className="space-y-5 font-body">
       <p className="text-sm text-metin/60">
         Bu ayar yalnızca fiyatların sitede nasıl <em className="not-italic text-metin/80">gösterileceğini</em>{" "}
         belirler — ödeme her zaman Fiyatlandırma sayfasındaki TL tutarı üzerinden Iyzico ile tahsil edilir.

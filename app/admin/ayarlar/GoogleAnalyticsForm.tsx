@@ -30,8 +30,8 @@ export default function GoogleAnalyticsForm({ gaMeasurementId }: { gaMeasurement
   }
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-4 font-body max-w-xl">
-      <p className="text-sm text-metin/60">
+    <form onSubmit={handleSubmit} className="space-y-4 font-body">
+      <p className="text-sm text-metin/60 max-w-2xl">
         GA4 Measurement ID&apos;nizi girin (ör. <code className="text-xs bg-cizgi/50 px-1.5 py-0.5 rounded">G-ABC1234XYZ</code>)
         — kaydedildiğinde site sayfalarına izleme kodu otomatik eklenir. Ziyaretçi/sayfa görüntülenme raporlarını{" "}
         <a
@@ -45,7 +45,7 @@ export default function GoogleAnalyticsForm({ gaMeasurementId }: { gaMeasurement
         üzerinden görüntüleyebilirsiniz.
       </p>
       <div className="flex flex-wrap items-end gap-3">
-        <div className="flex-1 min-w-[220px]">
+        <div className="flex-1 min-w-[220px] max-w-sm">
           <label className="block text-sm text-metin/70 mb-1.5">Measurement ID</label>
           <input
             value={deger}

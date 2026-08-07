@@ -8,9 +8,6 @@ export default async function AdminMesajlar() {
 
   return (
     <div>
-      <p className="font-mono text-xs uppercase tracking-[0.2em] text-vurgu mb-2">Yönetim</p>
-      <h1 className="font-display text-3xl font-bold text-metin mb-8">Mesajlar</h1>
-
       {mesajlar.length === 0 ? (
         <p className="font-body text-metin/60">Henüz mesaj yok.</p>
       ) : (

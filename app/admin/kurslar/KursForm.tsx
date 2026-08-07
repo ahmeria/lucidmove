@@ -3,6 +3,8 @@
 import { useRouter } from "next/navigation";
 import { useState, FormEvent } from "react";
 import { useToast } from "@/components/Toast";
+import GorselInput from "@/components/admin/GorselInput";
+import VideoKareSecici from "@/components/admin/VideoKareSecici";
 import VideoInput from "./VideoInput";
 
 const SEVIYELER = ["Başlangıç", "Orta", "İleri", "Tüm seviyeler"];
@@ -11,7 +13,6 @@ interface KursFormProps {
   kurs?: {
     id: string;
     baslik: string;
-    slug: string;
     aciklama: string;
     seviye: string;
     kapakUrl: string | null;
@@ -26,7 +27,6 @@ export default function KursForm({ kurs, kategoriler }: KursFormProps) {
   const router = useRouter();
   const toast = useToast();
   const [baslik, setBaslik] = useState(kurs?.baslik ?? "");
-  const [slug, setSlug] = useState(kurs?.slug ?? "");
   const [aciklama, setAciklama] = useState(kurs?.aciklama ?? "");
   const [seviye, setSeviye] = useState(kurs?.seviye ?? SEVIYELER[0]);
   const [kapakUrl, setKapakUrl] = useState(kurs?.kapakUrl ?? "");
@@ -35,15 +35,12 @@ export default function KursForm({ kurs, kategoriler }: KursFormProps) {
   const [sira, setSira] = useState(kurs?.sira ?? 0);
   const [gonderiliyor, setGonderiliyor] = useState(false);
 
-  const slugDegisti = kurs && slug !== kurs.slug;
-
   async function handleSubmit(e: FormEvent) {
     e.preventDefault();
     setGonderiliyor(true);
 
     const govde = {
       baslik,
-      slug: slug || undefined,
       aciklama,
       seviye,
       kapakUrl,
@@ -76,7 +73,7 @@ export default function KursForm({ kurs, kategoriler }: KursFormProps) {
   }
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-5 font-body max-w-xl">
+    <form onSubmit={handleSubmit} className="space-y-5 font-body">
       <div>
         <label className="block text-sm text-metin/70 mb-1.5">Başlık</label>
         <input
@@ -85,22 +82,6 @@ export default function KursForm({ kurs, kategoriler }: KursFormProps) {
           required
           className="w-full border border-cizgi rounded-lg px-4 py-2.5 bg-zemin text-metin focus:border-vurgu outline-none"
         />
-      </div>
-      <div>
-        <label className="block text-sm text-metin/70 mb-1.5">
-          Slug {kurs ? "" : "(boş bırakılırsa başlıktan üretilir)"}
-        </label>
-        <input
-          value={slug}
-          onChange={(e) => setSlug(e.target.value)}
-          placeholder={kurs ? kurs.slug : "otomatik"}
-          className="w-full border border-cizgi rounded-lg px-4 py-2.5 bg-zemin text-metin focus:border-vurgu outline-none"
-        />
-        {slugDegisti && (
-          <p className="text-xs text-vurgu-dark mt-1.5">
-            Slug değişikliği bu kursa paylaşılmış linkleri kırabilir.
-          </p>
-        )}
       </div>
       <div>
         <label className="block text-sm text-metin/70 mb-1.5">Açıklama</label>
@@ -112,22 +93,22 @@ export default function KursForm({ kurs, kategoriler }: KursFormProps) {
           className="w-full border border-cizgi rounded-lg px-4 py-2.5 bg-zemin text-metin focus:border-vurgu outline-none resize-none"
         />
       </div>
-      <div>
-        <label className="block text-sm text-metin/70 mb-1.5">Kategori</label>
-        <select
-          value={categoryId}
-          onChange={(e) => setCategoryId(e.target.value)}
-          className="w-full border border-cizgi rounded-lg px-4 py-2.5 bg-zemin text-metin focus:border-vurgu outline-none"
-        >
-          <option value="">Kategorisiz</option>
-          {kategoriler.map((k) => (
-            <option key={k.id} value={k.id}>
-              {k.ad}
-            </option>
-          ))}
-        </select>
-      </div>
-      <div className="grid grid-cols-2 gap-4">
+      <div className="grid sm:grid-cols-3 gap-4">
+        <div>
+          <label className="block text-sm text-metin/70 mb-1.5">Kategori</label>
+          <select
+            value={categoryId}
+            onChange={(e) => setCategoryId(e.target.value)}
+            className="w-full border border-cizgi rounded-lg px-4 py-2.5 bg-zemin text-metin focus:border-vurgu outline-none"
+          >
+            <option value="">Kategorisiz</option>
+            {kategoriler.map((k) => (
+              <option key={k.id} value={k.id}>
+                {k.ad}
+              </option>
+            ))}
+          </select>
+        </div>
         <div>
           <label className="block text-sm text-metin/70 mb-1.5">Seviye</label>
           <select
@@ -153,18 +134,18 @@ export default function KursForm({ kurs, kategoriler }: KursFormProps) {
           />
         </div>
       </div>
-      <div>
-        <label className="block text-sm text-metin/70 mb-1.5">Kapak görsel URL&apos;i (opsiyonel)</label>
-        <input
-          value={kapakUrl}
-          onChange={(e) => setKapakUrl(e.target.value)}
-          placeholder="https://..."
-          className="w-full border border-cizgi rounded-lg px-4 py-2.5 bg-zemin text-metin focus:border-vurgu outline-none"
-        />
-      </div>
-      <div>
-        <label className="block text-sm text-metin/70 mb-1.5">Tanıtım videosu (opsiyonel)</label>
-        <VideoInput value={tanitimVideoUrl} onChange={setTanitimVideoUrl} />
+      <div className="grid lg:grid-cols-2 gap-6">
+        <div>
+          <label className="block text-sm text-metin/70 mb-1.5">Kapak görseli (opsiyonel)</label>
+          <GorselInput value={kapakUrl} onChange={setKapakUrl} />
+        </div>
+        <div>
+          <label className="block text-sm text-metin/70 mb-1.5">Tanıtım videosu (opsiyonel)</label>
+          <VideoInput value={tanitimVideoUrl} onChange={setTanitimVideoUrl} />
+          {tanitimVideoUrl.startsWith("/uploads/") && (
+            <VideoKareSecici videoUrl={tanitimVideoUrl} onSecildi={setKapakUrl} />
+          )}
+        </div>
       </div>
 
       <div className="flex justify-end">

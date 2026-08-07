@@ -35,7 +35,7 @@
 
 - **Display font:** Bricolage Grotesque (`font-display`, `--font-bricolage`)
 - **Body font:** Archivo (`font-body`, `--font-archivo`)
-- **Mono font:** IBM Plex Mono (`font-mono`, `--font-plex-mono`) — used for eyebrow/label text (tracked-out uppercase micro-labels above headings)
+- **Mono font:** JetBrains Mono (`font-mono`, `--font-mono`) — used for eyebrow/label text (tracked-out uppercase micro-labels above headings). Switched from IBM Plex Mono in a later pass; same role/usage, just the typeface.
 - Loaded via `next/font/google` (self-hosted, no external CSS import needed — do **not** add a Google Fonts `<link>`/`@import`, it's already optimal)
 - Logo/wordmark specifically uses Plus Jakarta Sans (PNG-baked, logo file only — not a site-wide font)
 

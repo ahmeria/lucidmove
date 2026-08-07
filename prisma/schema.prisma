@@ -168,6 +168,7 @@ model Lesson {
   slug        String
   baslik      String
   aciklama    String?  @db.Text // video özeti / içerik bilgisi
+  kapakUrl    String?  @db.VarChar(512) // ders listesinde küçük önizleme — yoksa boş görsel yer tutucu gösterilir
   sureDakika  Int
   kaynakVideoUrl String @db.VarChar(512) // admin'in yüklediği ham dosya — /uploads/videos/kaynak/...
   videoUrl    String?  @db.VarChar(512) // filigranlanmış, üyeye servis edilen son video

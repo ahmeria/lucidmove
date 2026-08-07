@@ -4,6 +4,7 @@ import { getAdminSession } from "@/lib/admin-auth";
 import { db } from "@/lib/db";
 import type { Prisma } from "@prisma/client";
 import Kart from "@/components/admin/Kart";
+import SayfaBasligi from "@/components/admin/SayfaBasligi";
 import AyarlarSekmeleri from "../AyarlarSekmeleri";
 import LoglarFiltre from "./LoglarFiltre";
 
@@ -45,10 +46,7 @@ export default async function AdminLoglar({
 
   return (
     <div>
-      <p className="font-mono text-xs uppercase tracking-[0.2em] text-vurgu mb-2">Ayarlar</p>
-      <h1 className="font-display text-3xl font-bold text-metin mb-6">Sistem Logları</h1>
-
-      <AyarlarSekmeleri />
+      <SayfaBasligi sag={<AyarlarSekmeleri />} />
 
       <div className="flex justify-end mb-6">
         <Suspense fallback={null}>

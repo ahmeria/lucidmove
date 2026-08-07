@@ -14,22 +14,21 @@ interface KategoriFormProps {
   };
 }
 
+// Slug artık ayrı bir alan değil, kaydedilirken addan otomatik türetiliyor
+// (bkz. API route) — tüm site genelinde uygulanan aynı desen (bkz. dersler).
 export default function KategoriForm({ kategori }: KategoriFormProps) {
   const router = useRouter();
   const toast = useToast();
   const [ad, setAd] = useState(kategori?.ad ?? "");
-  const [slug, setSlug] = useState(kategori?.slug ?? "");
   const [aciklama, setAciklama] = useState(kategori?.aciklama ?? "");
   const [sira, setSira] = useState(kategori?.sira ?? 0);
   const [gonderiliyor, setGonderiliyor] = useState(false);
-
-  const slugDegisti = kategori && slug !== kategori.slug;
 
   async function handleSubmit(e: FormEvent) {
     e.preventDefault();
     setGonderiliyor(true);
 
-    const govde = { ad, slug: slug || undefined, aciklama, sira: Number(sira) };
+    const govde = { ad, aciklama, sira: Number(sira) };
     const url = kategori ? `/api/admin/kategoriler/${kategori.id}` : "/api/admin/kategoriler";
     const method = kategori ? "PATCH" : "POST";
 
@@ -55,7 +54,7 @@ export default function KategoriForm({ kategori }: KategoriFormProps) {
   }
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-5 font-body max-w-xl">
+    <form onSubmit={handleSubmit} className="space-y-5 font-body">
       <div>
         <label className="block text-sm text-metin/70 mb-1.5">Ad</label>
         <input
@@ -64,18 +63,6 @@ export default function KategoriForm({ kategori }: KategoriFormProps) {
           required
           className="w-full border border-cizgi rounded-lg px-4 py-2.5 bg-zemin text-metin focus:border-vurgu outline-none"
         />
-      </div>
-      <div>
-        <label className="block text-sm text-metin/70 mb-1.5">
-          Slug {kategori ? "" : "(boş bırakılırsa addan üretilir)"}
-        </label>
-        <input
-          value={slug}
-          onChange={(e) => setSlug(e.target.value)}
-          placeholder={kategori ? kategori.slug : "otomatik"}
-          className="w-full border border-cizgi rounded-lg px-4 py-2.5 bg-zemin text-metin focus:border-vurgu outline-none"
-        />
-        {slugDegisti && <p className="text-xs text-vurgu-dark mt-1.5">Slug değişikliği paylaşılmış linkleri kırabilir.</p>}
       </div>
       <div>
         <label className="block text-sm text-metin/70 mb-1.5">Açıklama (opsiyonel)</label>

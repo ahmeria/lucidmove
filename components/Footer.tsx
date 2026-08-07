@@ -1,9 +1,19 @@
+"use client";
+
 import Link from "next/link";
 import Image from "next/image";
+import { usePathname } from "next/navigation";
 import type { SiteSettings } from "@prisma/client";
 
 export default function Footer({ ayarlar }: { ayarlar: SiteSettings }) {
   const instagramHandle = "@" + ayarlar.instagramUrl.replace(/\/$/, "").split("/").pop();
+
+  // Giriş/Kayıt artık tam ekran, immersive tek-viewport bir deneyim (bkz.
+  // app/(site)/giris/page.tsx) — sayfanın kendi içinde yasal linkler zaten
+  // var, ayrıca footer'a gerek yok.
+  const pathname = usePathname();
+  const girisKayitMi = pathname === "/giris" || pathname === "/kayit";
+  if (girisKayitMi) return null;
 
   return (
     <footer className="bg-koyu text-zemin/80 mt-24">

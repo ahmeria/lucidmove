@@ -6,6 +6,7 @@ const config: Config = {
     extend: {
       colors: {
         zemin: "#F2F0EC", // sayfa arkaplanı — sıcak krem
+        "zemin-acik": "#FFFFFF", // admin panel zemini — kart içindeki bg-zemin şeritlerle (ör. tablo başlığı) karışmasın diye kart yüzeyiyle aynı, sınır kartlar border+gölge ile ayrılır
         kart: "#FFFFFF", // kart yüzeyi
         metin: "#121212", // ana metin — neredeyse siyah
         vurgu: {
@@ -25,7 +26,7 @@ const config: Config = {
       fontFamily: {
         display: ["var(--font-bricolage)", "sans-serif"],
         body: ["var(--font-archivo)", "sans-serif"],
-        mono: ["var(--font-plex-mono)", "monospace"],
+        mono: ["var(--font-mono)", "monospace"],
       },
       boxShadow: {
         organik: "0 8px 30px rgba(15, 23, 42, 0.06)",

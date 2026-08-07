@@ -43,47 +43,51 @@ export default function KullaniciForm({ kullanici, kendisiMi }: { kullanici: Kul
   }
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-5 font-body max-w-xl">
-      <div>
-        <label className="block text-sm text-metin/70 mb-1.5">Ad Soyad</label>
-        <input
-          value={ad}
-          onChange={(e) => setAd(e.target.value)}
-          required
-          className="w-full border border-cizgi rounded-lg px-4 py-2.5 bg-zemin text-metin focus:border-vurgu outline-none"
-        />
+    <form onSubmit={handleSubmit} className="space-y-5 font-body">
+      <div className="grid sm:grid-cols-2 gap-4">
+        <div>
+          <label className="block text-sm text-metin/70 mb-1.5">Ad Soyad</label>
+          <input
+            value={ad}
+            onChange={(e) => setAd(e.target.value)}
+            required
+            className="w-full border border-cizgi rounded-lg px-4 py-2.5 bg-zemin text-metin focus:border-vurgu outline-none"
+          />
+        </div>
+        <div>
+          <label className="block text-sm text-metin/70 mb-1.5">E-posta</label>
+          <input
+            type="email"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            required
+            className="w-full border border-cizgi rounded-lg px-4 py-2.5 bg-zemin text-metin focus:border-vurgu outline-none"
+          />
+        </div>
       </div>
-      <div>
-        <label className="block text-sm text-metin/70 mb-1.5">E-posta</label>
-        <input
-          type="email"
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
-          required
-          className="w-full border border-cizgi rounded-lg px-4 py-2.5 bg-zemin text-metin focus:border-vurgu outline-none"
-        />
-      </div>
-      <div>
-        <label className="block text-sm text-metin/70 mb-1.5">Telefon</label>
-        <input
-          type="tel"
-          value={telefon}
-          onChange={(e) => setTelefon(e.target.value)}
-          className="w-full border border-cizgi rounded-lg px-4 py-2.5 bg-zemin text-metin focus:border-vurgu outline-none"
-        />
-      </div>
-      <div>
-        <label className="block text-sm text-metin/70 mb-1.5">Rol</label>
-        <select
-          value={role}
-          onChange={(e) => setRole(e.target.value)}
-          disabled={kendisiMi}
-          title={kendisiMi ? "Kendi rolünüzü değiştiremezsiniz" : undefined}
-          className="w-full border border-cizgi rounded-lg px-4 py-2.5 bg-zemin text-metin focus:border-vurgu outline-none disabled:opacity-50"
-        >
-          <option value="UYE">Üye</option>
-          <option value="ADMIN">Admin</option>
-        </select>
+      <div className="grid sm:grid-cols-2 gap-4">
+        <div>
+          <label className="block text-sm text-metin/70 mb-1.5">Telefon</label>
+          <input
+            type="tel"
+            value={telefon}
+            onChange={(e) => setTelefon(e.target.value)}
+            className="w-full border border-cizgi rounded-lg px-4 py-2.5 bg-zemin text-metin focus:border-vurgu outline-none"
+          />
+        </div>
+        <div>
+          <label className="block text-sm text-metin/70 mb-1.5">Rol</label>
+          <select
+            value={role}
+            onChange={(e) => setRole(e.target.value)}
+            disabled={kendisiMi}
+            title={kendisiMi ? "Kendi rolünüzü değiştiremezsiniz" : undefined}
+            className="w-full border border-cizgi rounded-lg px-4 py-2.5 bg-zemin text-metin focus:border-vurgu outline-none disabled:opacity-50"
+          >
+            <option value="UYE">Üye</option>
+            <option value="ADMIN">Admin</option>
+          </select>
+        </div>
       </div>
 
       {role === "ADMIN" && (

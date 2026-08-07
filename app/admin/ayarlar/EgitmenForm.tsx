@@ -46,10 +46,16 @@ export default function EgitmenForm({ profil }: { profil: Profil }) {
   }
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-5 font-body max-w-2xl">
-      <div>
-        <label className={etiket}>Ad</label>
-        <input value={form.ad} onChange={(e) => alanGuncelle("ad", e.target.value)} className={alan} />
+    <form onSubmit={handleSubmit} className="space-y-5 font-body">
+      <div className="grid sm:grid-cols-2 gap-4">
+        <div>
+          <label className={etiket}>Ad</label>
+          <input value={form.ad} onChange={(e) => alanGuncelle("ad", e.target.value)} className={alan} />
+        </div>
+        <div>
+          <label className={etiket}>Portre görsel URL&apos;i</label>
+          <input value={form.portreUrl} onChange={(e) => alanGuncelle("portreUrl", e.target.value)} className={alan} />
+        </div>
       </div>
       <div>
         <label className={etiket}>Ana sayfa tanıtım cümlesi</label>
@@ -60,25 +66,23 @@ export default function EgitmenForm({ profil }: { profil: Profil }) {
         />
       </div>
       <div>
-        <label className={etiket}>Portre görsel URL&apos;i</label>
-        <input value={form.portreUrl} onChange={(e) => alanGuncelle("portreUrl", e.target.value)} className={alan} />
-      </div>
-      <div>
         <label className={etiket}>Biyografi (paragraflar arasında boş satır bırakın)</label>
         <textarea value={form.bio} onChange={(e) => alanGuncelle("bio", e.target.value)} rows={8} className={alan + " resize-none"} />
       </div>
-      <div>
-        <label className={etiket}>Sertifikalar (satır satır)</label>
-        <textarea
-          value={form.sertifikalar}
-          onChange={(e) => alanGuncelle("sertifikalar", e.target.value)}
-          rows={4}
-          className={alan + " resize-none"}
-        />
-      </div>
-      <div>
-        <label className={etiket}>Yaklaşım (satır satır)</label>
-        <textarea value={form.yaklasim} onChange={(e) => alanGuncelle("yaklasim", e.target.value)} rows={4} className={alan + " resize-none"} />
+      <div className="grid sm:grid-cols-2 gap-4">
+        <div>
+          <label className={etiket}>Sertifikalar (satır satır)</label>
+          <textarea
+            value={form.sertifikalar}
+            onChange={(e) => alanGuncelle("sertifikalar", e.target.value)}
+            rows={4}
+            className={alan + " resize-none"}
+          />
+        </div>
+        <div>
+          <label className={etiket}>Yaklaşım (satır satır)</label>
+          <textarea value={form.yaklasim} onChange={(e) => alanGuncelle("yaklasim", e.target.value)} rows={4} className={alan + " resize-none"} />
+        </div>
       </div>
 
       <div className="flex justify-end">

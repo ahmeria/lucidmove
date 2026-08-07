@@ -21,6 +21,24 @@ const nextConfig = {
       { source: "/uyelik", destination: "/#uyelik", permanent: false },
     ];
   },
+  // Temel güvenlik başlıkları — tüm route'lara uygulanır. Not: kapsamlı bir
+  // Content-Security-Policy bilinçli olarak eklenmedi; Iyzico'nun Checkout
+  // Form gömme akışı (bkz. components/FiyatPlanlari.tsx) kendi script/iframe
+  // kaynaklarını kullanıyor ve doğru domain listesi test edilmeden eklenen
+  // sıkı bir CSP ödeme akışını sessizce kırabilir.
+  async headers() {
+    return [
+      {
+        source: "/:path*",
+        headers: [
+          { key: "X-Frame-Options", value: "DENY" },
+          { key: "X-Content-Type-Options", value: "nosniff" },
+          { key: "Referrer-Policy", value: "strict-origin-when-cross-origin" },
+          { key: "Permissions-Policy", value: "camera=(), microphone=(), geolocation=()" },
+        ],
+      },
+    ];
+  },
 };
 
 export default nextConfig;

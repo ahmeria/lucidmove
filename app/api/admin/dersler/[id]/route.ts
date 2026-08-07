@@ -5,13 +5,16 @@ import { db } from "@/lib/db";
 import { slugifyTr } from "@/lib/slugify";
 import { derslerinSirasiniYenile } from "@/lib/dersler";
 import { dersVideoYoluSemasi } from "@/lib/video";
+import { gorselUrlSemasiOpsiyonel } from "@/lib/gorsel";
 import { dersVideosunuFiligranla } from "@/lib/filigran";
 import { logKaydet } from "@/lib/systemLog";
 
+// Slug artık istemciden alınmıyor — admin panelinde ayrı bir alanı yok,
+// başlıktan otomatik türetiliyor (bkz. app/admin/kurslar/[id]/duzenle/DersYonetimi.tsx).
 const dersSemasi = z.object({
   baslik: z.string().min(2),
-  slug: z.string().min(2),
   aciklama: z.string().optional(),
+  kapakUrl: gorselUrlSemasiOpsiyonel,
   sureDakika: z.number().int().positive(),
   kaynakVideoUrl: dersVideoYoluSemasi,
   ucretsizMi: z.boolean(),
@@ -27,8 +30,8 @@ export async function PATCH(req: Request, { params }: { params: { id: string } }
     return NextResponse.json({ hata: "Geçersiz form verisi" }, { status: 400 });
   }
 
-  const { baslik, aciklama, sureDakika, kaynakVideoUrl, ucretsizMi, sira } = govde.data;
-  const slug = slugifyTr(govde.data.slug);
+  const { baslik, aciklama, kapakUrl, sureDakika, kaynakVideoUrl, ucretsizMi, sira } = govde.data;
+  const slug = slugifyTr(baslik);
 
   try {
     const oncekiDers = await db.lesson.findUnique({ where: { id: params.id }, select: { kaynakVideoUrl: true } });
@@ -40,6 +43,7 @@ export async function PATCH(req: Request, { params }: { params: { id: string } }
         baslik,
         slug,
         aciklama: aciklama || null,
+        kapakUrl: kapakUrl || null,
         sureDakika,
         ucretsizMi,
         sira,

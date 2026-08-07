@@ -50,6 +50,16 @@ function UyeliklerIkonu({ className }: IkonProps) {
   );
 }
 
+function UyelerIkonu({ className }: IkonProps) {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" className={className}>
+      <circle cx="9" cy="8.5" r="3.2" />
+      <path d="M3 19c.6-3.3 3-5 6-5s5.4 1.7 6 5" strokeLinecap="round" strokeLinejoin="round" />
+      <path d="M15.5 5.3c1.4.3 2.5 1.6 2.5 3.2 0 1.6-1.1 2.9-2.5 3.2M18 14.3c1.6.5 2.7 1.9 3 4" strokeLinecap="round" strokeLinejoin="round" />
+    </svg>
+  );
+}
+
 function MesajlarIkonu({ className }: IkonProps) {
   return (
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" className={className}>
@@ -117,6 +127,16 @@ function LoglarIkonu({ className }: IkonProps) {
   );
 }
 
+function EntegrasyonIkonu({ className }: IkonProps) {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" className={className}>
+      <path d="M9 3.5v3M15 3.5v3" strokeLinecap="round" />
+      <path d="M6.5 6.5h11v4a5.5 5.5 0 0 1-11 0Z" strokeLinejoin="round" />
+      <path d="M12 15.5v3M8.5 20.5h7" strokeLinecap="round" />
+    </svg>
+  );
+}
+
 function GuncellemeIkonu({ className }: IkonProps) {
   return (
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" className={className}>
@@ -155,6 +175,7 @@ export function adminNavGruplariniAl(): AdminNavGrubu[] {
       baslik: "Ticaret",
       ogeler: [
         { href: "/admin/fiyatlandirma", label: "Fiyatlandırma", ikon: FiyatlandirmaIkonu },
+        { href: "/admin/uyeler", label: "Üyeler", ikon: UyelerIkonu },
         { href: "/admin/uyelikler", label: "Üyelikler", ikon: UyeliklerIkonu },
       ],
     },
@@ -171,6 +192,7 @@ export function adminNavGruplariniAl(): AdminNavGrubu[] {
 // aynı bu listeden besleniyor — tek kaynak.
 export const AYARLAR_OGELERI: AdminNavOge[] = [
   { href: "/admin/ayarlar", label: "Genel Ayarlar", exact: true, ikon: GenelAyarlarIkonu },
+  { href: "/admin/ayarlar/entegrasyon", label: "Entegrasyon", ikon: EntegrasyonIkonu },
   { href: "/admin/ayarlar/kullanicilar", label: "Kullanıcılar", ikon: KullanicilarIkonu },
   { href: "/admin/ayarlar/roller", label: "Roller", ikon: RollerIkonu },
   { href: "/admin/ayarlar/cache", label: "Cache", ikon: CacheIkonu },

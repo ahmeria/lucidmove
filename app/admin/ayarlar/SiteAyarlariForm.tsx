@@ -54,23 +54,25 @@ export default function SiteAyarlariForm({ ayarlar }: { ayarlar: Ayarlar }) {
   }
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-8 font-body max-w-2xl">
+    <form onSubmit={handleSubmit} className="space-y-8 font-body">
       <div>
         <h3 className="font-body text-sm uppercase tracking-wide text-metin/50 mb-4">Hero</h3>
         <div className="space-y-4">
-          <div>
-            <label className={etiket}>Eyebrow</label>
-            <input value={form.heroEyebrow} onChange={(e) => alanGuncelle("heroEyebrow", e.target.value)} className={alan} />
-          </div>
-          <div>
-            <label className={etiket}>Başlık</label>
-            <textarea value={form.heroBaslik} onChange={(e) => alanGuncelle("heroBaslik", e.target.value)} rows={2} className={alan + " resize-none"} />
+          <div className="grid sm:grid-cols-2 gap-4">
+            <div>
+              <label className={etiket}>Eyebrow</label>
+              <input value={form.heroEyebrow} onChange={(e) => alanGuncelle("heroEyebrow", e.target.value)} className={alan} />
+            </div>
+            <div>
+              <label className={etiket}>Başlık</label>
+              <textarea value={form.heroBaslik} onChange={(e) => alanGuncelle("heroBaslik", e.target.value)} rows={2} className={alan + " resize-none"} />
+            </div>
           </div>
           <div>
             <label className={etiket}>Alt başlık</label>
             <textarea value={form.heroAltBaslik} onChange={(e) => alanGuncelle("heroAltBaslik", e.target.value)} rows={2} className={alan + " resize-none"} />
           </div>
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid sm:grid-cols-2 gap-4">
             <div>
               <label className={etiket}>Birincil buton</label>
               <input value={form.heroCtaBirincil} onChange={(e) => alanGuncelle("heroCtaBirincil", e.target.value)} className={alan} />
@@ -85,7 +87,7 @@ export default function SiteAyarlariForm({ ayarlar }: { ayarlar: Ayarlar }) {
 
       <div>
         <h3 className="font-body text-sm uppercase tracking-wide text-metin/50 mb-4">Üyelik sayfası</h3>
-        <div className="space-y-4">
+        <div className="grid sm:grid-cols-3 gap-4">
           <div>
             <label className={etiket}>Eyebrow</label>
             <input value={form.uyelikEyebrow} onChange={(e) => alanGuncelle("uyelikEyebrow", e.target.value)} className={alan} />
@@ -103,7 +105,7 @@ export default function SiteAyarlariForm({ ayarlar }: { ayarlar: Ayarlar }) {
 
       <div>
         <h3 className="font-body text-sm uppercase tracking-wide text-metin/50 mb-4">İletişim &amp; sosyal</h3>
-        <div className="space-y-4">
+        <div className="grid sm:grid-cols-2 gap-4">
           <div>
             <label className={etiket}>E-posta</label>
             <input type="email" value={form.iletisimEmail} onChange={(e) => alanGuncelle("iletisimEmail", e.target.value)} className={alan} />
@@ -125,7 +127,7 @@ export default function SiteAyarlariForm({ ayarlar }: { ayarlar: Ayarlar }) {
 
       <div>
         <h3 className="font-body text-sm uppercase tracking-wide text-metin/50 mb-4">SEO</h3>
-        <div className="space-y-4">
+        <div className="grid sm:grid-cols-2 gap-4">
           <div>
             <label className={etiket}>Site başlığı</label>
             <input value={form.siteBasligi} onChange={(e) => alanGuncelle("siteBasligi", e.target.value)} className={alan} />

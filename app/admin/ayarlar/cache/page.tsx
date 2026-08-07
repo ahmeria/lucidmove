@@ -2,6 +2,7 @@ import { notFound } from "next/navigation";
 import { getAdminSession } from "@/lib/admin-auth";
 import { db } from "@/lib/db";
 import Kart from "@/components/admin/Kart";
+import SayfaBasligi from "@/components/admin/SayfaBasligi";
 import AyarlarSekmeleri from "../AyarlarSekmeleri";
 import CacheTemizleButonu from "./CacheTemizleButonu";
 
@@ -18,10 +19,7 @@ export default async function AdminCache() {
 
   return (
     <div>
-      <p className="font-mono text-xs uppercase tracking-[0.2em] text-vurgu mb-2">Ayarlar</p>
-      <h1 className="font-display text-3xl font-bold text-metin mb-6">Cache</h1>
-
-      <AyarlarSekmeleri />
+      <SayfaBasligi sag={<AyarlarSekmeleri />} />
 
       <p className="font-body text-sm text-metin/60 mb-6 max-w-2xl">
         Anasayfa, kurs ve ders sayfalarının önbelleğini elle tazeler. Normalde içerik değişiklikleri (kurs/ders/kategori
@@ -29,7 +27,7 @@ export default async function AdminCache() {
         güvenlik supabı olarak kullanılır.
       </p>
 
-      <Kart className="max-w-xl">
+      <Kart>
         <p className="font-body text-sm text-metin/70 mb-4">
           {sonTemizleme ? (
             <>

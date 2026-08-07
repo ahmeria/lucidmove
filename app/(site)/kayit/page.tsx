@@ -119,36 +119,39 @@ function KayitFormu() {
   }
 
   return (
-    <div className="grid lg:grid-cols-2 lg:min-h-[80vh]">
-      {/* GÖRSEL PANEL — yalnızca geniş ekranda, formun soluna sabit editoryal panel */}
-      <div className="relative hidden lg:block overflow-hidden">
-        <Image
-          src="https://images.unsplash.com/photo-1599901860904-17e6ed7083a0?q=80&w=1200&auto=format&fit=crop"
-          alt="Yoga matında nefes çalışması"
-          fill
-          sizes="50vw"
-          className="object-cover"
-        />
-        <div className="absolute inset-0 bg-gradient-to-t from-koyu/95 via-koyu/20 to-koyu/50" />
-        <div className="blob w-[340px] h-[340px] bg-ikincil/25 -top-16 -left-16" />
+    <div className="relative min-h-screen flex items-center justify-center overflow-hidden px-6 py-16">
+      {/* Tam ekran editoryal fotoğraf + koyu degrade — immersive, tek-viewport kayıt deneyimi */}
+      <Image
+        src="https://images.unsplash.com/photo-1599901860904-17e6ed7083a0?q=80&w=1920&auto=format&fit=crop"
+        alt=""
+        fill
+        sizes="100vw"
+        priority
+        className="object-cover"
+      />
+      <div className="absolute inset-0 bg-gradient-to-b from-koyu/85 via-koyu/55 to-koyu/90" />
+      <div className="blob w-[420px] h-[420px] bg-ikincil/25 -top-24 -right-20 animate-breathe" />
+      <div className="blob w-[360px] h-[360px] bg-vurgu/20 -bottom-28 -left-16" />
 
-        <div className="relative h-full flex flex-col justify-end p-12 xl:p-16">
-          <p className="font-mono text-xs tracking-[0.3em] uppercase text-white/70 mb-4">LucidMove</p>
-          <p className="font-display text-3xl xl:text-4xl font-bold text-white leading-snug max-w-sm">
-            Her gün <em className="not-italic text-vurgu-light">birkaç dakika</em>, yalnızca kendinize ait.
-          </p>
-        </div>
-      </div>
+      <div className="relative w-full max-w-md animate-riseIn">
+        <Link href="/" className="flex justify-center mb-8">
+          <Image
+            src="/logo.png"
+            alt="lucidmove"
+            width={754}
+            height={147}
+            className="h-7 w-auto brightness-0 invert"
+            priority
+          />
+        </Link>
 
-      {/* FORM PANEL */}
-      <div className="flex items-center justify-center px-6 py-16 sm:py-20">
-        <div className="w-full max-w-sm">
-          <p className="font-mono text-xs tracking-[0.3em] uppercase text-vurgu-dark mb-4">Üye ol</p>
-          <h1 className="font-display text-3xl sm:text-4xl font-bold text-metin leading-tight">
+        <div className="bg-kart rounded-[2rem] shadow-organik-hover p-8 sm:p-10">
+          <p className="font-mono text-xs tracking-[0.3em] uppercase text-vurgu-dark mb-3">Üye ol</p>
+          <h1 className="font-display text-3xl font-bold text-metin leading-tight">
             Pratiğe başlamak için hesap oluşturun
           </h1>
 
-          <form onSubmit={handleSubmit} className="mt-9 space-y-5 font-body">
+          <form onSubmit={handleSubmit} className="mt-8 space-y-4 font-body">
             <div>
               <label htmlFor="ad" className="block text-sm text-metin/70 mb-1.5">
                 Ad Soyad
@@ -163,7 +166,7 @@ function KayitFormu() {
                   type="text"
                   autoComplete="name"
                   required
-                  className="w-full border border-cizgi rounded-xl pl-11 pr-4 py-3 bg-kart text-metin focus:border-vurgu outline-none transition-colors"
+                  className="w-full border border-cizgi/70 rounded-2xl pl-11 pr-4 py-3.5 bg-zemin/70 text-metin focus:border-vurgu focus:bg-kart outline-none transition-colors"
                 />
               </div>
             </div>
@@ -181,7 +184,7 @@ function KayitFormu() {
                   type="email"
                   autoComplete="email"
                   required
-                  className="w-full border border-cizgi rounded-xl pl-11 pr-4 py-3 bg-kart text-metin focus:border-vurgu outline-none transition-colors"
+                  className="w-full border border-cizgi/70 rounded-2xl pl-11 pr-4 py-3.5 bg-zemin/70 text-metin focus:border-vurgu focus:bg-kart outline-none transition-colors"
                 />
               </div>
             </div>
@@ -199,7 +202,7 @@ function KayitFormu() {
                   type="tel"
                   autoComplete="tel"
                   placeholder="05XX XXX XX XX"
-                  className="w-full border border-cizgi rounded-xl pl-11 pr-4 py-3 bg-kart text-metin focus:border-vurgu outline-none transition-colors"
+                  className="w-full border border-cizgi/70 rounded-2xl pl-11 pr-4 py-3.5 bg-zemin/70 text-metin focus:border-vurgu focus:bg-kart outline-none transition-colors"
                 />
               </div>
             </div>
@@ -218,7 +221,7 @@ function KayitFormu() {
                   autoComplete="new-password"
                   required
                   minLength={8}
-                  className="w-full border border-cizgi rounded-xl pl-11 pr-11 py-3 bg-kart text-metin focus:border-vurgu outline-none transition-colors"
+                  className="w-full border border-cizgi/70 rounded-2xl pl-11 pr-11 py-3.5 bg-zemin/70 text-metin focus:border-vurgu focus:bg-kart outline-none transition-colors"
                 />
                 <button
                   type="button"
@@ -247,13 +250,25 @@ function KayitFormu() {
             </button>
           </form>
 
-          <p className="font-body text-sm text-metin/60 text-center mt-8">
+          <p className="font-body text-sm text-metin/60 text-center mt-7">
             Zaten üye misiniz?{" "}
             <Link href="/giris" className="text-metin font-medium underline underline-offset-2 hover:text-vurgu-dark">
               Giriş yapın
             </Link>
           </p>
         </div>
+
+        <p className="font-body text-xs text-white/60 text-center mt-6 max-w-xs mx-auto leading-relaxed">
+          Hesap oluşturarak{" "}
+          <Link href="/sartlar" className="underline hover:text-white">
+            Kullanım Şartları
+          </Link>{" "}
+          ve{" "}
+          <Link href="/gizlilik" className="underline hover:text-white">
+            Gizlilik Politikası
+          </Link>
+          &apos;nı kabul etmiş olursunuz.
+        </p>
       </div>
     </div>
   );

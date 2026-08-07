@@ -8,6 +8,13 @@ import { hizSiniriniKontrolEt } from "@/lib/rateLimit";
 const GIRIS_DENEME_LIMITI = 8;
 const GIRIS_DENEME_PENCERESI_MS = 5 * 60 * 1000; // 5 dakika
 
+// Kullanıcı bulunamadığında bcrypt.compare hiç çalışmazsa, "yok" ve "var ama
+// şifre yanlış" yanıtları arasında ölçülebilir bir süre farkı oluşur — bu da
+// bir saldırganın yanıt süresini ölçerek hangi e-postaların kayıtlı olduğunu
+// (kullanıcı numaralandırma) çıkarmasına izin verebilir. Sahte bir hash'e
+// karşı da bcrypt.compare çalıştırarak süreyi her iki durumda da eşitliyoruz.
+const SAHTE_HASH = "$2a$12$CwTycUXWue0Thq9StjUM0uJ8Nrhz2E7XlwZE0e6MQpuvNZFqLlV8m";
+
 export const authOptions: NextAuthOptions = {
   session: { strategy: "jwt" },
   pages: {
@@ -40,6 +47,7 @@ export const authOptions: NextAuthOptions = {
 
         const user = await db.user.findUnique({ where: { email } });
         if (!user) {
+          await bcrypt.compare(credentials.password, SAHTE_HASH);
           await logKaydet({ seviye: "ERROR", kategori: "auth", aksiyon: "login_basarisiz", kullaniciEtiketi: email });
           return null;
         }

@@ -2,6 +2,7 @@ import { notFound } from "next/navigation";
 import { getAdminSession } from "@/lib/admin-auth";
 import { getSiteSettings, getInstructorProfile } from "@/lib/settings";
 import Kart from "@/components/admin/Kart";
+import SayfaBasligi from "@/components/admin/SayfaBasligi";
 import AyarlarSekmeleri from "./AyarlarSekmeleri";
 import SiteAyarlariForm from "./SiteAyarlariForm";
 import EgitmenForm from "./EgitmenForm";
@@ -18,19 +19,18 @@ export default async function AdminAyarlar() {
 
   return (
     <div>
-      <p className="font-mono text-xs uppercase tracking-[0.2em] text-vurgu mb-2">Yönetim</p>
-      <h1 className="font-display text-3xl font-bold text-metin mb-6">Genel Ayarlar</h1>
-
-      <AyarlarSekmeleri />
+      <SayfaBasligi sag={<AyarlarSekmeleri />} />
 
       <div className="space-y-6">
-        <Kart baslik="Para Birimi">
-          <ParaBirimiForm paraBirimi={ayarlar.paraBirimi} paraBirimiGosterimi={ayarlar.paraBirimiGosterimi} />
-        </Kart>
+        <div className="grid lg:grid-cols-2 gap-6">
+          <Kart baslik="Para Birimi">
+            <ParaBirimiForm paraBirimi={ayarlar.paraBirimi} paraBirimiGosterimi={ayarlar.paraBirimiGosterimi} />
+          </Kart>
 
-        <Kart baslik="Google Analytics">
-          <GoogleAnalyticsForm gaMeasurementId={ayarlar.gaMeasurementId} />
-        </Kart>
+          <Kart baslik="Google Analytics">
+            <GoogleAnalyticsForm gaMeasurementId={ayarlar.gaMeasurementId} />
+          </Kart>
+        </div>
 
         <Kart baslik="Site & İletişim">
           <SiteAyarlariForm ayarlar={ayarlar} />

@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Bricolage_Grotesque, Archivo, IBM_Plex_Mono } from "next/font/google";
+import { Bricolage_Grotesque, Archivo, JetBrains_Mono } from "next/font/google";
 import "./globals.css";
 import Providers from "@/components/Providers";
 import { getSiteSettings } from "@/lib/settings";
@@ -16,10 +16,10 @@ const archivo = Archivo({
   weight: "variable",
 });
 
-const plexMono = IBM_Plex_Mono({
+const jetbrainsMono = JetBrains_Mono({
   subsets: ["latin"],
   weight: ["400", "500"],
-  variable: "--font-plex-mono",
+  variable: "--font-mono",
 });
 
 export async function generateMetadata(): Promise<Metadata> {
@@ -37,7 +37,7 @@ export async function generateMetadata(): Promise<Metadata> {
 // bu route group ayrımı o hatayı çözüyor.
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="tr" className={`${bricolage.variable} ${archivo.variable} ${plexMono.variable}`}>
+    <html lang="tr" className={`${bricolage.variable} ${archivo.variable} ${jetbrainsMono.variable}`}>
       <body className="font-body bg-zemin text-metin">
         <Providers>{children}</Providers>
       </body>

@@ -1,9 +1,17 @@
 import Link from "next/link";
 import { db } from "@/lib/db";
-import Kart from "@/components/admin/Kart";
+import SayfaBasligi from "@/components/admin/SayfaBasligi";
 import KategoriSilButonu from "./KategoriSilButonu";
 
 export const dynamic = "force-dynamic";
+
+function KlasorIkonu({ className }: { className?: string }) {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" className={className}>
+      <path d="M3.5 6.5a2 2 0 0 1 2-2h4l2 2.2h7a2 2 0 0 1 2 2V17a2 2 0 0 1-2 2h-13a2 2 0 0 1-2-2Z" strokeLinejoin="round" />
+    </svg>
+  );
+}
 
 export default async function AdminKategoriler() {
   const kategoriler = await db.category.findMany({
@@ -13,49 +21,49 @@ export default async function AdminKategoriler() {
 
   return (
     <div>
-      <div className="flex items-center justify-between mb-8">
-        <div>
-          <p className="font-mono text-xs uppercase tracking-[0.2em] text-vurgu mb-2">Yönetim</p>
-          <h1 className="font-display text-3xl font-bold text-metin">Kategoriler</h1>
-        </div>
-        <Link
-          href="/admin/kategoriler/yeni"
-          className="bg-metin text-zemin px-5 py-2.5 rounded-lg font-body text-sm hover:bg-koyu transition-colors"
-        >
-          Yeni kategori
-        </Link>
-      </div>
+      <SayfaBasligi
+        sag={
+          <Link
+            href="/admin/kategoriler/yeni"
+            className="bg-metin text-zemin px-5 py-2.5 rounded-lg font-body text-sm hover:bg-koyu transition-colors cursor-pointer"
+          >
+            Yeni kategori
+          </Link>
+        }
+      />
 
       {kategoriler.length === 0 ? (
         <p className="font-body text-metin/60">Henüz kategori yok.</p>
       ) : (
-        <Kart dolgu={false} className="overflow-x-auto">
-          <table className="w-full text-left font-body text-sm">
-            <thead>
-              <tr className="bg-zemin border-b border-cizgi text-metin/50 text-xs uppercase tracking-wide">
-                <th className="px-5 py-3">Sıra</th>
-                <th className="px-5 py-3">Ad</th>
-                <th className="px-5 py-3">Kurs</th>
-                <th className="px-5 py-3"></th>
-              </tr>
-            </thead>
-            <tbody>
-              {kategoriler.map((k) => (
-                <tr key={k.id} className="border-b border-cizgi last:border-0 hover:bg-zemin/60 transition-colors">
-                  <td className="px-5 py-3 text-metin/60">{k.sira}</td>
-                  <td className="px-5 py-3 text-metin font-medium">{k.ad}</td>
-                  <td className="px-5 py-3 text-metin/60">{k._count.courses}</td>
-                  <td className="px-5 py-3 text-right space-x-4">
-                    <Link href={`/admin/kategoriler/${k.id}/duzenle`} className="text-vurgu hover:text-vurgu-dark">
-                      Düzenle
-                    </Link>
-                    <KategoriSilButonu kategoriId={k.id} kategoriAd={k.ad} />
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </Kart>
+        <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-5">
+          {kategoriler.map((k) => (
+            <div
+              key={k.id}
+              className="bg-kart border border-cizgi rounded-2xl p-6 shadow-organik hover:shadow-organik-hover transition-all"
+            >
+              <div className="flex items-center justify-between">
+                <span className="flex items-center justify-center size-10 rounded-xl bg-vurgu/10 text-vurgu-dark shrink-0">
+                  <KlasorIkonu className="size-5" />
+                </span>
+                <span className="font-mono text-[11px] text-metin/40">Sıra {k.sira}</span>
+              </div>
+
+              <h3 className="font-display text-lg font-bold text-metin mt-4 line-clamp-1">{k.ad}</h3>
+              {k.aciklama && <p className="font-body text-sm text-metin/60 mt-1.5 line-clamp-2">{k.aciklama}</p>}
+              <p className="font-mono text-xs text-metin/45 mt-3">{k._count.courses} kurs</p>
+
+              <div className="flex items-center justify-between mt-5 pt-4 border-t border-cizgi">
+                <Link
+                  href={`/admin/kategoriler/${k.id}/duzenle`}
+                  className="font-body text-sm text-vurgu hover:text-vurgu-dark"
+                >
+                  Düzenle
+                </Link>
+                <KategoriSilButonu kategoriId={k.id} kategoriAd={k.ad} />
+              </div>
+            </div>
+          ))}
+        </div>
       )}
     </div>
   );

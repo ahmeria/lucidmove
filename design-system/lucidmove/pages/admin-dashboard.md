@@ -20,7 +20,7 @@
 
 ## Colors, typography — use MASTER.md verbatim
 
-No admin-specific override. Same `vurgu`/`ikincil`/`zemin`/`kart`/`metin`/`koyu`/`cizgi`/`hata` tokens, same Bricolage Grotesque/Archivo/IBM Plex Mono. The admin panel is the same product, not a different brand — consistency between marketing site and admin matters more than matching a generic dashboard archetype.
+No admin-specific override. Same `vurgu`/`ikincil`/`zemin`/`kart`/`metin`/`koyu`/`cizgi`/`hata` tokens, same Bricolage Grotesque/Archivo/JetBrains Mono. The admin panel is the same product, not a different brand — consistency between marketing site and admin matters more than matching a generic dashboard archetype. Admin-only additions: `zemin-acik` (white admin canvas, distinct from the marketing site's warm-cream `zemin`) and a dark `koyu`-toned sidebar (matches the public site's footer treatment) with an inverted logo.
 
 ## Admin-specific component notes
 

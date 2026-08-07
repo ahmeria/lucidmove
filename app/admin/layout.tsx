@@ -14,17 +14,17 @@ export default async function AdminLayout({ children }: { children: React.ReactN
 
   return (
     <ToastProvider>
-      <div className="min-h-screen grid lg:grid-cols-[248px_1fr] bg-zemin">
-        <aside className="bg-kart border-r border-cizgi lg:h-screen lg:sticky lg:top-0 p-6 flex flex-col">
+      <div className="min-h-screen grid lg:grid-cols-[248px_1fr] bg-zemin-acik">
+        <aside className="bg-koyu lg:h-screen lg:sticky lg:top-0 p-6 flex flex-col">
           <Link href="/">
-            <Image src="/logo.png" alt="lucidmove" width={754} height={147} className="h-6 w-auto" />
+            <Image src="/logo.png" alt="lucidmove" width={754} height={147} className="h-6 w-auto brightness-0 invert" />
           </Link>
-          <p className="font-mono text-[11px] uppercase tracking-[0.2em] text-metin/40 mt-1 mb-8">Yönetim</p>
+          <p className="font-mono text-[11px] uppercase tracking-[0.2em] text-zemin/45 mt-1 mb-8">Yönetim</p>
 
           <AdminNav />
 
-          <div className="mt-auto pt-6 border-t border-cizgi">
-            <p className="font-body text-xs text-metin/50 truncate">{session.user?.email}</p>
+          <div className="mt-auto pt-6 border-t border-zemin/10">
+            <p className="font-body text-xs text-zemin/50 truncate">{session.user?.email}</p>
           </div>
         </aside>
 
@@ -34,7 +34,7 @@ export default async function AdminLayout({ children }: { children: React.ReactN
             userEmail={session.user?.email || ""}
             sistemYoneticisiMi={session.sistemYoneticisiMi}
           />
-          <main className="flex-1 p-6 sm:p-10 max-w-6xl">{children}</main>
+          <main className="flex-1 p-6 sm:p-10">{children}</main>
         </div>
       </div>
     </ToastProvider>

@@ -3,6 +3,8 @@ import { notFound } from "next/navigation";
 import { getAdminSession } from "@/lib/admin-auth";
 import { db } from "@/lib/db";
 import Kart, { StatKart } from "@/components/admin/Kart";
+import SayfaBasligi from "@/components/admin/SayfaBasligi";
+import { UyeIkonu } from "@/components/admin/StatIkonlari";
 import AyarlarSekmeleri from "../AyarlarSekmeleri";
 import KullaniciSilButonu from "./KullaniciSilButonu";
 
@@ -36,13 +38,10 @@ export default async function AdminKullanicilar() {
 
   return (
     <div>
-      <p className="font-mono text-xs uppercase tracking-[0.2em] text-vurgu mb-2">Ayarlar</p>
-      <h1 className="font-display text-3xl font-bold text-metin mb-6">Kullanıcılar</h1>
-
-      <AyarlarSekmeleri />
+      <SayfaBasligi sag={<AyarlarSekmeleri />} />
 
       <div className="mb-6 max-w-xs">
-        <StatKart etiket="Toplam kullanıcı" deger={kullanicilar.length} renk="vurgu" />
+        <StatKart etiket="Toplam kullanıcı" deger={kullanicilar.length} renk="vurgu" ikon={UyeIkonu} />
       </div>
 
       <Kart dolgu={false} className="overflow-x-auto">

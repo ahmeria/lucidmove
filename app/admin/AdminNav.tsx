@@ -13,7 +13,7 @@ export default function AdminNav() {
       {gruplar.map((grup, i) => (
         <div key={grup.baslik ?? `grup-${i}`}>
           {grup.baslik && (
-            <p className="font-mono text-[11px] uppercase tracking-[0.2em] text-metin/40 px-3 mb-1.5">
+            <p className="font-mono text-[11px] uppercase tracking-[0.2em] text-zemin/40 px-3 mb-1.5">
               {grup.baslik}
             </p>
           )}
@@ -26,7 +26,7 @@ export default function AdminNav() {
                   key={oge.href}
                   href={oge.href}
                   className={`flex items-center gap-2.5 font-body text-sm rounded-xl px-3 py-2 transition-colors ${
-                    aktif ? "bg-vurgu text-white font-medium" : "text-metin/70 hover:text-metin hover:bg-cizgi/50"
+                    aktif ? "bg-vurgu text-white font-medium" : "text-zemin/65 hover:text-zemin hover:bg-white/10"
                   }`}
                 >
                   <Ikon className="size-4 shrink-0" />

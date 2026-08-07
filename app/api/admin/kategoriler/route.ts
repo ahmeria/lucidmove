@@ -5,9 +5,10 @@ import { db } from "@/lib/db";
 import { slugifyTr } from "@/lib/slugify";
 import { logKaydet } from "@/lib/systemLog";
 
+// Slug artık istemciden alınmıyor — admin panelinde ayrı bir alanı yok,
+// addan otomatik türetiliyor (bkz. app/admin/kategoriler/KategoriForm.tsx).
 const kategoriSemasi = z.object({
   ad: z.string().min(2),
-  slug: z.string().min(2).optional(),
   aciklama: z.string().optional(),
   sira: z.number().int(),
 });
@@ -22,7 +23,7 @@ export async function POST(req: Request) {
   }
 
   const { ad, aciklama, sira } = govde.data;
-  const slug = govde.data.slug ? slugifyTr(govde.data.slug) : slugifyTr(ad);
+  const slug = slugifyTr(ad);
 
   try {
     const kategori = await db.category.create({

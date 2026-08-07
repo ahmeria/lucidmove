@@ -4,14 +4,16 @@ import { getAdminSession } from "@/lib/admin-auth";
 import { db } from "@/lib/db";
 import { slugifyTr } from "@/lib/slugify";
 import { videoUrlSemasiOpsiyonel } from "@/lib/video";
+import { gorselUrlSemasiOpsiyonel } from "@/lib/gorsel";
 import { logKaydet } from "@/lib/systemLog";
 
+// Slug artık istemciden alınmıyor — admin panelinde ayrı bir alanı yok,
+// başlıktan otomatik türetiliyor (bkz. app/admin/kurslar/KursForm.tsx).
 const kursSemasi = z.object({
   baslik: z.string().min(2),
-  slug: z.string().min(2).optional(),
   aciklama: z.string().min(2),
   seviye: z.string().min(2),
-  kapakUrl: z.string().url().optional().or(z.literal("")),
+  kapakUrl: gorselUrlSemasiOpsiyonel,
   tanitimVideoUrl: videoUrlSemasiOpsiyonel,
   categoryId: z.string().nullable().optional(),
   sira: z.number().int(),
@@ -27,7 +29,7 @@ export async function POST(req: Request) {
   }
 
   const { baslik, aciklama, seviye, kapakUrl, tanitimVideoUrl, categoryId, sira } = govde.data;
-  const slug = govde.data.slug ? slugifyTr(govde.data.slug) : slugifyTr(baslik);
+  const slug = slugifyTr(baslik);
 
   try {
     const kurs = await db.course.create({

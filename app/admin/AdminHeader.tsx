@@ -6,6 +6,8 @@ import { usePathname } from "next/navigation";
 import { signOut } from "next-auth/react";
 import { aktifSayfaBasligi, AYARLAR_OGELERI } from "./admin-nav-data";
 
+const AyarlarIkonu = AYARLAR_OGELERI[0].ikon;
+
 function OkAsagiIkonu() {
   return (
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" className="size-4 text-metin/40">
@@ -89,6 +91,8 @@ export default function AdminHeader({
       <div className="flex items-center gap-1 ml-auto">
         <Link
           href="/"
+          target="_blank"
+          rel="noopener noreferrer"
           title="Siteyi görüntüle"
           className="hidden sm:flex size-9 items-center justify-center rounded-lg text-metin/50 hover:bg-cizgi/50 hover:text-metin transition-colors"
         >
@@ -122,27 +126,18 @@ export default function AdminHeader({
 
               {sistemYoneticisiMi && (
                 <>
-                  <p className="font-mono text-[10px] uppercase tracking-[0.2em] text-metin/35 px-3.5 pt-2.5 pb-1">
+                  <Link
+                    href={AYARLAR_OGELERI[0].href}
+                    onClick={() => setMenuAcik(false)}
+                    className={`flex items-center gap-2.5 px-3.5 py-2 text-sm transition-colors ${
+                      pathname.startsWith("/admin/ayarlar")
+                        ? "text-vurgu-dark font-medium bg-vurgu/10"
+                        : "text-metin/70 hover:bg-cizgi/40"
+                    }`}
+                  >
+                    <AyarlarIkonu className="size-4 shrink-0" />
                     Ayarlar
-                  </p>
-                  {AYARLAR_OGELERI.map((oge) => {
-                    const Ikon = oge.ikon;
-                    return (
-                      <Link
-                        key={oge.href}
-                        href={oge.href}
-                        onClick={() => setMenuAcik(false)}
-                        className={`flex items-center gap-2.5 px-3.5 py-2 text-sm transition-colors ${
-                          pathname === oge.href || (!oge.exact && pathname.startsWith(oge.href))
-                            ? "text-vurgu-dark font-medium bg-vurgu/10"
-                            : "text-metin/70 hover:bg-cizgi/40"
-                        }`}
-                      >
-                        <Ikon className="size-4 shrink-0" />
-                        {oge.label}
-                      </Link>
-                    );
-                  })}
+                  </Link>
                   <div className="my-1 border-t border-cizgi" />
                 </>
               )}

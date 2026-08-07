@@ -6,21 +6,30 @@ import { useState } from "react";
 import { usePathname } from "next/navigation";
 import { useSession, signOut } from "next-auth/react";
 
-const links = [
-  { href: "/#kurslar", label: "Kurslar" },
-  { href: "/#uyelik", label: "Üyelik" },
-  { href: "/#hakkimda", label: "Hakkımda" },
-  { href: "/iletisim", label: "İletişim" },
-];
+function baslangicHarfleri(isim: string) {
+  return isim
+    .trim()
+    .split(/\s+/)
+    .slice(0, 2)
+    .map((p) => p[0]?.toUpperCase())
+    .join("");
+}
 
 export default function Navbar() {
   const [open, setOpen] = useState(false);
+  const [fotoHata, setFotoHata] = useState(false);
   const { data: session } = useSession();
   const pathname = usePathname();
   const anaSayfaMi = pathname === "/";
+  const girisKayitMi = pathname === "/giris" || pathname === "/kayit";
   const adminMi = session?.user?.role === "ADMIN";
   const hesabimHref = adminMi ? "/admin" : "/hesabim";
   const hesabimEtiketi = adminMi ? "Panel" : "Hesabım";
+
+  // Giriş/Kayıt artık tam ekran, kart-üzerinde-fotoğraf tasarımıyla kendi
+  // logosunu (karta bağlı) taşıyor — ayrı bir header şeridine gerek yok,
+  // deneyim tamamen immersive/tek-viewport (bkz. app/(site)/giris/page.tsx).
+  if (girisKayitMi) return null;
 
   // Ana sayfada üstteki geniş görselin üzerine binen, minimal/şeffaf bir
   // üst bar kullanıyoruz — diğer tüm sayfalarda tam menülü klasik navbar.
@@ -63,28 +72,23 @@ export default function Navbar() {
           <Image src="/logo.png" alt="lucidmove" width={754} height={147} className="h-7 w-auto" priority />
         </Link>
 
-        <ul className="hidden md:flex items-center gap-8 font-body text-sm text-metin/80">
-          {links.map((l) => (
-            <li key={l.href}>
-              <Link href={l.href} className="hover:text-metin transition-colors">
-                {l.label}
-              </Link>
-            </li>
-          ))}
-        </ul>
-
         <div className="hidden md:flex items-center gap-4">
           {session ? (
             <>
               <Link href={hesabimHref} className="flex items-center gap-2 text-sm font-body text-metin/70 hover:text-metin">
-                {session.user?.profilFotoUrl && (
+                {session.user?.profilFotoUrl && !fotoHata ? (
                   <Image
                     src={session.user.profilFotoUrl}
                     alt=""
                     width={28}
                     height={28}
+                    onError={() => setFotoHata(true)}
                     className="w-7 h-7 rounded-full object-cover"
                   />
+                ) : (
+                  <span className="flex size-7 items-center justify-center rounded-full bg-gradient-to-br from-vurgu to-vurgu-dark text-[11px] font-semibold text-white shrink-0">
+                    {baslangicHarfleri(session.user?.name || "?")}
+                  </span>
                 )}
                 {session.user?.name}
               </Link>
@@ -125,14 +129,7 @@ export default function Navbar() {
       {open && (
         <div className="md:hidden border-t border-cizgi bg-zemin">
           <ul className="container-nefes flex flex-col py-4 gap-4 font-body text-metin/85">
-            {links.map((l) => (
-              <li key={l.href}>
-                <Link href={l.href} onClick={() => setOpen(false)}>
-                  {l.label}
-                </Link>
-              </li>
-            ))}
-            <li className="pt-2 border-t border-cizgi">
+            <li>
               {session ? (
                 <div className="flex flex-col gap-3">
                   <Link href={hesabimHref} onClick={() => setOpen(false)}>

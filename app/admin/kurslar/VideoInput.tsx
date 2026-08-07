@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, ChangeEvent } from "react";
+import { dosyaYukle } from "@/lib/istemciDosyaYukleme";
 
 const alan = "w-full border border-cizgi rounded-lg px-3 py-2 bg-zemin text-metin text-sm focus:border-vurgu outline-none";
 
@@ -20,6 +21,7 @@ export default function VideoInput({
     sadeceYukleme || value.startsWith("/uploads/") ? "yukle" : "youtube"
   );
   const [yukleniyor, setYukleniyor] = useState(false);
+  const [yuzde, setYuzde] = useState(0);
   const [hata, setHata] = useState("");
 
   async function dosyaSecildi(e: ChangeEvent<HTMLInputElement>) {
@@ -27,21 +29,14 @@ export default function VideoInput({
     if (!dosya) return;
 
     setYukleniyor(true);
+    setYuzde(0);
     setHata("");
 
-    const form = new FormData();
-    form.append("dosya", dosya);
-
     try {
-      const res = await fetch("/api/admin/upload", { method: "POST", body: form });
-      const veri = await res.json();
-      if (!res.ok) {
-        setHata(veri.hata || "Yükleme başarısız");
-        return;
-      }
+      const veri = await dosyaYukle(dosya, setYuzde);
       onChange(veri.url);
-    } catch {
-      setHata("Yükleme başarısız — bağlantınızı kontrol edin");
+    } catch (e) {
+      setHata(e instanceof Error ? e.message : "Yükleme başarısız");
     } finally {
       setYukleniyor(false);
     }
@@ -84,9 +79,16 @@ export default function VideoInput({
             accept="video/mp4,video/webm,video/ogg,video/quicktime"
             onChange={dosyaSecildi}
             disabled={yukleniyor}
-            className="font-body text-sm text-metin/70 file:mr-3 file:py-2 file:px-3 file:rounded-lg file:border-0 file:bg-metin file:text-zemin file:text-xs hover:file:bg-koyu file:cursor-pointer"
+            className="font-body text-sm text-metin/70 file:mr-3 file:py-2 file:px-3 file:rounded-lg file:border-0 file:bg-metin file:text-zemin file:text-xs hover:file:bg-koyu file:cursor-pointer file:disabled:opacity-60"
           />
-          {yukleniyor && <p className="text-xs text-metin/50 mt-1.5">Yükleniyor…</p>}
+          {yukleniyor && (
+            <div className="mt-2.5 max-w-xs">
+              <div className="h-1.5 bg-cizgi rounded-full overflow-hidden">
+                <div className="h-full bg-vurgu rounded-full transition-[width] duration-200" style={{ width: `${yuzde}%` }} />
+              </div>
+              <p className="text-xs text-metin/50 mt-1.5">Yükleniyor… %{yuzde}</p>
+            </div>
+          )}
           {!yukleniyor && value && value.startsWith("/uploads/") && (
             <p className="text-xs text-vurgu-dark mt-1.5">Yüklendi: {value.split("/").pop()}</p>
           )}

@@ -8,9 +8,6 @@ export default async function AdminFiyatlandirma() {
 
   return (
     <div>
-      <p className="font-mono text-xs uppercase tracking-[0.2em] text-vurgu mb-2">Yönetim</p>
-      <h1 className="font-display text-3xl font-bold text-metin mb-8">Fiyatlandırma</h1>
-
       <div className="grid sm:grid-cols-2 gap-6">
         {planlar.map((p) => (
           <FiyatForm

@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 import { getAdminSession } from "@/lib/admin-auth";
 import { db } from "@/lib/db";
 import Kart from "@/components/admin/Kart";
+import SayfaBasligi from "@/components/admin/SayfaBasligi";
 import AyarlarSekmeleri from "../AyarlarSekmeleri";
 
 export const dynamic = "force-dynamic";
@@ -22,10 +23,7 @@ export default async function AdminRoller() {
 
   return (
     <div>
-      <p className="font-mono text-xs uppercase tracking-[0.2em] text-vurgu mb-2">Ayarlar</p>
-      <h1 className="font-display text-3xl font-bold text-metin mb-6">Roller</h1>
-
-      <AyarlarSekmeleri />
+      <SayfaBasligi sag={<AyarlarSekmeleri />} />
 
       <p className="font-body text-sm text-metin/60 mb-6 max-w-2xl">
         LucidMove sabit iki rol kullanır — dinamik rol/izin tanımlama yok. Admin hesapları içinde yalnızca{" "}
