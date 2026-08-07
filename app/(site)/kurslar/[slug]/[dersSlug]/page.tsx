@@ -57,7 +57,7 @@ export default async function DersDetay({
           veren bir servise geçmek isteyebilirsiniz.
         */}
         {ders.videoUrl ? (
-          <VideoPlayer url={ders.videoUrl} poster={kurs.kapakUrl} />
+          <VideoPlayer url={ders.videoUrl} poster={kurs.kapakUrl} dersId={ders.id} />
         ) : (
           <div className="w-full h-full flex items-center justify-center text-center px-6">
             <p className="font-body text-sm text-zemin/70">

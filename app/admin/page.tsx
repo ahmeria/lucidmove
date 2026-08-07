@@ -1,10 +1,10 @@
 import { Suspense } from "react";
 import Link from "next/link";
 import { db } from "@/lib/db";
-import { getSiteSettings } from "@/lib/settings";
 import { analitikOzetiniGetir } from "@/lib/analitikVerisi";
+import { toplamIzlenmeSayisiniAl } from "@/lib/raporlar";
 import { StatKart } from "@/components/admin/Kart";
-import { UyeIkonu, AbonelikIkonu, GelirIkonu, MesajIkonu, KursIkonu, AnalitikIkonu } from "@/components/admin/StatIkonlari";
+import { UyeIkonu, AbonelikIkonu, GelirIkonu, MesajIkonu, KursIkonu, IzlenmeIkonu } from "@/components/admin/StatIkonlari";
 import { AnalyticsPanel } from "@/components/admin/charts/AnalyticsPanel";
 
 export const dynamic = "force-dynamic";
@@ -57,7 +57,7 @@ export default async function AdminDashboard({ searchParams }: { searchParams: {
   ayBasi.setDate(1);
   ayBasi.setHours(0, 0, 0, 0);
 
-  const [uyeSayisi, aktifAbonelikSayisi, buAyGelir, okunmamisMesajSayisi, kursSayisi, dersSayisi, ayarlar] =
+  const [uyeSayisi, aktifAbonelikSayisi, buAyGelir, okunmamisMesajSayisi, kursSayisi, dersSayisi, izlenmeSayisi] =
     await Promise.all([
       db.user.count(),
       db.subscription.count({ where: { status: "AKTIF" } }),
@@ -68,7 +68,7 @@ export default async function AdminDashboard({ searchParams }: { searchParams: {
       db.contactMessage.count({ where: { okunduMu: false } }),
       db.course.count(),
       db.lesson.count(),
-      getSiteSettings(),
+      toplamIzlenmeSayisiniAl(),
     ]);
 
   return (
@@ -104,12 +104,12 @@ export default async function AdminDashboard({ searchParams }: { searchParams: {
           ikon={KursIkonu}
         />
         <StatKart
-          etiket="Google Analytics"
-          deger={ayarlar.gaMeasurementId ? ayarlar.gaMeasurementId : "Bağlı değil"}
-          href="/admin/ayarlar"
-          renk={ayarlar.gaMeasurementId ? "ikincil" : "amber"}
-          altYazi={ayarlar.gaMeasurementId ? "Raporları aşağıda görüntüleyin" : "Ayarlar'dan bağlayın"}
-          ikon={AnalitikIkonu}
+          etiket="Toplam izlenme"
+          deger={izlenmeSayisi}
+          href="/admin/raporlar/izlenmeler"
+          renk="ikincil"
+          altYazi="Tamamlanan ders sayısı"
+          ikon={IzlenmeIkonu}
         />
       </div>
 

@@ -69,6 +69,15 @@ function YorumlarIkonu({ className }: IkonProps) {
   );
 }
 
+function RaporlarIkonu({ className }: IkonProps) {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" className={className}>
+      <path d="M6 3.5h9l4 4V19a1.5 1.5 0 0 1-1.5 1.5h-11A1.5 1.5 0 0 1 5 19V5A1.5 1.5 0 0 1 6.5 3.5Z" strokeLinejoin="round" />
+      <path d="M9 12.5v4M12 10v6.5M15 14v2.5" strokeLinecap="round" />
+    </svg>
+  );
+}
+
 function MesajlarIkonu({ className }: IkonProps) {
   return (
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" className={className}>
@@ -192,6 +201,10 @@ export function adminNavGruplariniAl(): AdminNavGrubu[] {
     {
       baslik: "İletişim",
       ogeler: [{ href: "/admin/mesajlar", label: "Mesajlar", ikon: MesajlarIkonu }],
+    },
+    {
+      baslik: "Raporlar",
+      ogeler: [{ href: "/admin/raporlar", label: "Raporlar", ikon: RaporlarIkonu }],
     },
   ];
 }

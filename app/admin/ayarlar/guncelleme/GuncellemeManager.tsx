@@ -39,6 +39,8 @@ export default function GuncellemeManager() {
   const [uygulaniyor, setUygulaniyor] = useState(false);
   const [gunluk, setGunluk] = useState<string[]>([]);
   const [tamamlandi, setTamamlandi] = useState<{ basarili: boolean; mesaj: string } | null>(null);
+  const [yenidenBaslatiliyor, setYenidenBaslatiliyor] = useState(false);
+  const [yenidenBaslatmaHatasi, setYenidenBaslatmaHatasi] = useState("");
 
   async function kontrolEt() {
     setYukleniyor(true);
@@ -105,7 +107,36 @@ export default function GuncellemeManager() {
     }
   }
 
+  // Restart tetiklendikten sonra sunucu bir süre (pm2'nin process'i kapatıp
+  // yeniden ayağa kaldırması kadar) yanıt vermez — bu aralıkta periyodik
+  // yoklama (polling) ile sunucunun geri geldiğini doğrulayıp sayfayı ancak
+  // o zaman otomatik yeniliyoruz. Öncesinde kullanıcı boş bir ekranla baş
+  // başa kalmasın diye açıkça "yeniden başlatılıyor" durumu gösteriliyor.
+  async function sunucuGeriGelinceYenile() {
+    // Sunucunun gerçekten kapanması için kısa bir pay — hemen yoklarsak eski
+    // process henüz ayaktayken "başarılı" görünüp erken yenileyebiliriz.
+    await new Promise((r) => setTimeout(r, 2000));
+
+    const MAKS_DENEME = 40; // ~40 × 1.5sn ≈ 60 saniye
+    for (let i = 0; i < MAKS_DENEME; i++) {
+      try {
+        const res = await fetch("/api/admin/guncelleme/kontrol", { cache: "no-store" });
+        if (res.ok) {
+          window.location.reload();
+          return;
+        }
+      } catch {
+        // Sunucu henüz kapalı/yeniden başlıyor — beklenen, denemeye devam.
+      }
+      await new Promise((r) => setTimeout(r, 1500));
+    }
+
+    setYenidenBaslatiliyor(false);
+    setYenidenBaslatmaHatasi("Sunucu beklenenden uzun sürede geri gelmedi — sayfayı elle yenileyin.");
+  }
+
   async function yenidenBaslat() {
+    setYenidenBaslatmaHatasi("");
     const res = await fetch("/api/admin/guncelleme/yeniden-baslat", { method: "POST" });
     const veri = await res.json();
     if (!res.ok) {
@@ -113,6 +144,8 @@ export default function GuncellemeManager() {
       return;
     }
     toast.success(veri.mesaj || "Yeniden başlatma tetiklendi.");
+    setYenidenBaslatiliyor(true);
+    sunucuGeriGelinceYenile();
   }
 
   if (yukleniyor) {
@@ -178,13 +211,25 @@ export default function GuncellemeManager() {
         </p>
       )}
 
+      {yenidenBaslatiliyor && (
+        <p className="flex items-center gap-2.5 text-sm rounded-xl px-4 py-3 bg-amber-50 text-amber-800">
+          <span className="size-3.5 shrink-0 rounded-full border-2 border-amber-800/30 border-t-amber-800 animate-spin" />
+          Sunucu yeniden başlatılıyor… Geri gelince bu sayfa otomatik yenilenecek.
+        </p>
+      )}
+
+      {yenidenBaslatmaHatasi && (
+        <p className="text-sm rounded-xl px-4 py-3 bg-hata/10 text-hata">{yenidenBaslatmaHatasi}</p>
+      )}
+
       <div className="flex justify-end gap-3">
         {tamamlandi?.basarili && kontrol.otomatikYenidenBaslatilabilir && (
           <button
             onClick={yenidenBaslat}
-            className="border border-cizgi text-metin px-5 py-2.5 rounded-lg text-sm hover:border-vurgu transition-colors cursor-pointer"
+            disabled={yenidenBaslatiliyor}
+            className="border border-cizgi text-metin px-5 py-2.5 rounded-lg text-sm hover:border-vurgu transition-colors disabled:opacity-60 cursor-pointer"
           >
-            Yeniden başlat
+            {yenidenBaslatiliyor ? "Yeniden başlatılıyor…" : "Yeniden başlat"}
           </button>
         )}
         <button

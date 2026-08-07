@@ -41,7 +41,19 @@ export default async function AdminKullanicilar() {
 
   return (
     <div>
-      <SayfaBasligi sag={<AyarlarSekmeleri />} />
+      <SayfaBasligi
+        sag={
+          <div className="flex flex-wrap items-center gap-3">
+            <Link
+              href="/admin/ayarlar/kullanicilar/yeni"
+              className="bg-metin text-zemin px-5 py-2.5 rounded-lg font-body text-sm hover:bg-koyu transition-colors cursor-pointer whitespace-nowrap"
+            >
+              Yeni kullanıcı
+            </Link>
+            <AyarlarSekmeleri />
+          </div>
+        }
+      />
 
       <div className="mb-6 max-w-xs">
         <StatKart etiket="Toplam admin" deger={kullanicilar.length} renk="vurgu" ikon={UyeIkonu} />
