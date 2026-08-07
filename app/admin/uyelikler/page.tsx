@@ -1,5 +1,7 @@
+import Link from "next/link";
 import { db } from "@/lib/db";
 import Kart from "@/components/admin/Kart";
+import SayfaBasligi from "@/components/admin/SayfaBasligi";
 import IptalButonu from "./IptalButonu";
 
 export const dynamic = "force-dynamic";
@@ -31,6 +33,17 @@ export default async function AdminUyelikler() {
 
   return (
     <div>
+      <SayfaBasligi
+        sag={
+          <Link
+            href="/admin/uyelikler/manuel-odeme"
+            className="bg-metin text-zemin px-5 py-2.5 rounded-lg font-body text-sm hover:bg-koyu transition-colors cursor-pointer whitespace-nowrap"
+          >
+            Manuel ödeme ekle
+          </Link>
+        }
+      />
+
       {abonelikler.length === 0 ? (
         <p className="font-body text-metin/60">Henüz abonelik yok.</p>
       ) : (

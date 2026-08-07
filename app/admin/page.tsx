@@ -108,7 +108,6 @@ export default async function AdminDashboard({ searchParams }: { searchParams: {
           deger={izlenmeSayisi}
           href="/admin/raporlar/izlenmeler"
           renk="ikincil"
-          altYazi="Tamamlanan ders sayısı"
           ikon={IzlenmeIkonu}
         />
       </div>
