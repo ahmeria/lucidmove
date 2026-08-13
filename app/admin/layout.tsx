@@ -4,6 +4,7 @@ import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 import { getAdminSession } from "@/lib/admin-auth";
 import { sayfaErisimiVarMi } from "@/lib/adminYetki";
+import { uygulamaSurumunuAl } from "@/lib/gitUpdate";
 import { ToastProvider } from "@/components/Toast";
 import AdminNav from "./AdminNav";
 import AdminHeader from "./AdminHeader";
@@ -20,6 +21,8 @@ export default async function AdminLayout({ children }: { children: React.ReactN
   const pathname = headers().get("x-pathname") ?? "/admin";
   if (!sayfaErisimiVarMi(session, pathname)) redirect("/admin");
 
+  const surum = uygulamaSurumunuAl();
+
   return (
     <ToastProvider>
       <div className="min-h-screen grid lg:grid-cols-[248px_1fr] bg-zemin-acik">
@@ -31,8 +34,19 @@ export default async function AdminLayout({ children }: { children: React.ReactN
 
           <AdminNav sistemYoneticisiMi={session.sistemYoneticisiMi} izinliSayfalar={session.izinliSayfalar} />
 
-          <div className="mt-auto pt-6 border-t border-zemin/10">
+          <div className="mt-auto pt-6 border-t border-zemin/10 space-y-1.5">
             <p className="font-body text-xs text-zemin/50 truncate">{session.user?.email}</p>
+            {session.sistemYoneticisiMi ? (
+              <Link
+                href="/admin/ayarlar/guncelleme"
+                title="Güncellemeleri kontrol et"
+                className="font-mono text-[11px] text-zemin/35 hover:text-zemin/60 transition-colors"
+              >
+                {surum}
+              </Link>
+            ) : (
+              <p className="font-mono text-[11px] text-zemin/35">{surum}</p>
+            )}
           </div>
         </aside>
 
