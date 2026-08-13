@@ -75,6 +75,44 @@ export default async function AdminEntegrasyon() {
             </p>
           )}
 
+          <div className="border-t border-cizgi pt-6 space-y-5">
+            <div>
+              <p className="font-body text-sm font-medium text-metin">Callback URL</p>
+              <p className="font-body text-xs text-metin/50 mt-1 max-w-2xl">
+                Iyzico panelinde elle girmenize gerek yok — bu adres her ödeme başlatıldığında otomatik
+                gönderiliyor (bkz. <code className="text-xs bg-cizgi/50 px-1.5 py-0.5 rounded">NEXTAUTH_URL</code>).
+                Iyzico&apos;nun kendi dokümantasyonuna göre bu adresin <strong>geçerli bir SSL sertifikasına
+                sahip (https)</strong> olması zorunlu — aksi halde ödeme sonucu siteye hiç dönmez.
+              </p>
+              <p className="font-mono text-xs text-metin/70 bg-zemin rounded-lg px-3 py-2 inline-block break-all mt-2">
+                {durum.callbackUrl}
+              </p>
+              {!durum.nextAuthUrlGecerliMi && (
+                <p className="font-body text-sm text-hata bg-hata/10 rounded-xl px-4 py-3 mt-2 max-w-2xl">
+                  NEXTAUTH_URL tanımlı değil ya da geçersiz — Iyzico ödeme tamamlandığında bu adrese
+                  dönemeyecek, üyelikler hiç aktifleşmeyecek. .env dosyasında https ile başlayan gerçek site
+                  adresinizi tanımlayın.
+                </p>
+              )}
+            </div>
+
+            <div>
+              <p className="font-body text-sm font-medium text-metin">Sandbox test kartları</p>
+              <p className="font-body text-xs text-metin/50 mt-1 max-w-2xl">
+                Sandbox modundayken gerçek kart bilgisi girmeden ödeme akışını uçtan uca denemek için
+                Iyzico&apos;nun yayınladığı test kartlarını kullanabilirsiniz.
+              </p>
+              <a
+                href="https://docs.iyzico.com/ek-bilgiler/test-kartlari"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-block font-body text-sm text-vurgu hover:text-vurgu-dark mt-1.5"
+              >
+                docs.iyzico.com/ek-bilgiler/test-kartlari ↗
+              </a>
+            </div>
+          </div>
+
           <div className="flex justify-end">
             <IyzicoBaglantiTest />
           </div>
