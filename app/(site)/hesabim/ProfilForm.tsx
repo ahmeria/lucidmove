@@ -3,6 +3,7 @@
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { useState, FormEvent, ChangeEvent } from "react";
+import GorselKirpici from "@/components/GorselKirpici";
 
 export default function ProfilForm({
   ad: baslangicAd,
@@ -19,19 +20,26 @@ export default function ProfilForm({
   const [ad, setAd] = useState(baslangicAd);
   const [telefon, setTelefon] = useState(baslangicTelefon ?? "");
   const [profilFotoUrl, setProfilFotoUrl] = useState(baslangicFoto);
+  const [seciliFoto, setSeciliFoto] = useState<File | null>(null);
   const [fotoYukleniyor, setFotoYukleniyor] = useState(false);
   const [gonderiliyor, setGonderiliyor] = useState(false);
   const [hata, setHata] = useState("");
   const [kaydedildi, setKaydedildi] = useState(false);
 
-  async function fotoSecildi(e: ChangeEvent<HTMLInputElement>) {
+  function fotoSecildi(e: ChangeEvent<HTMLInputElement>) {
     const dosya = e.target.files?.[0];
+    e.target.value = "";
     if (!dosya) return;
+    setHata("");
+    setSeciliFoto(dosya);
+  }
 
+  async function fotoKirpmaTamamlandi(kirpilmisDosya: File) {
+    setSeciliFoto(null);
     setFotoYukleniyor(true);
     setHata("");
     const form = new FormData();
-    form.append("dosya", dosya);
+    form.append("dosya", kirpilmisDosya);
 
     try {
       const res = await fetch("/api/hesabim/foto", { method: "POST", body: form });
@@ -137,6 +145,17 @@ export default function ProfilForm({
           {gonderiliyor ? "Kaydediliyor…" : "Kaydet"}
         </button>
       </form>
+
+      {seciliFoto && (
+        <GorselKirpici
+          dosya={seciliFoto}
+          oran={1}
+          daire
+          baslik="Profil fotoğrafınızı yerleştirin"
+          onTamam={fotoKirpmaTamamlandi}
+          onIptal={() => setSeciliFoto(null)}
+        />
+      )}
     </div>
   );
 }

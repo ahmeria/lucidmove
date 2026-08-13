@@ -150,7 +150,7 @@ function DersSatiri({ ders, courseId }: { ders: Ders; courseId: string }) {
       {acik && (
         <div className="border-t border-cizgi p-4 space-y-3">
           <div className="flex gap-4 items-start">
-            <GorselKutusu value={kapakUrl} onChange={setKapakUrl} boyutSinifi="size-40" />
+            <GorselKutusu value={kapakUrl} onChange={setKapakUrl} boyutSinifi="size-40" oran={4 / 3} />
 
             <div className="flex-1 min-w-0 space-y-3">
               <div>
@@ -177,7 +177,7 @@ function DersSatiri({ ders, courseId }: { ders: Ders; courseId: string }) {
               <label className="block text-xs text-metin/50 mb-1.5">İçerik dosyası</label>
               <VideoInput value={kaynakVideoUrl} onChange={setKaynakVideoUrl} zorunlu sadeceYukleme />
               {kaynakVideoUrl.startsWith("/uploads/") && (
-                <VideoKareSecici videoUrl={kaynakVideoUrl} onSecildi={setKapakUrl} />
+                <VideoKareSecici videoUrl={kaynakVideoUrl} onSecildi={setKapakUrl} oran={4 / 3} />
               )}
             </div>
           </div>
@@ -287,7 +287,7 @@ function YeniDersFormu({ courseId }: { courseId: string }) {
   return (
     <form onSubmit={handleSubmit} className="rounded-2xl bg-kart border border-cizgi shadow-organik p-4 space-y-3">
       <div className="flex gap-4 items-start">
-        <GorselKutusu value={kapakUrl} onChange={setKapakUrl} boyutSinifi="size-40" />
+        <GorselKutusu value={kapakUrl} onChange={setKapakUrl} boyutSinifi="size-40" oran={4 / 3} />
 
         <div className="flex-1 min-w-0 space-y-3">
           <input

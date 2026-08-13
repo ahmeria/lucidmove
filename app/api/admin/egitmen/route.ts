@@ -8,7 +8,9 @@ const semasi = z.object({
   bio: z.string().min(2),
   sertifikalar: z.string(),
   yaklasim: z.string(),
-  portreUrl: z.string().url(),
+  // Yükleme /uploads/... gibi göreli bir yol üretiyor (mutlak URL değil) —
+  // bkz. components/admin/GorselInput.tsx.
+  portreUrl: z.string().min(1),
   hakkimdaTeaserOzet: z.string().min(2),
 });
 

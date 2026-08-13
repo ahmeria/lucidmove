@@ -87,6 +87,16 @@ function MesajlarIkonu({ className }: IkonProps) {
   );
 }
 
+function SayfaTasarimiIkonu({ className }: IkonProps) {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" className={className}>
+      <rect x="3.5" y="4.5" width="17" height="15" rx="2" />
+      <path d="M3.5 9h17" />
+      <path d="M8 13.5h8M8 16.5h5" strokeLinecap="round" />
+    </svg>
+  );
+}
+
 function GenelAyarlarIkonu({ className }: IkonProps) {
   return (
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" className={className}>
@@ -215,6 +225,7 @@ export function adminNavGruplariniAl(): AdminNavGrubu[] {
 // aynı bu listeden besleniyor — tek kaynak.
 export const AYARLAR_OGELERI: AdminNavOge[] = [
   { href: "/admin/ayarlar", label: "Genel Ayarlar", exact: true, ikon: GenelAyarlarIkonu },
+  { href: "/admin/ayarlar/sayfa-tasarimi", label: "Sayfa Tasarımı", ikon: SayfaTasarimiIkonu },
   { href: "/admin/ayarlar/kullanicilar", label: "Kullanıcılar", ikon: KullanicilarIkonu },
   { href: "/admin/ayarlar/roller", label: "Roller", ikon: RollerIkonu },
   { href: "/admin/ayarlar/entegrasyon", label: "Entegrasyon", ikon: EntegrasyonIkonu },

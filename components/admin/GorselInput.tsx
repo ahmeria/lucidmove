@@ -3,31 +3,44 @@
 import { useState, ChangeEvent } from "react";
 import Image from "next/image";
 import { dosyaYukle } from "@/lib/istemciDosyaYukleme";
+import GorselKirpici from "@/components/GorselKirpici";
 
 // Admin panelinde görsel (kurs kapağı vb.) eklemenin tek yolu — ham URL metin
 // alanı yerine dosya seçip sunucuya yüklüyor, küçük bir önizleme + ilerleme
 // çubuğu gösteriyor (bkz. VideoInput.tsx, aynı desenin görsel karşılığı).
+// Dosya seçilince önce GorselKirpici modalı açılır — sunucuya her zaman zaten
+// `oran`a göre kırpılmış bir görsel gider.
 export default function GorselInput({
   value,
   onChange,
+  oran = 1,
+  daire,
 }: {
   value: string;
   onChange: (v: string) => void;
+  oran?: number;
+  daire?: boolean;
 }) {
+  const [seciliDosya, setSeciliDosya] = useState<File | null>(null);
   const [yukleniyor, setYukleniyor] = useState(false);
   const [yuzde, setYuzde] = useState(0);
   const [hata, setHata] = useState("");
 
-  async function dosyaSecildi(e: ChangeEvent<HTMLInputElement>) {
+  function dosyaSecildi(e: ChangeEvent<HTMLInputElement>) {
     const dosya = e.target.files?.[0];
+    e.target.value = ""; // aynı dosya art arda seçilebilsin diye
     if (!dosya) return;
+    setHata("");
+    setSeciliDosya(dosya);
+  }
 
+  async function kirpmaTamamlandi(kirpilmisDosya: File) {
+    setSeciliDosya(null);
     setYukleniyor(true);
     setYuzde(0);
-    setHata("");
 
     try {
-      const veri = await dosyaYukle(dosya, setYuzde);
+      const veri = await dosyaYukle(kirpilmisDosya, setYuzde);
       onChange(veri.url);
     } catch (e) {
       setHata(e instanceof Error ? e.message : "Yükleme başarısız");
@@ -62,6 +75,16 @@ export default function GorselInput({
         )}
         {!yukleniyor && hata && <p className="text-xs text-red-700 mt-1.5">{hata}</p>}
       </div>
+
+      {seciliDosya && (
+        <GorselKirpici
+          dosya={seciliDosya}
+          oran={oran}
+          daire={daire}
+          onTamam={kirpmaTamamlandi}
+          onIptal={() => setSeciliDosya(null)}
+        />
+      )}
     </div>
   );
 }

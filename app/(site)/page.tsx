@@ -3,7 +3,14 @@ import Image from "next/image";
 import UyelikClient from "@/app/(site)/uyelik/UyelikClient";
 import Canlandir from "@/components/Canlandir";
 import { db } from "@/lib/db";
-import { getSiteSettings, getInstructorProfile, satirlaraAyir, paragraflaraAyir, formatFiyat } from "@/lib/settings";
+import {
+  getSiteSettings,
+  getInstructorProfile,
+  getGaleriGorselleri,
+  satirlaraAyir,
+  paragraflaraAyir,
+  formatFiyat,
+} from "@/lib/settings";
 
 // "Nefesinizin *hızında* bir yoga pratiği." -> yıldızlar arasındaki kısım vurgulanır.
 function VurgulaYildiz({ metin }: { metin: string }) {
@@ -24,9 +31,10 @@ function VurgulaYildiz({ metin }: { metin: string }) {
 }
 
 export default async function Anasayfa({ searchParams }: { searchParams: { durum?: string } }) {
-  const [ayarlar, egitmen, planlar, kategoriler, kategorisizKurslar, yorumlar] = await Promise.all([
+  const [ayarlar, egitmen, galeriGorselleri, planlar, kategoriler, kategorisizKurslar, yorumlar] = await Promise.all([
     getSiteSettings(),
     getInstructorProfile(),
+    getGaleriGorselleri(),
     db.pricingPlan.findMany({ orderBy: { sira: "asc" } }),
     db.category.findMany({
       orderBy: { sira: "asc" },
@@ -60,7 +68,7 @@ export default async function Anasayfa({ searchParams }: { searchParams: { durum
       {/* HERO */}
       <section className="relative h-[92vh] min-h-[640px] w-full overflow-hidden">
         <Image
-          src="https://images.unsplash.com/photo-1544367567-0f2fcb009e0b?q=80&w=1800&auto=format&fit=crop"
+          src={ayarlar.heroGorselUrl}
           alt="Yoga pratiği yapan bir kadın"
           fill
           priority
@@ -181,31 +189,32 @@ export default async function Anasayfa({ searchParams }: { searchParams: { durum
         )}
       </section>
 
-      {/* GALERİ */}
-      <section className="container-nefes pb-24">
-        <Canlandir className="text-center max-w-xl mx-auto mb-10">
-          <p className="font-mono text-xs tracking-[0.3em] uppercase text-vurgu mb-3">Stüdyodan kareler</p>
-          <h2 className="font-display text-3xl sm:text-4xl font-bold text-metin">Pratiğin içinden</h2>
-        </Canlandir>
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-          {[
-            "https://images.unsplash.com/photo-1544367567-0f2fcb009e0b?q=80&w=600&auto=format&fit=crop",
-            "https://images.unsplash.com/photo-1552196563-55cd4e45efb3?q=80&w=600&auto=format&fit=crop",
-            "https://images.unsplash.com/photo-1599901860904-17e6ed7083a0?q=80&w=600&auto=format&fit=crop",
-            "https://images.unsplash.com/photo-1506126613408-eca07ce68773?q=80&w=600&auto=format&fit=crop",
-          ].map((src, i) => (
-            <Canlandir key={src} gecikme={i * 70} className={`relative aspect-square rounded-2xl overflow-hidden ${i % 2 === 1 ? "sm:mt-8" : ""}`}>
-              <Image
-                src={src}
-                alt="Stüdyodan bir kare"
-                fill
-                sizes="(min-width: 640px) 25vw, 50vw"
-                className="object-cover"
-              />
-            </Canlandir>
-          ))}
-        </div>
-      </section>
+      {/* GALERİ — admin panelden yönetilir (bkz. app/admin/ayarlar/sayfa-tasarimi) */}
+      {galeriGorselleri.length > 0 && (
+        <section className="container-nefes pb-24">
+          <Canlandir className="text-center max-w-xl mx-auto mb-10">
+            <p className="font-mono text-xs tracking-[0.3em] uppercase text-vurgu mb-3">Stüdyodan kareler</p>
+            <h2 className="font-display text-3xl sm:text-4xl font-bold text-metin">Pratiğin içinden</h2>
+          </Canlandir>
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+            {galeriGorselleri.map((g, i) => (
+              <Canlandir
+                key={g.id}
+                gecikme={i * 70}
+                className={`relative aspect-square rounded-2xl overflow-hidden ${i % 2 === 1 ? "sm:mt-8" : ""}`}
+              >
+                <Image
+                  src={g.url}
+                  alt={g.alt || "Stüdyodan bir kare"}
+                  fill
+                  sizes="(min-width: 640px) 25vw, 50vw"
+                  className="object-cover"
+                />
+              </Canlandir>
+            ))}
+          </div>
+        </section>
+      )}
 
       {/* HAKKIMDA */}
       <section id="hakkimda" className="bg-koyu text-zemin scroll-mt-20">

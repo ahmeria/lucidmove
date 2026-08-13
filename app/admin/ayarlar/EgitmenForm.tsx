@@ -3,6 +3,7 @@
 import { useRouter } from "next/navigation";
 import { useState, FormEvent } from "react";
 import { useToast } from "@/components/Toast";
+import GorselInput from "@/components/admin/GorselInput";
 
 type Profil = {
   ad: string;
@@ -47,15 +48,13 @@ export default function EgitmenForm({ profil }: { profil: Profil }) {
 
   return (
     <form onSubmit={handleSubmit} className="space-y-5 font-body">
-      <div className="grid sm:grid-cols-2 gap-4">
-        <div>
-          <label className={etiket}>Ad</label>
-          <input value={form.ad} onChange={(e) => alanGuncelle("ad", e.target.value)} className={alan} />
-        </div>
-        <div>
-          <label className={etiket}>Portre görsel URL&apos;i</label>
-          <input value={form.portreUrl} onChange={(e) => alanGuncelle("portreUrl", e.target.value)} className={alan} />
-        </div>
+      <div>
+        <label className={etiket}>Ad</label>
+        <input value={form.ad} onChange={(e) => alanGuncelle("ad", e.target.value)} className={alan + " max-w-sm"} />
+      </div>
+      <div>
+        <label className={etiket}>Portre görseli — Hakkımda bölümünde gösterilir</label>
+        <GorselInput value={form.portreUrl} onChange={(v) => alanGuncelle("portreUrl", v)} oran={4 / 5} />
       </div>
       <div>
         <label className={etiket}>Ana sayfa tanıtım cümlesi</label>

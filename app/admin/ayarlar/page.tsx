@@ -1,26 +1,24 @@
 import { notFound } from "next/navigation";
 import { getAdminSession } from "@/lib/admin-auth";
-import { getSiteSettings, getInstructorProfile } from "@/lib/settings";
+import { getSiteSettings } from "@/lib/settings";
 import { analitikAyarlariniAl } from "@/lib/analitikVerisi";
 import Kart from "@/components/admin/Kart";
 import SayfaBasligi from "@/components/admin/SayfaBasligi";
 import AyarlarSekmeleri from "./AyarlarSekmeleri";
 import SiteAyarlariForm from "./SiteAyarlariForm";
-import EgitmenForm from "./EgitmenForm";
 import ParaBirimiForm from "./ParaBirimiForm";
 import GoogleAnalyticsForm from "./GoogleAnalyticsForm";
 
 export const dynamic = "force-dynamic";
 
+// Ana sayfanın içerik/görsel tasarımı (Hero, Üyelik başlığı, Eğitmen profili,
+// Galeri) burada değil — bkz. /admin/ayarlar/sayfa-tasarimi. Burası sistem
+// geneli ayarlar: para birimi, analitik, iletişim bilgisi, SEO.
 export default async function AdminAyarlar() {
   const session = await getAdminSession();
   if (!session?.sistemYoneticisiMi) notFound();
 
-  const [ayarlar, profil, analitik] = await Promise.all([
-    getSiteSettings(),
-    getInstructorProfile(),
-    analitikAyarlariniAl(),
-  ]);
+  const [ayarlar, analitik] = await Promise.all([getSiteSettings(), analitikAyarlariniAl()]);
 
   return (
     <div>
@@ -44,10 +42,6 @@ export default async function AdminAyarlar() {
 
         <Kart baslik="Site & İletişim">
           <SiteAyarlariForm ayarlar={ayarlar} />
-        </Kart>
-
-        <Kart baslik="Eğitmen Profili">
-          <EgitmenForm profil={profil} />
         </Kart>
       </div>
     </div>

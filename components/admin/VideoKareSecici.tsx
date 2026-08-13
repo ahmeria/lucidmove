@@ -3,21 +3,27 @@
 import { useRef, useState, type ChangeEvent } from "react";
 import { dosyaYukle } from "@/lib/istemciDosyaYukleme";
 import { useToast } from "@/components/Toast";
+import GorselKirpici from "@/components/GorselKirpici";
 
 // Yüklenmiş bir videonun içinden (tamamen tarayıcıda, video+canvas ile) bir
 // kare yakalayıp bunu kapak görseli olarak sunucuya yükler — ayrıca dosya
 // seçmeye gerek kalmadan. Yalnızca sunucuya yüklenmiş yerel videolar için
-// çalışır (aynı origin olmalı, aksi halde canvas "tainted" olur).
+// çalışır (aynı origin olmalı, aksi halde canvas "tainted" olur). Yakalanan
+// kare, videonun kendi oranında olduğu için (kapak oranıyla eşleşmeyebilir)
+// yüklenmeden önce GorselKirpici ile hedef orana yerleştiriliyor.
 export default function VideoKareSecici({
   videoUrl,
   onSecildi,
+  oran = 1,
 }: {
   videoUrl: string;
   onSecildi: (url: string) => void;
+  oran?: number;
 }) {
   const [acik, setAcik] = useState(false);
   const [sure, setSure] = useState(0);
   const [zaman, setZaman] = useState(0);
+  const [yakalananKare, setYakalananKare] = useState<File | null>(null);
   const [yukleniyor, setYukleniyor] = useState(false);
   const videoRef = useRef<HTMLVideoElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -65,29 +71,34 @@ export default function VideoKareSecici({
     if (!ctx) return;
     ctx.drawImage(v, 0, 0, c.width, c.height);
 
-    setYukleniyor(true);
     c.toBlob(
-      async (blob) => {
+      (blob) => {
         if (!blob) {
           toast.error("Kare yakalanamadı");
-          setYukleniyor(false);
           return;
         }
-        try {
-          const dosya = new File([blob], "kapak.jpg", { type: "image/jpeg" });
-          const veri = await dosyaYukle(dosya);
-          onSecildi(veri.url);
-          toast.success("Kapak görseli videodan seçildi.");
-          setAcik(false);
-        } catch (err) {
-          toast.error(err instanceof Error ? err.message : "Yükleme başarısız");
-        } finally {
-          setYukleniyor(false);
-        }
+        // Yakalanan kare doğrudan yüklenmiyor — hedef orana yerleştirmesi için
+        // GorselKirpici'ye devrediliyor (bkz. yakalananKare render bloğu).
+        setYakalananKare(new File([blob], "kapak.jpg", { type: "image/jpeg" }));
       },
       "image/jpeg",
       0.9
     );
+  }
+
+  async function kirpmaTamamlandi(kirpilmisDosya: File) {
+    setYakalananKare(null);
+    setYukleniyor(true);
+    try {
+      const veri = await dosyaYukle(kirpilmisDosya);
+      onSecildi(veri.url);
+      toast.success("Kapak görseli videodan seçildi.");
+      setAcik(false);
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Yükleme başarısız");
+    } finally {
+      setYukleniyor(false);
+    }
   }
 
   if (!acik) {
@@ -140,6 +151,16 @@ export default function VideoKareSecici({
         </button>
       </div>
       <canvas ref={canvasRef} className="hidden" />
+
+      {yakalananKare && (
+        <GorselKirpici
+          dosya={yakalananKare}
+          oran={oran}
+          baslik="Kapak görselini yerleştirin"
+          onTamam={kirpmaTamamlandi}
+          onIptal={() => setYakalananKare(null)}
+        />
+      )}
     </div>
   );
 }

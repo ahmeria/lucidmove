@@ -137,13 +137,13 @@ export default function KursForm({ kurs, kategoriler }: KursFormProps) {
       <div className="grid lg:grid-cols-2 gap-6">
         <div>
           <label className="block text-sm text-metin/70 mb-1.5">Kapak görseli (opsiyonel)</label>
-          <GorselInput value={kapakUrl} onChange={setKapakUrl} />
+          <GorselInput value={kapakUrl} onChange={setKapakUrl} oran={4 / 3} />
         </div>
         <div>
           <label className="block text-sm text-metin/70 mb-1.5">Tanıtım videosu (opsiyonel)</label>
           <VideoInput value={tanitimVideoUrl} onChange={setTanitimVideoUrl} />
           {tanitimVideoUrl.startsWith("/uploads/") && (
-            <VideoKareSecici videoUrl={tanitimVideoUrl} onSecildi={setKapakUrl} />
+            <VideoKareSecici videoUrl={tanitimVideoUrl} onSecildi={setKapakUrl} oran={4 / 3} />
           )}
         </div>
       </div>

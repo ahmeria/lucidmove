@@ -12,6 +12,7 @@ const varsayilanSiteAyarlari = {
   heroBaslik: "Nefesinizin *hızında* bir yoga pratiği.",
   heroAltBaslik:
     "Stüdyoya gitmeden, kendi salonunuzda; başlangıçtan ileri seviyeye haftalık yeni derslerle büyüyen bir video kütüphanesi.",
+  heroGorselUrl: "https://images.unsplash.com/photo-1544367567-0f2fcb009e0b?q=80&w=1800&auto=format&fit=crop",
   heroCtaBirincil: "Üyeliği başlat",
   heroCtaIkincil: "Kursları incele",
   uyelikEyebrow: "Üyelik",
@@ -55,6 +56,18 @@ export async function getInstructorProfile() {
     update: {},
     create: varsayilanEgitmenProfili,
   });
+}
+
+// Anasayfa "Stüdyodan kareler" galerisi — önceden sabit kodlanmış görsellerdi,
+// şimdi admin panelden yönetilebilir bir liste (bkz.
+// app/admin/ayarlar/sayfa-tasarimi). Boşsa bölüm sayfada hiç görünmez —
+// bilerek burada "otomatik doldur" mantığı YOK: bu, istek anında çalışan bir
+// "oku, boşsa ekle" deseni önceden burada denenmiş ama build sırasında sayfa
+// birden fazla kez eşzamanlı render edildiğinde yarış durumuna (aynı
+// görsellerin iki kez eklenmesine) yol açtığı için kaldırıldı. İlk kurulum
+// varsayılanları artık yalnızca prisma/seed.ts üzerinden, tek seferlik ekleniyor.
+export async function getGaleriGorselleri() {
+  return db.galeriGorseli.findMany({ orderBy: { sira: "asc" } });
 }
 
 // "Metin\nMetin\nMetin" -> ["Metin", "Metin", "Metin"] — boş satırlar atlanır.

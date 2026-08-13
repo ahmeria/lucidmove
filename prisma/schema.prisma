@@ -229,6 +229,10 @@ model SiteSettings {
   heroEyebrow      String @db.VarChar(255)
   heroBaslik       String @db.Text
   heroAltBaslik    String @db.Text
+  // Ana sayfa üst bölümün arkaplan görseli — admin panelden yüklenir (bkz.
+  // /admin/ayarlar/sayfa-tasarimi). Var olan kurulumlarda geriye dönük
+  // uyumluluk için önceki sabit kodlanmış görsel varsayılan değer olarak atanır.
+  heroGorselUrl    String @default("https://images.unsplash.com/photo-1544367567-0f2fcb009e0b?q=80&w=1800&auto=format&fit=crop") @db.VarChar(512)
   heroCtaBirincil  String @db.VarChar(100)
   heroCtaIkincil   String @db.VarChar(100)
 
@@ -300,6 +304,17 @@ model Testimonial {
   sira      Int      @default(0)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+}
+
+// Anasayfa "Stüdyodan kareler" galerisi — admin panelden yönetilir (bkz.
+// app/admin/ayarlar/sayfa-tasarimi). Tablo boşsa lib/settings.ts >
+// getGaleriGorselleri() önceki sabit kodlanmış görselleri varsayılan olarak ekler.
+model GaleriGorseli {
+  id        String   @id @default(cuid())
+  url       String   @db.VarChar(512)
+  alt       String?  @db.VarChar(255)
+  sira      Int      @default(0)
+  createdAt DateTime @default(now())
 }
 
 model ContactMessage {
