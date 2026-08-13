@@ -9,13 +9,13 @@ export async function middleware(req: NextRequest) {
   const token = await getToken({ req, secret: process.env.NEXTAUTH_SECRET });
 
   if (!token) {
-    const girisUrl = new URL("/giris", req.url);
-    girisUrl.searchParams.set("sonra", req.nextUrl.pathname);
+    const girisUrl = new URL("/login", req.url);
+    girisUrl.searchParams.set("returnTo", req.nextUrl.pathname);
     return NextResponse.redirect(girisUrl);
   }
 
   if (token.role !== "ADMIN") {
-    return NextResponse.redirect(new URL("/hesabim", req.url));
+    return NextResponse.redirect(new URL("/account", req.url));
   }
 
   // app/admin/layout.tsx Server Component'inde pathname'e doğrudan erişim

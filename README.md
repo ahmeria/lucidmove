@@ -428,7 +428,7 @@ sudo systemctl reload apache2
 
 Bu projede kurulum sihirbazı yok — admin hesabı iki adımda oluşturulur:
 
-1. Siteye gerçek adresinizden (ör. `https://lucidmove.net/kayit`) normal
+1. Siteye gerçek adresinizden (ör. `https://lucidmove.net/register`) normal
    bir üye olarak kaydolun.
 2. Sunucuda bu kullanıcıyı admin yapın:
    ```bash
@@ -555,12 +555,13 @@ npx prisma migrate dev --name aciklama
 Site içeriğinin tamamı (`/admin` altında) bir yönetim panelinden düzenlenir:
 
 - **Panel** (`/admin`) — üye/abonelik/gelir/mesaj özeti
-- **Kurslar** (`/admin/kurslar`) — kurs ve ders ekleme, düzenleme, silme
-- **Fiyatlandırma** (`/admin/fiyatlandirma`) — aylık/yıllık plan fiyat ve içeriği
-- **Genel Ayarlar** (`/admin/ayarlar`) — hero metni, üyelik sayfası metinleri,
-  iletişim bilgisi, eğitmen biyografisi/sertifikaları, SEO başlığı
-- **Mesajlar** (`/admin/mesajlar`) — iletişim formundan gelen mesajlar
-- **Üyelikler** (`/admin/uyelikler`) — tüm aboneliklerin durumu, admin iptali
+- **Kurslar** (`/admin/courses`) — kurs ve ders ekleme, düzenleme, silme
+- **Fiyatlandırma** (`/admin/pricing`) — aylık/yıllık plan fiyat ve içeriği
+- **Genel Ayarlar** (`/admin/settings`) — para birimi, analitik, iletişim
+  bilgisi, SEO başlığı (hero/üyelik metinleri, eğitmen profili ve galeri artık
+  `/admin/settings/page-design` altında)
+- **Mesajlar** (`/admin/messages`) — iletişim formundan gelen mesajlar
+- **Üyelikler** (`/admin/subscriptions`) — tüm aboneliklerin durumu, admin iptali
 
 ### İlk admin hesabını oluşturma
 
@@ -591,7 +592,7 @@ düşünebilirsiniz:
 - **Otomatik yenileme:** Şu an her ödeme, Iyzico'nun tek seferlik "Checkout
   Form" akışıyla alınıyor — dönem bitince otomatik tekrar tahsilat yapılmıyor.
   Gerçek bir otomatik-yenilemeli abonelik için Iyzico'nun ayrı **Abonelik
-  (Subscription) API**'sine geçmeniz gerekir. Şimdilik `/hesabim` sayfasından
+  (Subscription) API**'sine geçmeniz gerekir. Şimdilik `/account` sayfasından
   kullanıcılar üyeliklerini görüntüleyip iptal edebiliyor.
 - Şifre sıfırlama akışı (e-posta ile)
 - Fatura/e-posta bildirimleri (Resend, Postmark vb.)

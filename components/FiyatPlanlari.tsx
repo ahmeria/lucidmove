@@ -18,7 +18,7 @@ export interface FiyatPlani {
 
 export default function FiyatPlanlari({
   planlar,
-  sonraUrl = "/#uyelik",
+  sonraUrl = "/#membership",
 }: {
   planlar: FiyatPlani[];
   sonraUrl?: string;
@@ -33,13 +33,13 @@ export default function FiyatPlanlari({
     setHata("");
 
     if (!session) {
-      router.push(`/kayit?sonra=${encodeURIComponent(sonraUrl)}`);
+      router.push(`/register?returnTo=${encodeURIComponent(sonraUrl)}`);
       return;
     }
 
     setYuklenenPlan(plan);
     try {
-      const res = await fetch("/api/uyelik/checkout", {
+      const res = await fetch("/api/membership/checkout", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ plan }),

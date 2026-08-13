@@ -21,14 +21,14 @@ export default function Navbar() {
   const { data: session } = useSession();
   const pathname = usePathname();
   const anaSayfaMi = pathname === "/";
-  const girisKayitMi = pathname === "/giris" || pathname === "/kayit";
+  const girisKayitMi = pathname === "/login" || pathname === "/register";
   const adminMi = session?.user?.role === "ADMIN";
-  const hesabimHref = adminMi ? "/admin" : "/hesabim";
+  const hesabimHref = adminMi ? "/admin" : "/account";
   const hesabimEtiketi = adminMi ? "Panel" : "Hesabım";
 
   // Giriş/Kayıt artık tam ekran, kart-üzerinde-fotoğraf tasarımıyla kendi
   // logosunu (karta bağlı) taşıyor — ayrı bir header şeridine gerek yok,
-  // deneyim tamamen immersive/tek-viewport (bkz. app/(site)/giris/page.tsx).
+  // deneyim tamamen immersive/tek-viewport (bkz. app/(site)/login/page.tsx).
   if (girisKayitMi) return null;
 
   // Ana sayfada üstteki geniş görselin üzerine binen, minimal/şeffaf bir
@@ -58,7 +58,7 @@ export default function Navbar() {
           ) : (
             <p className="text-sm font-body text-white/90">
               Zaten üye misiniz?{" "}
-              <Link href="/giris" className="text-white underline underline-offset-4 hover:no-underline">
+              <Link href="/login" className="text-white underline underline-offset-4 hover:no-underline">
                 Giriş yap
               </Link>
             </p>
@@ -104,11 +104,11 @@ export default function Navbar() {
             </>
           ) : (
             <>
-              <Link href="/giris" className="text-sm font-body text-metin/80 hover:text-metin">
+              <Link href="/login" className="text-sm font-body text-metin/80 hover:text-metin">
                 Giriş yap
               </Link>
               <Link
-                href="/#uyelik"
+                href="/#membership"
                 className="text-sm font-body bg-metin text-zemin px-5 py-2.5 rounded-full hover:bg-koyu transition-colors"
               >
                 Üye ol
@@ -143,7 +143,7 @@ export default function Navbar() {
                   </button>
                 </div>
               ) : (
-                <Link href="/giris" onClick={() => setOpen(false)}>
+                <Link href="/login" onClick={() => setOpen(false)}>
                   Giriş yap
                 </Link>
               )}
@@ -151,7 +151,7 @@ export default function Navbar() {
             {!session && (
               <li>
                 <Link
-                  href="/#uyelik"
+                  href="/#membership"
                   onClick={() => setOpen(false)}
                   className="inline-block bg-metin text-zemin px-5 py-2.5 rounded-full"
                 >

@@ -9,10 +9,10 @@ export default function Footer({ ayarlar }: { ayarlar: SiteSettings }) {
   const instagramHandle = "@" + ayarlar.instagramUrl.replace(/\/$/, "").split("/").pop();
 
   // Giriş/Kayıt artık tam ekran, immersive tek-viewport bir deneyim (bkz.
-  // app/(site)/giris/page.tsx) — sayfanın kendi içinde yasal linkler zaten
+  // app/(site)/login/page.tsx) — sayfanın kendi içinde yasal linkler zaten
   // var, ayrıca footer'a gerek yok.
   const pathname = usePathname();
-  const girisKayitMi = pathname === "/giris" || pathname === "/kayit";
+  const girisKayitMi = pathname === "/login" || pathname === "/register";
   if (girisKayitMi) return null;
 
   return (
@@ -32,12 +32,12 @@ export default function Footer({ ayarlar }: { ayarlar: SiteSettings }) {
         <div className="font-body text-sm">
           <p className="uppercase tracking-[0.2em] text-xs text-zemin/50 mb-3">Site</p>
           <ul className="space-y-2">
-            <li><Link href="/#kurslar" className="hover:text-zemin">Kurslar</Link></li>
-            <li><Link href="/#uyelik" className="hover:text-zemin">Üyelik</Link></li>
-            <li><Link href="/#hakkimda" className="hover:text-zemin">Hakkımda</Link></li>
-            <li><Link href="/iletisim" className="hover:text-zemin">İletişim</Link></li>
-            <li><Link href="/sartlar" className="hover:text-zemin">Kullanım Şartları</Link></li>
-            <li><Link href="/gizlilik" className="hover:text-zemin">Gizlilik Politikası</Link></li>
+            <li><Link href="/#courses" className="hover:text-zemin">Kurslar</Link></li>
+            <li><Link href="/#membership" className="hover:text-zemin">Üyelik</Link></li>
+            <li><Link href="/#about" className="hover:text-zemin">Hakkımda</Link></li>
+            <li><Link href="/contact" className="hover:text-zemin">İletişim</Link></li>
+            <li><Link href="/terms" className="hover:text-zemin">Kullanım Şartları</Link></li>
+            <li><Link href="/privacy" className="hover:text-zemin">Gizlilik Politikası</Link></li>
           </ul>
         </div>
 

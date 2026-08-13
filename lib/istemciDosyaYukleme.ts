@@ -47,7 +47,7 @@ async function parcayiGonder(uploadId: string, index: number, parca: Blob, denem
 
   let res: Response;
   try {
-    res = await fetch("/api/admin/upload/video/parca", { method: "POST", body: form });
+    res = await fetch("/api/admin/upload/video/chunk", { method: "POST", body: form });
   } catch {
     res = new Response(null, { status: 0 });
   }
@@ -73,7 +73,7 @@ export async function dosyaYukleParcali(
   dosya: File,
   ilerlemeCallback?: (yuzde: number) => void
 ): Promise<{ url: string }> {
-  const baslatRes = await fetch("/api/admin/upload/video/baslat", {
+  const baslatRes = await fetch("/api/admin/upload/video/start", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ boyut: dosya.size, tip: dosya.type }),
@@ -93,7 +93,7 @@ export async function dosyaYukleParcali(
     ilerlemeCallback?.(Math.round(((i + 1) / toplamParca) * 100));
   }
 
-  const bitirRes = await fetch("/api/admin/upload/video/bitir", {
+  const bitirRes = await fetch("/api/admin/upload/video/finish", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ uploadId }),

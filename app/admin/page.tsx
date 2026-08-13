@@ -74,39 +74,39 @@ export default async function AdminDashboard({ searchParams }: { searchParams: {
   return (
     <div className="space-y-8">
       <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
-        <StatKart etiket="Toplam üye" deger={uyeSayisi} href="/admin/uyelikler" renk="vurgu" ikon={UyeIkonu} />
+        <StatKart etiket="Toplam üye" deger={uyeSayisi} href="/admin/subscriptions" renk="vurgu" ikon={UyeIkonu} />
         <StatKart
           etiket="Aktif abonelik"
           deger={aktifAbonelikSayisi}
-          href="/admin/uyelikler"
+          href="/admin/subscriptions"
           renk="ikincil"
           ikon={AbonelikIkonu}
         />
         <StatKart
           etiket="Bu ay gelir"
           deger={`₺${(buAyGelir._sum.tutar ?? 0).toString()}`}
-          href="/admin/uyelikler"
+          href="/admin/subscriptions"
           renk="ikincil"
           ikon={GelirIkonu}
         />
         <StatKart
           etiket="Okunmamış mesaj"
           deger={okunmamisMesajSayisi}
-          href="/admin/mesajlar"
+          href="/admin/messages"
           renk={okunmamisMesajSayisi > 0 ? "amber" : "vurgu"}
           ikon={MesajIkonu}
         />
         <StatKart
           etiket="Kurs / ders"
           deger={`${kursSayisi} / ${dersSayisi}`}
-          href="/admin/kurslar"
+          href="/admin/courses"
           renk="vurgu"
           ikon={KursIkonu}
         />
         <StatKart
           etiket="Toplam izlenme"
           deger={izlenmeSayisi}
-          href="/admin/raporlar/izlenmeler"
+          href="/admin/reports/views"
           renk="ikincil"
           ikon={IzlenmeIkonu}
         />

@@ -13,7 +13,7 @@ export const dynamic = "force-dynamic";
 
 export default async function AdminLayout({ children }: { children: React.ReactNode }) {
   const session = await getAdminSession();
-  if (!session) redirect("/giris?sonra=/admin");
+  if (!session) redirect("/login?returnTo=/admin");
 
   // Sayfa bazlı erişim — özel role atanmış (sistemYoneticisiMi olmayan) bir
   // hesap, kendisine izin verilmemiş bir sayfaya doğrudan URL ile girmeye
@@ -38,7 +38,7 @@ export default async function AdminLayout({ children }: { children: React.ReactN
             <p className="font-body text-xs text-zemin/50 truncate">{session.user?.email}</p>
             {session.sistemYoneticisiMi ? (
               <Link
-                href="/admin/ayarlar/guncelleme"
+                href="/admin/settings/updates"
                 title="Güncellemeleri kontrol et"
                 className="font-mono text-[11px] text-zemin/35 hover:text-zemin/60 transition-colors"
               >

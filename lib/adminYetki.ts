@@ -12,7 +12,7 @@ export interface AdminYetkiSinyalleri {
 }
 
 export function ayarlarSayfasiMi(pathname: string): boolean {
-  return pathname.startsWith("/admin/ayarlar");
+  return pathname.startsWith("/admin/settings");
 }
 
 export function sayfaErisimiVarMi(session: AdminYetkiSinyalleri, pathname: string): boolean {

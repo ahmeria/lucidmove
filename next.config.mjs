@@ -12,13 +12,16 @@ const nextConfig = {
     serverComponentsExternalPackages: ["iyzipay"],
   },
   // Site tek sayfaya indirildi (/kurslar, /hakkimda, /uyelik artık ana
-  // sayfadaki bölümler) — eski bağlantılar kırılmasın diye ilgili çapalara
-  // yönlendiriyoruz. Not: /kurslar/:slug (kurs detayı) bundan etkilenmez.
+  // sayfadaki bölümler) — eski (Türkçe) bağlantılar kırılmasın diye ilgili
+  // çapalara yönlendiriyoruz. Kaynak yollar BİLEREK Türkçe bırakıldı — bunlar
+  // gerçek sayfalar değil, geçmişte paylaşılmış/işaretlenmiş dış bağlantılar
+  // için tarihsel bir köprü; route'ların İngilizce'ye taşınması bu girdileri
+  // etkilemiyor. Not: /courses/:slug (kurs detayı) bundan etkilenmez.
   async redirects() {
     return [
-      { source: "/kurslar", destination: "/#kurslar", permanent: false },
-      { source: "/hakkimda", destination: "/#hakkimda", permanent: false },
-      { source: "/uyelik", destination: "/#uyelik", permanent: false },
+      { source: "/kurslar", destination: "/#courses", permanent: false },
+      { source: "/hakkimda", destination: "/#about", permanent: false },
+      { source: "/uyelik", destination: "/#membership", permanent: false },
     ];
   },
   // Temel güvenlik başlıkları — tüm route'lara uygulanır. Not: kapsamlı bir

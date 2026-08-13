@@ -151,7 +151,7 @@ function YapilandirilmamisPanel() {
           kanalları ve en çok okunan sayfalar bu ekranda görünür.
         </p>
         <Link
-          href="/admin/ayarlar"
+          href="/admin/settings"
           className="font-body inline-flex items-center rounded-lg bg-metin px-3 py-1.5 text-sm font-medium text-zemin transition-colors hover:bg-koyu"
         >
           Analytics ayarlarına git
@@ -173,7 +173,7 @@ export function AnalyticsPanel({ veri }: { veri: AnalitikOzeti }) {
           <p className="font-body mt-2 text-xs text-amber-700">
             En sık sebep, servis hesabına GA4 mülkünde <span className="font-medium">Görüntüleyici</span> yetkisi
             verilmemiş olmasıdır.{" "}
-            <Link href="/admin/ayarlar" className="font-medium underline">
+            <Link href="/admin/settings" className="font-medium underline">
               Ayarlardan
             </Link>{" "}
             bağlantıyı test edebilirsiniz.

@@ -13,8 +13,8 @@ export async function POST() {
   if (!session?.sistemYoneticisiMi) return NextResponse.json({ hata: "Yetkisiz" }, { status: 403 });
 
   revalidatePath("/", "layout");
-  revalidatePath("/kurslar/[slug]", "page");
-  revalidatePath("/kurslar/[slug]/[dersSlug]", "page");
+  revalidatePath("/courses/[slug]", "page");
+  revalidatePath("/courses/[slug]/[lessonSlug]", "page");
 
   await logKaydet({
     seviye: "INFO",

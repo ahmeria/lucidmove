@@ -10,7 +10,7 @@ export interface IyzicoDurumu {
   maskelenmisApiKey: string | null;
   // Iyzico'nun ödeme sonucunu POST edeceği adres — panelde elle girilmez,
   // her checkout isteğinde otomatik gönderilir (bkz. lib/iyzico.ts >
-  // odemeFormuBaslat, app/api/uyelik/checkout/route.ts). NEXTAUTH_URL
+  // odemeFormuBaslat, app/api/membership/checkout/route.ts). NEXTAUTH_URL
   // yanlışsa (boş/localhost/http) ödemeler tamamlandıktan sonra siteye
   // hiç dönmez — bu yüzden burada görünür kılınıyor.
   callbackUrl: string;
@@ -51,7 +51,7 @@ export function iyzicoDurumunuAl(): IyzicoDurumu {
     mod,
     baseUrl,
     maskelenmisApiKey: apiKey ? maskele(apiKey) : null,
-    callbackUrl: `${nextAuthUrl}/api/uyelik/webhook`,
+    callbackUrl: `${nextAuthUrl}/api/membership/webhook`,
     nextAuthUrlGecerliMi,
     siteDomaini,
   };

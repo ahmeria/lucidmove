@@ -11,7 +11,7 @@ interface CourseCardProps {
 export default function CourseCard({ slug, baslik, aciklama, seviye, dersSayisi }: CourseCardProps) {
   return (
     <Link
-      href={`/kurslar/${slug}`}
+      href={`/courses/${slug}`}
       className="group block bg-kart border border-cizgi rounded-[1.5rem] p-7 shadow-organik hover:shadow-organik-hover hover:border-ikincil transition-all"
     >
       <span className="font-mono text-[11px] tracking-[0.2em] uppercase text-ikincil-dark">

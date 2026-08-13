@@ -60,7 +60,7 @@ export async function getInstructorProfile() {
 
 // Anasayfa "Stüdyodan kareler" galerisi — önceden sabit kodlanmış görsellerdi,
 // şimdi admin panelden yönetilebilir bir liste (bkz.
-// app/admin/ayarlar/sayfa-tasarimi). Boşsa bölüm sayfada hiç görünmez —
+// app/admin/settings/page-design). Boşsa bölüm sayfada hiç görünmez —
 // bilerek burada "otomatik doldur" mantığı YOK: bu, istek anında çalışan bir
 // "oku, boşsa ekle" deseni önceden burada denenmiş ama build sırasında sayfa
 // birden fazla kez eşzamanlı render edildiğinde yarış durumuna (aynı

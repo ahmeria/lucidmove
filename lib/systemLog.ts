@@ -10,7 +10,7 @@ interface LogKaydiGirdisi {
   kullaniciEtiketi?: string | null;
 }
 
-// /admin/ayarlar/loglar sayfasında görüntülenen denetim günlüğüne bir kayıt ekler.
+// /admin/settings/logs sayfasında görüntülenen denetim günlüğüne bir kayıt ekler.
 // Fire-and-forget çağrılır — loglama hiçbir zaman asıl işlemi (giriş, kayıt
 // oluşturma vb.) engellememeli, bu yüzden hata burada yutulur ve konsola yazılır.
 export async function logKaydet(girdi: LogKaydiGirdisi): Promise<void> {

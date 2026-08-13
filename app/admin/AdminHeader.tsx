@@ -130,7 +130,7 @@ export default function AdminHeader({
                     href={AYARLAR_OGELERI[0].href}
                     onClick={() => setMenuAcik(false)}
                     className={`flex items-center gap-2.5 px-3.5 py-2 text-sm transition-colors ${
-                      pathname.startsWith("/admin/ayarlar")
+                      pathname.startsWith("/admin/settings")
                         ? "text-vurgu-dark font-medium bg-vurgu/10"
                         : "text-metin/70 hover:bg-cizgi/40"
                     }`}

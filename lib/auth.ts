@@ -21,7 +21,7 @@ export const authOptions: NextAuthOptions = {
   // ziyaret edilmeyen bir oturum artık otomatik sona eriyor.
   session: { strategy: "jwt", maxAge: 7 * 24 * 60 * 60 },
   pages: {
-    signIn: "/giris",
+    signIn: "/login",
   },
   providers: [
     CredentialsProvider({

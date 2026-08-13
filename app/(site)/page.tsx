@@ -1,6 +1,6 @@
 import Link from "next/link";
 import Image from "next/image";
-import UyelikClient from "@/app/(site)/uyelik/UyelikClient";
+import MembershipClient from "@/app/(site)/membership/MembershipClient";
 import Canlandir from "@/components/Canlandir";
 import { db } from "@/lib/db";
 import {
@@ -87,13 +87,13 @@ export default async function Anasayfa({ searchParams }: { searchParams: { durum
             </p>
             <div className="flex flex-wrap items-center gap-4 mt-8">
               <Link
-                href="#uyelik"
+                href="#membership"
                 className="bg-koyu text-white px-7 py-3.5 rounded-full font-body text-sm hover:bg-koyu/80 transition-colors inline-flex items-center gap-2"
               >
                 {ayarlar.heroCtaBirincil} <span aria-hidden>→</span>
               </Link>
               <Link
-                href="#kurslar"
+                href="#courses"
                 className="bg-zemin/90 text-metin px-6 py-3 rounded-full font-body text-sm hover:bg-zemin transition-colors"
               >
                 {ayarlar.heroCtaIkincil}
@@ -105,9 +105,9 @@ export default async function Anasayfa({ searchParams }: { searchParams: { durum
 
       {/* ÜYELİK / FİYATLANDIRMA */}
       {/* Not: bölüm koşulsuz render edilir (yalnızca içerik dallanır) — aksi halde
-          admin tüm planları silerse "#uyelik" çapası DOM'dan kaybolur ve navbar/footer/
-          hero'daki tüm "#uyelik" linkleri sessizce hiçbir yere gitmez. */}
-      <section id="uyelik" className="container-nefes py-24 scroll-mt-20">
+          admin tüm planları silerse "#membership" çapası DOM'dan kaybolur ve navbar/footer/
+          hero'daki tüm "#membership" linkleri sessizce hiçbir yere gitmez. */}
+      <section id="membership" className="container-nefes py-24 scroll-mt-20">
         <Canlandir className="text-center max-w-xl mx-auto mb-12">
           <p className="font-mono text-xs tracking-[0.3em] uppercase text-vurgu mb-3">{ayarlar.uyelikEyebrow}</p>
           <h2 className="font-display text-3xl sm:text-4xl font-bold text-metin">{ayarlar.uyelikBaslik}</h2>
@@ -118,7 +118,7 @@ export default async function Anasayfa({ searchParams }: { searchParams: { durum
           <p className="font-body text-metin/60 text-center">Şu anda tanımlı bir üyelik planı yok.</p>
         ) : (
           <Canlandir gecikme={100}>
-            <UyelikClient
+            <MembershipClient
               baslangicDurum={searchParams.durum}
               planlar={planlar.map((p) => ({
                 plan: p.plan,
@@ -136,7 +136,7 @@ export default async function Anasayfa({ searchParams }: { searchParams: { durum
       </section>
 
       {/* KURSLAR */}
-      <section id="kurslar" className="relative container-nefes py-24 scroll-mt-20 overflow-hidden">
+      <section id="courses" className="relative container-nefes py-24 scroll-mt-20 overflow-hidden">
         <div className="blob w-[380px] h-[380px] bg-vurgu/10 top-0 right-0" />
 
         <Canlandir className="relative text-center max-w-xl mx-auto mb-14">
@@ -159,7 +159,7 @@ export default async function Anasayfa({ searchParams }: { searchParams: { durum
                   {grup.kurslar.map((k, i) => (
                     <Canlandir key={k.id} gecikme={(i % 3) * 80}>
                       <Link
-                        href={`/kurslar/${k.slug}`}
+                        href={`/courses/${k.slug}`}
                         className="group block bg-kart border border-cizgi rounded-[1.5rem] overflow-hidden shadow-organik hover:shadow-organik-hover hover:border-ikincil transition-all"
                       >
                         {k.kapakUrl && (
@@ -189,7 +189,7 @@ export default async function Anasayfa({ searchParams }: { searchParams: { durum
         )}
       </section>
 
-      {/* GALERİ — admin panelden yönetilir (bkz. app/admin/ayarlar/sayfa-tasarimi) */}
+      {/* GALERİ — admin panelden yönetilir (bkz. app/admin/settings/page-design) */}
       {galeriGorselleri.length > 0 && (
         <section className="container-nefes pb-24">
           <Canlandir className="text-center max-w-xl mx-auto mb-10">
@@ -217,7 +217,7 @@ export default async function Anasayfa({ searchParams }: { searchParams: { durum
       )}
 
       {/* HAKKIMDA */}
-      <section id="hakkimda" className="bg-koyu text-zemin scroll-mt-20">
+      <section id="about" className="bg-koyu text-zemin scroll-mt-20">
         <div className="container-nefes py-24 grid lg:grid-cols-[0.9fr_1.1fr] gap-14 items-start">
           <Canlandir className="relative aspect-[4/5] foto-organik overflow-hidden lg:sticky lg:top-28">
             <Image
@@ -259,7 +259,7 @@ export default async function Anasayfa({ searchParams }: { searchParams: { durum
 
             <div className="flex flex-wrap items-center gap-5 mt-10">
               <Link
-                href="#uyelik"
+                href="#membership"
                 className="inline-block bg-vurgu text-white px-7 py-3.5 rounded-full font-body text-sm hover:bg-vurgu-dark transition-colors"
               >
                 Derslerime katılın
@@ -277,7 +277,7 @@ export default async function Anasayfa({ searchParams }: { searchParams: { durum
         </div>
       </section>
 
-      {/* YORUMLAR — admin panelden yönetilir (bkz. app/admin/yorumlar). Kart
+      {/* YORUMLAR — admin panelden yönetilir (bkz. app/admin/testimonials). Kart
           genişlikleri, üçten fazla kayıt olduğunda şeridin doğal olarak
           yatayda kaydırılabilir hale gelmesi için sabitlenmiş durumda. */}
       {yorumlar.length > 0 && (

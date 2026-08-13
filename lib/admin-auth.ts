@@ -14,7 +14,7 @@ export async function getAdminSession() {
   });
   if (kullanici?.role !== "ADMIN") return null;
 
-  // sistemYoneticisiMi: /admin/ayarlar/** bölümüne (Genel Ayarlar, Kullanıcılar,
+  // sistemYoneticisiMi: /admin/settings/** bölümüne (Genel Ayarlar, Kullanıcılar,
   // Roller, Cache, Yedekleme, Sistem Logları) erişim yetkisi — her admin değil,
   // yalnızca bu işaretli hesap(lar) görebilir/girebilir. izinliSayfalar: özel
   // role atanmışsa sayfa bazında kısıtlama (bkz. lib/adminYetki.ts) — atanmamışsa

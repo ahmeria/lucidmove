@@ -195,48 +195,48 @@ export function adminNavGruplariniAl(): AdminNavGrubu[] {
     {
       baslik: "İçerik",
       ogeler: [
-        { href: "/admin/kategoriler", label: "Kategoriler", ikon: KategorilerIkonu },
-        { href: "/admin/kurslar", label: "Kurslar", ikon: KurslarIkonu },
-        { href: "/admin/yorumlar", label: "Yorumlar", ikon: YorumlarIkonu },
+        { href: "/admin/categories", label: "Kategoriler", ikon: KategorilerIkonu },
+        { href: "/admin/courses", label: "Kurslar", ikon: KurslarIkonu },
+        { href: "/admin/testimonials", label: "Yorumlar", ikon: YorumlarIkonu },
       ],
     },
     {
       baslik: "Ticaret",
       ogeler: [
-        { href: "/admin/fiyatlandirma", label: "Fiyatlandırma", ikon: FiyatlandirmaIkonu },
-        { href: "/admin/uyeler", label: "Üyeler", ikon: UyelerIkonu },
-        { href: "/admin/uyelikler", label: "Üyelikler", ikon: UyeliklerIkonu },
+        { href: "/admin/pricing", label: "Fiyatlandırma", ikon: FiyatlandirmaIkonu },
+        { href: "/admin/members", label: "Üyeler", ikon: UyelerIkonu },
+        { href: "/admin/subscriptions", label: "Üyelikler", ikon: UyeliklerIkonu },
       ],
     },
     {
       baslik: "İletişim",
-      ogeler: [{ href: "/admin/mesajlar", label: "Mesajlar", ikon: MesajlarIkonu }],
+      ogeler: [{ href: "/admin/messages", label: "Mesajlar", ikon: MesajlarIkonu }],
     },
     {
       baslik: "Raporlar",
-      ogeler: [{ href: "/admin/raporlar", label: "Raporlar", ikon: RaporlarIkonu }],
+      ogeler: [{ href: "/admin/reports", label: "Raporlar", ikon: RaporlarIkonu }],
     },
   ];
 }
 
 // Ayarlar bölümü — yalnızca sistem yöneticisi işaretli hesaba gösterilir (bkz.
 // lib/admin-auth.ts > getAdminSession). AdminHeader'daki usermenu dropdown'ında
-// VE her /admin/ayarlar/** sayfasının üstündeki sekme şeridinde (AyarlarSekmeleri)
+// VE her /admin/settings/** sayfasının üstündeki sekme şeridinde (AyarlarSekmeleri)
 // aynı bu listeden besleniyor — tek kaynak.
 export const AYARLAR_OGELERI: AdminNavOge[] = [
-  { href: "/admin/ayarlar", label: "Genel Ayarlar", exact: true, ikon: GenelAyarlarIkonu },
-  { href: "/admin/ayarlar/sayfa-tasarimi", label: "Sayfa Tasarımı", ikon: SayfaTasarimiIkonu },
-  { href: "/admin/ayarlar/kullanicilar", label: "Kullanıcılar", ikon: KullanicilarIkonu },
-  { href: "/admin/ayarlar/roller", label: "Roller", ikon: RollerIkonu },
-  { href: "/admin/ayarlar/entegrasyon", label: "Entegrasyon", ikon: EntegrasyonIkonu },
-  { href: "/admin/ayarlar/guncelleme", label: "Güncelleme", ikon: GuncellemeIkonu },
-  { href: "/admin/ayarlar/cache", label: "Cache", ikon: CacheIkonu },
-  { href: "/admin/ayarlar/yedekleme", label: "Yedekleme", ikon: YedeklemeIkonu },
-  { href: "/admin/ayarlar/loglar", label: "Sistem Logları", ikon: LoglarIkonu },
+  { href: "/admin/settings", label: "Genel Ayarlar", exact: true, ikon: GenelAyarlarIkonu },
+  { href: "/admin/settings/page-design", label: "Sayfa Tasarımı", ikon: SayfaTasarimiIkonu },
+  { href: "/admin/settings/users", label: "Kullanıcılar", ikon: KullanicilarIkonu },
+  { href: "/admin/settings/roles", label: "Roller", ikon: RollerIkonu },
+  { href: "/admin/settings/integrations", label: "Entegrasyon", ikon: EntegrasyonIkonu },
+  { href: "/admin/settings/updates", label: "Güncelleme", ikon: GuncellemeIkonu },
+  { href: "/admin/settings/cache", label: "Cache", ikon: CacheIkonu },
+  { href: "/admin/settings/backups", label: "Yedekleme", ikon: YedeklemeIkonu },
+  { href: "/admin/settings/logs", label: "Sistem Logları", ikon: LoglarIkonu },
 ];
 
 // Header'daki "şu an neredeyim" başlığı — en uzun eşleşen href kazanır (ör.
-// "/admin/ayarlar/kullanicilar" hem "/admin/ayarlar" hem kendi tam yoluyla eşleşir,
+// "/admin/settings/users" hem "/admin/settings" hem kendi tam yoluyla eşleşir,
 // en spesifik olan seçilir).
 export function aktifSayfaBasligi(pathname: string, sistemYoneticisiMi: boolean): string {
   const tumOgeler = [
