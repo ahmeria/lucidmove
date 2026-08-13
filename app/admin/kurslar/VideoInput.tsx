@@ -1,9 +1,11 @@
 "use client";
 
 import { useState, ChangeEvent } from "react";
-import { dosyaYukle } from "@/lib/istemciDosyaYukleme";
+import { dosyaYukleParcali } from "@/lib/istemciDosyaYukleme";
 
 const alan = "w-full border border-cizgi rounded-lg px-3 py-2 bg-zemin text-metin text-sm focus:border-vurgu outline-none";
+
+const MAKSIMUM_VIDEO_BOYUTU = 2 * 1024 * 1024 * 1024; // 2 GB — bkz. lib/parcaliYukleme.ts
 
 export default function VideoInput({
   value,
@@ -28,12 +30,18 @@ export default function VideoInput({
     const dosya = e.target.files?.[0];
     if (!dosya) return;
 
+    if (dosya.size > MAKSIMUM_VIDEO_BOYUTU) {
+      setHata("Dosya çok büyük — en fazla 2 GB");
+      e.target.value = "";
+      return;
+    }
+
     setYukleniyor(true);
     setYuzde(0);
     setHata("");
 
     try {
-      const veri = await dosyaYukle(dosya, setYuzde);
+      const veri = await dosyaYukleParcali(dosya, setYuzde);
       onChange(veri.url);
     } catch (e) {
       setHata(e instanceof Error ? e.message : "Yükleme başarısız");
@@ -86,7 +94,7 @@ export default function VideoInput({
               <div className="h-1.5 bg-cizgi rounded-full overflow-hidden">
                 <div className="h-full bg-vurgu rounded-full transition-[width] duration-200" style={{ width: `${yuzde}%` }} />
               </div>
-              <p className="text-xs text-metin/50 mt-1.5">Yükleniyor… %{yuzde}</p>
+              <p className="text-xs text-metin/50 mt-1.5">Yükleniyor… %{yuzde} — büyük dosyalarda uzun sürebilir, sayfadan ayrılmayın</p>
             </div>
           )}
           {!yukleniyor && value && value.startsWith("/uploads/") && (

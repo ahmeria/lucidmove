@@ -5,6 +5,11 @@ import { useState } from "react";
 // Kurs düzenleme sayfasını "Kurs bilgileri" / "Dersler" olmak üzere iki sekmeye
 // ayırır — ikisi de mount'lu kalır (yalnızca CSS ile gizlenir), sekme değişince
 // formdaki girilmiş-ama-kaydedilmemiş veri kaybolmaz.
+//
+// Varsayılan sekme: dersi olmayan (yeni oluşturulmuş) bir kursta doğrudan
+// "Dersler" ile açılır. Aksi halde yeni kurs oluşturup buraya yönlendirilen
+// kullanıcı "Kurs bilgileri" sekmesinde kalır ve "+ Yeni ders ekle" butonunu
+// hiç görmeden, o sekmeyi kendisi bulup tıklaması gerekirdi.
 export default function KursSekmeleri({
   dersSayisi,
   bilgiler,
@@ -14,7 +19,7 @@ export default function KursSekmeleri({
   bilgiler: React.ReactNode;
   dersler: React.ReactNode;
 }) {
-  const [aktif, setAktif] = useState<"bilgiler" | "dersler">("bilgiler");
+  const [aktif, setAktif] = useState<"bilgiler" | "dersler">(dersSayisi === 0 ? "dersler" : "bilgiler");
 
   return (
     <div>

@@ -1,5 +1,7 @@
+import Link from "next/link";
 import { db } from "@/lib/db";
 import Kart from "@/components/admin/Kart";
+import SayfaBasligi from "@/components/admin/SayfaBasligi";
 
 export const dynamic = "force-dynamic";
 
@@ -35,6 +37,17 @@ export default async function AdminUyeler() {
 
   return (
     <div>
+      <SayfaBasligi
+        sag={
+          <Link
+            href="/admin/uyeler/yeni"
+            className="bg-metin text-zemin px-5 py-2.5 rounded-lg font-body text-sm hover:bg-koyu transition-colors cursor-pointer whitespace-nowrap"
+          >
+            Yeni üye ekle
+          </Link>
+        }
+      />
+
       {uyeler.length === 0 ? (
         <p className="font-body text-metin/60">Henüz satın alım yapan üye yok.</p>
       ) : (

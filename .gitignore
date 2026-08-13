@@ -17,3 +17,7 @@ next-env.d.ts
 # Kullanıcı yüklemeleri (kurs videoları, profil fotoğrafları vb.) — büyük, kişisel
 # veri içerebilir ve içerik olarak sunucuda ayrıca tutulur; repoya girmez.
 /public/uploads/
+
+# Parçalı video yükleme sırasında oluşan geçici dosyalar (bkz. lib/parcaliYukleme.ts) —
+# tamamlanınca public/uploads/videos'a taşınır, buradaki kalıntılar hiç repoya girmemeli.
+/storage/tmp-yuklemeler/
