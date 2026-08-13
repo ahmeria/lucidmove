@@ -16,7 +16,10 @@ const GIRIS_DENEME_PENCERESI_MS = 5 * 60 * 1000; // 5 dakika
 const SAHTE_HASH = "$2a$12$CwTycUXWue0Thq9StjUM0uJ8Nrhz2E7XlwZE0e6MQpuvNZFqLlV8m";
 
 export const authOptions: NextAuthOptions = {
-  session: { strategy: "jwt" },
+  // maxAge belirtilmezse NextAuth varsayılanı 30 gündür (+ kayan pencere —
+  // her istekte süre sıfırdan başlar). 7 güne düşürüldü: bir hafta hiç
+  // ziyaret edilmeyen bir oturum artık otomatik sona eriyor.
+  session: { strategy: "jwt", maxAge: 7 * 24 * 60 * 60 },
   pages: {
     signIn: "/giris",
   },
