@@ -175,6 +175,35 @@ function GuncellemeIkonu({ className }: IkonProps) {
   );
 }
 
+export function YardimIkonu({ className }: IkonProps) {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" className={className}>
+      <circle cx="12" cy="12" r="8.5" />
+      <path d="M9.3 9.3a2.7 2.7 0 1 1 3.8 2.5c-.7.3-1.1.9-1.1 1.7v.3" strokeLinecap="round" strokeLinejoin="round" />
+      <circle cx="12" cy="16.8" r="0.9" fill="currentColor" stroke="none" />
+    </svg>
+  );
+}
+
+function KilavuzIkonu({ className }: IkonProps) {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" className={className}>
+      <path d="M12 6.5c-1.5-1.3-3.5-2-6-2v13c2.5 0 4.5.7 6 2 1.5-1.3 3.5-2 6-2V4.5c-2.5 0-4.5.7-6 2Z" strokeLinejoin="round" />
+      <path d="M12 6.5V19.5" />
+    </svg>
+  );
+}
+
+function GecmisIkonu({ className }: IkonProps) {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" className={className}>
+      <path d="M4 12a8 8 0 1 0 2.6-5.9" strokeLinecap="round" />
+      <path d="M4 4.5V8h3.5" strokeLinecap="round" strokeLinejoin="round" />
+      <path d="M12 8v4.5l3 2" strokeLinecap="round" strokeLinejoin="round" />
+    </svg>
+  );
+}
+
 export interface AdminNavOge {
   href: string;
   label: string;
@@ -235,6 +264,15 @@ export const AYARLAR_OGELERI: AdminNavOge[] = [
   { href: "/admin/settings/logs", label: "Sistem Logları", ikon: LoglarIkonu },
 ];
 
+// Yardım bölümü — herkese açık (bkz. app/admin/help/**), Ayarlar'ın aksine
+// bir izin kontrolüne bağlı değil. Usermenu'deki "Yardım" linki VE
+// /admin/help/** sayfalarının üstündeki sekme şeridi (YardimSekmeleri) aynı
+// bu listeden besleniyor.
+export const YARDIM_OGELERI: AdminNavOge[] = [
+  { href: "/admin/help", label: "Kullanım Kılavuzu", exact: true, ikon: KilavuzIkonu },
+  { href: "/admin/help/changelog", label: "Güncelleme Geçmişi", ikon: GecmisIkonu },
+];
+
 // Header'daki "şu an neredeyim" başlığı — en uzun eşleşen href kazanır (ör.
 // "/admin/settings/users" hem "/admin/settings" hem kendi tam yoluyla eşleşir,
 // en spesifik olan seçilir). Yetki kontrolü değil, salt etiketleme — buraya
@@ -242,7 +280,7 @@ export const AYARLAR_OGELERI: AdminNavOge[] = [
 // Ayarlar sayfaları sistemYoneticisiMi/izinliSayfalar farkı gözetmeden
 // eşleşme kümesine dahil.
 export function aktifSayfaBasligi(pathname: string): string {
-  const tumOgeler = [...adminNavGruplariniAl().flatMap((g) => g.ogeler), ...AYARLAR_OGELERI];
+  const tumOgeler = [...adminNavGruplariniAl().flatMap((g) => g.ogeler), ...AYARLAR_OGELERI, ...YARDIM_OGELERI];
   const eslesenler = tumOgeler.filter((o) => (o.exact ? pathname === o.href : pathname.startsWith(o.href)));
   const enSpesifik = eslesenler.sort((a, b) => b.href.length - a.href.length)[0];
   return enSpesifik?.label ?? "Yönetim";

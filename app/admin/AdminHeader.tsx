@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
 import { usePathname } from "next/navigation";
 import { signOut } from "next-auth/react";
-import { aktifSayfaBasligi, AYARLAR_OGELERI } from "./admin-nav-data";
+import { aktifSayfaBasligi, AYARLAR_OGELERI, YardimIkonu } from "./admin-nav-data";
 
 const AyarlarIkonu = AYARLAR_OGELERI[0].ikon;
 
@@ -139,22 +139,32 @@ export default function AdminHeader({
               <p className="px-3.5 py-2 text-xs text-metin/45 truncate border-b border-cizgi">{userEmail}</p>
 
               {ayarlarHrefi && (
-                <>
-                  <Link
-                    href={ayarlarHrefi}
-                    onClick={() => setMenuAcik(false)}
-                    className={`flex items-center gap-2.5 px-3.5 py-2 text-sm transition-colors ${
-                      pathname.startsWith("/admin/settings")
-                        ? "text-vurgu-dark font-medium bg-vurgu/10"
-                        : "text-metin/70 hover:bg-cizgi/40"
-                    }`}
-                  >
-                    <AyarlarIkonu className="size-4 shrink-0" />
-                    Ayarlar
-                  </Link>
-                  <div className="my-1 border-t border-cizgi" />
-                </>
+                <Link
+                  href={ayarlarHrefi}
+                  onClick={() => setMenuAcik(false)}
+                  className={`flex items-center gap-2.5 px-3.5 py-2 text-sm transition-colors ${
+                    pathname.startsWith("/admin/settings")
+                      ? "text-vurgu-dark font-medium bg-vurgu/10"
+                      : "text-metin/70 hover:bg-cizgi/40"
+                  }`}
+                >
+                  <AyarlarIkonu className="size-4 shrink-0" />
+                  Ayarlar
+                </Link>
               )}
+
+              <Link
+                href="/admin/help"
+                onClick={() => setMenuAcik(false)}
+                className={`flex items-center gap-2.5 px-3.5 py-2 text-sm transition-colors ${
+                  pathname.startsWith("/admin/help") ? "text-vurgu-dark font-medium bg-vurgu/10" : "text-metin/70 hover:bg-cizgi/40"
+                }`}
+              >
+                <YardimIkonu className="size-4 shrink-0" />
+                Yardım
+              </Link>
+
+              <div className="my-1 border-t border-cizgi" />
 
               <button
                 onClick={() => signOut({ callbackUrl: "/" })}
