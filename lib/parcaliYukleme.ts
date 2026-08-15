@@ -56,7 +56,7 @@ export async function yuklemeBaslat(params: {
   }
 
   const uploadId = randomUUID();
-  const geciciKlasor = path.join(process.cwd(), "storage", "tmp-yuklemeler");
+  const geciciKlasor = path.join(process.cwd(), "storage", "tmp-uploads");
   await mkdir(geciciKlasor, { recursive: true });
   const geciciYol = path.join(geciciKlasor, uploadId);
 

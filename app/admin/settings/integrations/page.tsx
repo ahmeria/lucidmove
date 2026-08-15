@@ -1,5 +1,6 @@
 import { notFound } from "next/navigation";
 import { getAdminSession } from "@/lib/admin-auth";
+import { sayfaErisimiVarMi } from "@/lib/adminYetki";
 import Kart from "@/components/admin/Kart";
 import SayfaBasligi from "@/components/admin/SayfaBasligi";
 import AyarlarSekmeleri from "../AyarlarSekmeleri";
@@ -14,13 +15,15 @@ export const dynamic = "force-dynamic";
 // kurulum (prodüksiyon)" bölümündeki .env talimatlarına bakın.
 export default async function AdminEntegrasyon() {
   const session = await getAdminSession();
-  if (!session?.sistemYoneticisiMi) notFound();
+  if (!session || !sayfaErisimiVarMi(session, "/admin/settings/integrations")) notFound();
 
   const durum = iyzicoDurumunuAl();
 
   return (
     <div>
-      <SayfaBasligi sag={<AyarlarSekmeleri />} />
+      <SayfaBasligi
+        sag={<AyarlarSekmeleri sistemYoneticisiMi={session.sistemYoneticisiMi} izinliSayfalar={session.izinliSayfalar} />}
+      />
 
       <Kart baslik="Iyzico">
         <div className="space-y-6">

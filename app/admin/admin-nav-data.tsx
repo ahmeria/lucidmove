@@ -237,12 +237,12 @@ export const AYARLAR_OGELERI: AdminNavOge[] = [
 
 // Header'daki "şu an neredeyim" başlığı — en uzun eşleşen href kazanır (ör.
 // "/admin/settings/users" hem "/admin/settings" hem kendi tam yoluyla eşleşir,
-// en spesifik olan seçilir).
-export function aktifSayfaBasligi(pathname: string, sistemYoneticisiMi: boolean): string {
-  const tumOgeler = [
-    ...adminNavGruplariniAl().flatMap((g) => g.ogeler),
-    ...(sistemYoneticisiMi ? AYARLAR_OGELERI : []),
-  ];
+// en spesifik olan seçilir). Yetki kontrolü değil, salt etiketleme — buraya
+// zaten erişimi olan biri (layout'ta doğrulanmış) görüntülüyor, bu yüzden
+// Ayarlar sayfaları sistemYoneticisiMi/izinliSayfalar farkı gözetmeden
+// eşleşme kümesine dahil.
+export function aktifSayfaBasligi(pathname: string): string {
+  const tumOgeler = [...adminNavGruplariniAl().flatMap((g) => g.ogeler), ...AYARLAR_OGELERI];
   const eslesenler = tumOgeler.filter((o) => (o.exact ? pathname === o.href : pathname.startsWith(o.href)));
   const enSpesifik = eslesenler.sort((a, b) => b.href.length - a.href.length)[0];
   return enSpesifik?.label ?? "Yönetim";

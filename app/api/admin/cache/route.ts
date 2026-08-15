@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { revalidatePath } from "next/cache";
 import { getAdminSession } from "@/lib/admin-auth";
+import { sayfaErisimiVarMi } from "@/lib/adminYetki";
 import { logKaydet } from "@/lib/systemLog";
 
 // LucidMove'da Redis vb. ayrı bir önbellek katmanı yok — "cache" burada Next.js'in
@@ -10,7 +11,9 @@ import { logKaydet } from "@/lib/systemLog";
 // amaçlı manuel bir güvenlik supabı.
 export async function POST() {
   const session = await getAdminSession();
-  if (!session?.sistemYoneticisiMi) return NextResponse.json({ hata: "Yetkisiz" }, { status: 403 });
+  if (!session || !sayfaErisimiVarMi(session, "/admin/settings/cache")) {
+    return NextResponse.json({ hata: "Yetkisiz" }, { status: 403 });
+  }
 
   revalidatePath("/", "layout");
   revalidatePath("/courses/[slug]", "page");

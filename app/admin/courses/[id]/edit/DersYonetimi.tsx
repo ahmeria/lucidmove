@@ -8,8 +8,6 @@ import GorselKutusu from "@/components/admin/GorselKutusu";
 import VideoKareSecici from "@/components/admin/VideoKareSecici";
 import VideoInput from "../../VideoInput";
 
-type FiligranDurumu = "BEKLIYOR" | "ISLENIYOR" | "HAZIR" | "HATA";
-
 interface Ders {
   id: string;
   baslik: string;
@@ -18,25 +16,8 @@ interface Ders {
   kapakUrl: string | null;
   sureDakika: number;
   kaynakVideoUrl: string;
-  filigranDurumu: FiligranDurumu;
   ucretsizMi: boolean;
   sira: number;
-}
-
-const FILIGRAN_ETIKETI: Record<FiligranDurumu, { metin: string; sinif: string }> = {
-  BEKLIYOR: { metin: "Bekliyor", sinif: "bg-metin/10 text-metin/60" },
-  ISLENIYOR: { metin: "Filigranlanıyor…", sinif: "bg-amber-100 text-amber-800" },
-  HAZIR: { metin: "Hazır", sinif: "bg-emerald-100 text-emerald-800" },
-  HATA: { metin: "Hata — tekrar yükleyin", sinif: "bg-hata/10 text-hata" },
-};
-
-function FiligranRozeti({ durum }: { durum: FiligranDurumu }) {
-  const { metin, sinif } = FILIGRAN_ETIKETI[durum];
-  return (
-    <span className={`font-mono text-[11px] uppercase tracking-wide px-2.5 py-1 rounded-full whitespace-nowrap ${sinif}`}>
-      {metin}
-    </span>
-  );
 }
 
 function OkIkonu({ className }: { className?: string }) {
@@ -142,7 +123,6 @@ function DersSatiri({ ders, courseId }: { ders: Ders; courseId: string }) {
               Ücretsiz
             </span>
           )}
-          <FiligranRozeti durum={ders.filigranDurumu} />
           <OkIkonu className={`size-4 text-metin/40 transition-transform ${acik ? "rotate-180" : ""}`} />
         </div>
       </button>

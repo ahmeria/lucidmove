@@ -67,8 +67,7 @@ export default async function KullanimSartlari() {
           <p>
             Video içerikleri yalnızca kişisel, ticari olmayan kullanım içindir. Videoların
             indirilmesi, kopyalanması, kayda alınması, çoğaltılması veya üçüncü kişilerle
-            paylaşılması yasaktır. İçerikler izinsiz kullanımı caydırmak amacıyla dijital
-            filigranla korunmaktadır.
+            paylaşılması yasaktır.
           </p>
         </section>
 

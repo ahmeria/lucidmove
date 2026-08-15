@@ -1,6 +1,7 @@
 import { Suspense } from "react";
 import { notFound } from "next/navigation";
 import { getAdminSession } from "@/lib/admin-auth";
+import { sayfaErisimiVarMi } from "@/lib/adminYetki";
 import { db } from "@/lib/db";
 import type { Prisma } from "@prisma/client";
 import Kart from "@/components/admin/Kart";
@@ -18,7 +19,7 @@ export default async function AdminLoglar({
   searchParams: { kategori?: string; seviye?: string; sayfa?: string };
 }) {
   const session = await getAdminSession();
-  if (!session?.sistemYoneticisiMi) notFound();
+  if (!session || !sayfaErisimiVarMi(session, "/admin/settings/logs")) notFound();
 
   const sayfa = Math.max(1, Number(searchParams.sayfa) || 1);
   const where: Prisma.SystemLogWhereInput = {};
@@ -46,7 +47,9 @@ export default async function AdminLoglar({
 
   return (
     <div>
-      <SayfaBasligi sag={<AyarlarSekmeleri />} />
+      <SayfaBasligi
+        sag={<AyarlarSekmeleri sistemYoneticisiMi={session.sistemYoneticisiMi} izinliSayfalar={session.izinliSayfalar} />}
+      />
 
       <div className="flex justify-end mb-6">
         <Suspense fallback={null}>

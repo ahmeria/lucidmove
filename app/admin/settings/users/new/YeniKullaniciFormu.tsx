@@ -8,7 +8,17 @@ import { useToast } from "@/components/Toast";
 // Normalde /register üzerinden üye olunup admin panelden rol yükseltilir; bu
 // form, sistem yöneticisinin panelden doğrudan bir hesap açmasını sağlayan
 // kısayol (bkz. app/api/admin/users > POST).
-export default function YeniKullaniciFormu({ roller }: { roller: { id: string; ad: string }[] }) {
+export default function YeniKullaniciFormu({
+  roller,
+  sistemYoneticisiVerilebilir,
+}: {
+  roller: { id: string; ad: string }[];
+  // false ise: çağıran sistem yöneticisi değil (yalnızca devredilmiş
+  // "Kullanıcılar" sayfası erişimiyle burada) — bu durumda "Sistem
+  // yöneticisi" onay kutusu hiç gösterilmez (işaretlense de sunucu zaten
+  // yok sayar) ve bir panel rolü seçimi ZORUNLUDUR (bkz. app/api/admin/users).
+  sistemYoneticisiVerilebilir: boolean;
+}) {
   const router = useRouter();
   const toast = useToast();
   const [ad, setAd] = useState("");
@@ -115,14 +125,16 @@ export default function YeniKullaniciFormu({ roller }: { roller: { id: string; a
 
       {role === "ADMIN" && (
         <>
-          <label className="flex items-center gap-2 text-sm text-metin/70">
-            <input
-              type="checkbox"
-              checked={sistemYoneticisiMi}
-              onChange={(e) => setSistemYoneticisiMi(e.target.checked)}
-            />
-            Sistem yöneticisi — Ayarlar bölümüne (Kullanıcılar, Roller, Cache, Yedekleme, Sistem Logları) erişebilir
-          </label>
+          {sistemYoneticisiVerilebilir && (
+            <label className="flex items-center gap-2 text-sm text-metin/70">
+              <input
+                type="checkbox"
+                checked={sistemYoneticisiMi}
+                onChange={(e) => setSistemYoneticisiMi(e.target.checked)}
+              />
+              Sistem yöneticisi — Ayarlar bölümüne (Kullanıcılar, Roller, Cache, Yedekleme, Sistem Logları) erişebilir
+            </label>
+          )}
 
           {!sistemYoneticisiMi && (
             <div>
@@ -130,9 +142,16 @@ export default function YeniKullaniciFormu({ roller }: { roller: { id: string; a
               <select
                 value={adminRoleId}
                 onChange={(e) => setAdminRoleId(e.target.value)}
+                required={!sistemYoneticisiVerilebilir}
                 className="w-full sm:w-72 border border-cizgi rounded-lg px-4 py-2.5 bg-zemin text-metin focus:border-vurgu outline-none"
               >
-                <option value="">Varsayılan (tüm içerik sayfaları)</option>
+                {sistemYoneticisiVerilebilir ? (
+                  <option value="">Varsayılan (tüm içerik sayfaları)</option>
+                ) : (
+                  <option value="" disabled>
+                    Bir rol seçin…
+                  </option>
+                )}
                 {roller.map((r) => (
                   <option key={r.id} value={r.id}>
                     {r.ad}
@@ -140,7 +159,10 @@ export default function YeniKullaniciFormu({ roller }: { roller: { id: string; a
                 ))}
               </select>
               <p className="text-xs text-metin/45 mt-1.5">
-                Özel bir rol seçilirse, bu kullanıcı yalnızca o rolün izin verdiği sayfaları görebilir. Rolleri{" "}
+                {sistemYoneticisiVerilebilir
+                  ? "Özel bir rol seçilirse, bu kullanıcı yalnızca o rolün izin verdiği sayfaları görebilir."
+                  : "Yalnızca sizin de erişebildiğiniz sayfaları içeren roller listeleniyor."}{" "}
+                Rolleri{" "}
                 <Link href="/admin/settings/roles" className="text-vurgu hover:text-vurgu-dark">
                   buradan
                 </Link>{" "}

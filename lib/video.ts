@@ -10,8 +10,10 @@ export const videoUrlSemasi = z
   });
 
 // Ders (lesson) videoları artık yalnızca sunucuya yüklenen dosyalar olabilir —
-// YouTube linki kabul edilmez (tüm ders içeriği sunucuda barındırılıp
-// filigranlanmalı). Kurs tanıtım videosu için videoUrlSemasiOpsiyonel kalır.
+// YouTube linki kabul edilmez. Sebep: izlenme takibi (bkz. VideoPlayer.tsx >
+// izlendiBildir) YouTube'un gömülü oynatıcısında (iframe) çalışmıyor, yalnızca
+// yerel <video> için "bitti" olayı yakalanabiliyor. Kurs tanıtım videosu için
+// videoUrlSemasiOpsiyonel kalır (izlenme takibi orada gerekmiyor).
 export const dersVideoYoluSemasi = z
   .string()
   .min(1)

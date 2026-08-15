@@ -1,5 +1,6 @@
 import { notFound } from "next/navigation";
 import { getAdminSession } from "@/lib/admin-auth";
+import { sayfaErisimiVarMi } from "@/lib/adminYetki";
 import { getSiteSettings, getInstructorProfile, getGaleriGorselleri } from "@/lib/settings";
 import Kart from "@/components/admin/Kart";
 import SayfaBasligi from "@/components/admin/SayfaBasligi";
@@ -17,7 +18,7 @@ export const dynamic = "force-dynamic";
 // destekliyor (ham URL yapıştırmak yerine).
 export default async function SayfaTasarimi() {
   const session = await getAdminSession();
-  if (!session?.sistemYoneticisiMi) notFound();
+  if (!session || !sayfaErisimiVarMi(session, "/admin/settings/page-design")) notFound();
 
   const [ayarlar, profil, galeri] = await Promise.all([
     getSiteSettings(),
@@ -27,7 +28,9 @@ export default async function SayfaTasarimi() {
 
   return (
     <div>
-      <SayfaBasligi sag={<AyarlarSekmeleri />} />
+      <SayfaBasligi
+        sag={<AyarlarSekmeleri sistemYoneticisiMi={session.sistemYoneticisiMi} izinliSayfalar={session.izinliSayfalar} />}
+      />
 
       <div className="space-y-6">
         <Kart baslik="Hero & Üyelik">

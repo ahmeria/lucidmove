@@ -19,10 +19,14 @@ export default function KullaniciForm({
   kullanici,
   kendisiMi,
   roller,
+  sistemYoneticisiVerilebilir,
 }: {
   kullanici: Kullanici;
   kendisiMi: boolean;
   roller: { id: string; ad: string }[];
+  // false ise: çağıran sistem yöneticisi değil (yalnızca devredilmiş
+  // "Kullanıcılar" sayfası erişimiyle burada) — bkz. YeniKullaniciFormu.tsx.
+  sistemYoneticisiVerilebilir: boolean;
 }) {
   const router = useRouter();
   const toast = useToast();
@@ -132,16 +136,18 @@ export default function KullaniciForm({
 
       {role === "ADMIN" && (
         <>
-          <label className="flex items-center gap-2 text-sm text-metin/70">
-            <input
-              type="checkbox"
-              checked={sistemYoneticisiMi}
-              onChange={(e) => setSistemYoneticisiMi(e.target.checked)}
-              disabled={kendisiMi && sistemYoneticisiMi}
-              title={kendisiMi && sistemYoneticisiMi ? "Kendi sistem yöneticiliğinizi kaldıramazsınız" : undefined}
-            />
-            Sistem yöneticisi — Ayarlar bölümüne (Kullanıcılar, Roller, Cache, Yedekleme, Sistem Logları) erişebilir
-          </label>
+          {sistemYoneticisiVerilebilir && (
+            <label className="flex items-center gap-2 text-sm text-metin/70">
+              <input
+                type="checkbox"
+                checked={sistemYoneticisiMi}
+                onChange={(e) => setSistemYoneticisiMi(e.target.checked)}
+                disabled={kendisiMi && sistemYoneticisiMi}
+                title={kendisiMi && sistemYoneticisiMi ? "Kendi sistem yöneticiliğinizi kaldıramazsınız" : undefined}
+              />
+              Sistem yöneticisi — Ayarlar bölümüne (Kullanıcılar, Roller, Cache, Yedekleme, Sistem Logları) erişebilir
+            </label>
+          )}
 
           {!sistemYoneticisiMi && (
             <div>
@@ -149,9 +155,16 @@ export default function KullaniciForm({
               <select
                 value={adminRoleId}
                 onChange={(e) => setAdminRoleId(e.target.value)}
+                required={!sistemYoneticisiVerilebilir}
                 className="w-full sm:w-72 border border-cizgi rounded-lg px-4 py-2.5 bg-zemin text-metin focus:border-vurgu outline-none"
               >
-                <option value="">Varsayılan (tüm içerik sayfaları)</option>
+                {sistemYoneticisiVerilebilir ? (
+                  <option value="">Varsayılan (tüm içerik sayfaları)</option>
+                ) : (
+                  <option value="" disabled>
+                    Bir rol seçin…
+                  </option>
+                )}
                 {roller.map((r) => (
                   <option key={r.id} value={r.id}>
                     {r.ad}
@@ -159,7 +172,10 @@ export default function KullaniciForm({
                 ))}
               </select>
               <p className="text-xs text-metin/45 mt-1.5">
-                Özel bir rol seçilirse, bu kullanıcı yalnızca o rolün izin verdiği sayfaları görebilir. Rolleri{" "}
+                {sistemYoneticisiVerilebilir
+                  ? "Özel bir rol seçilirse, bu kullanıcı yalnızca o rolün izin verdiği sayfaları görebilir."
+                  : "Yalnızca sizin de erişebildiğiniz sayfaları içeren roller listeleniyor."}{" "}
+                Rolleri{" "}
                 <Link href="/admin/settings/roles" className="text-vurgu hover:text-vurgu-dark">
                   buradan
                 </Link>{" "}

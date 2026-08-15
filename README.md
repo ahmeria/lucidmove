@@ -263,14 +263,11 @@ sudo apt-get install -y nodejs
 
 (sudo yetkiniz yoksa `nvm` alternatifi de kullanılabilir.)
 
-**4. ffmpeg ve mysqldump'ı kur (opsiyonel ama önerilir)**
+**4. mysqldump'ı kur (opsiyonel ama önerilir)**
 
-İki özellik bu iki komut satırı aracına bağımlı — yoksa sessizce
-atlanmazlar, ilgili işlem hata verir:
-
-- **ffmpeg** — ders videolarına filigran eklemek için (`lib/filigran.ts`).
-- **mysqldump** — admin panel > Ayarlar > Yedekleme'den veritabanı yedeği
-  almak için.
+Admin panel > Ayarlar > Yedekleme'den veritabanı yedeği alma özelliği bu
+komut satırı aracına bağımlı — yoksa sessizce atlanmaz, ilgili işlem hata
+verir.
 
 > ⚠️ **Önce kontrol edin, hemen kurmayın.** Sunucuda zaten MariaDB
 > kuruluysa (cPanel'li sunucularda ve çoğu Debian/Ubuntu kurulumunda
@@ -289,14 +286,12 @@ atlanmazlar, ilgili işlem hata verir:
 > ```
 
 ```bash
-sudo apt-get install -y ffmpeg
-which ffmpeg
 which mysqldump || which mariadb-dump
 ```
 
-PATH'te değillerse (ör. cPanel gibi paylaşımlı ortamlarda), `.env`
-dosyasındaki `FFMPEG_PATH`/`MYSQLDUMP_PATH` değişkenlerine tam ikili
-dosya yolunu yazabilirsiniz.
+PATH'te değilse (ör. cPanel gibi paylaşımlı ortamlarda), `.env`
+dosyasındaki `MYSQLDUMP_PATH` değişkenine tam ikili dosya yolunu
+yazabilirsiniz.
 
 **5. `.env` dosyasını hazırla**
 

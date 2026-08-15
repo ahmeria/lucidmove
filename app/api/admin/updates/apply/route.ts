@@ -1,4 +1,5 @@
 import { getAdminSession } from "@/lib/admin-auth";
+import { sayfaErisimiVarMi } from "@/lib/adminYetki";
 import { guncellemeUygula, type GuncellemeOlayi } from "@/lib/gitUpdate";
 import { logKaydet } from "@/lib/systemLog";
 
@@ -19,7 +20,7 @@ function satirDondur(olay: GuncellemeOlayi, durum: number): Response {
 
 export async function POST() {
   const session = await getAdminSession();
-  if (!session?.sistemYoneticisiMi) {
+  if (!session || !sayfaErisimiVarMi(session, "/admin/settings/updates")) {
     return satirDondur({ tur: "tamam", basarili: false, mesaj: "Yetkisiz" }, 403);
   }
   if (guncellemeSuruyor) {

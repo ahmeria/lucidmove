@@ -20,4 +20,4 @@ next-env.d.ts
 
 # Parçalı video yükleme sırasında oluşan geçici dosyalar (bkz. lib/parcaliYukleme.ts) —
 # tamamlanınca public/uploads/videos'a taşınır, buradaki kalıntılar hiç repoya girmemeli.
-/storage/tmp-yuklemeler/
+/storage/tmp-uploads/

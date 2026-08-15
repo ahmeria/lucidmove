@@ -34,6 +34,8 @@ enum Role {
   ADMIN
 }
 
+// Filigranlama özelliği kaldırıldı (bkz. git geçmişi, lib/filigran.ts
+// silindi) — Lesson.filigranDurumu artık her zaman HAZIR yazılıyor.
 enum FiligranDurumu {
   BEKLIYOR
   ISLENIYOR
@@ -194,8 +196,13 @@ model Lesson {
   aciklama    String?  @db.Text // video özeti / içerik bilgisi
   kapakUrl    String?  @db.VarChar(512) // ders listesinde küçük önizleme — yoksa boş görsel yer tutucu gösterilir
   sureDakika  Int
-  kaynakVideoUrl String @db.VarChar(512) // admin'in yüklediği ham dosya — /uploads/videos/kaynak/...
-  videoUrl    String?  @db.VarChar(512) // filigranlanmış, üyeye servis edilen son video
+  kaynakVideoUrl String @db.VarChar(512) // admin'in yüklediği ham dosya — /uploads/videos/...
+  // Üyeye servis edilen video. Filigranlama kaldırıldı (bkz. git geçmişi) —
+  // artık her zaman kaynakVideoUrl ile aynı, ekstra işleme adımı yok.
+  videoUrl    String?  @db.VarChar(512)
+  // Filigranlama sürecinden kalma alan — artık her zaman HAZIR yazılıyor,
+  // fonksiyonel bir anlamı yok. Şema kararlılığı için (gereksiz migration'dan
+  // kaçınmak amacıyla) kaldırılmadı.
   filigranDurumu FiligranDurumu @default(BEKLIYOR)
   ucretsizMi  Boolean  @default(false) // tanıtım için ücretsiz izlenebilir mi
   sira        Int      @default(0)

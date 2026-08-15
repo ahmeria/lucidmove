@@ -1,5 +1,6 @@
 import { notFound } from "next/navigation";
 import { getAdminSession } from "@/lib/admin-auth";
+import { sayfaErisimiVarMi } from "@/lib/adminYetki";
 import { db } from "@/lib/db";
 import Kart from "@/components/admin/Kart";
 import SayfaBasligi from "@/components/admin/SayfaBasligi";
@@ -10,7 +11,7 @@ export const dynamic = "force-dynamic";
 
 export default async function AdminCache() {
   const session = await getAdminSession();
-  if (!session?.sistemYoneticisiMi) notFound();
+  if (!session || !sayfaErisimiVarMi(session, "/admin/settings/cache")) notFound();
 
   const sonTemizleme = await db.systemLog.findFirst({
     where: { kategori: "cache", aksiyon: "temizle" },
@@ -19,7 +20,9 @@ export default async function AdminCache() {
 
   return (
     <div>
-      <SayfaBasligi sag={<AyarlarSekmeleri />} />
+      <SayfaBasligi
+        sag={<AyarlarSekmeleri sistemYoneticisiMi={session.sistemYoneticisiMi} izinliSayfalar={session.izinliSayfalar} />}
+      />
 
       <p className="font-body text-sm text-metin/60 mb-6 max-w-2xl">
         Anasayfa, kurs ve ders sayfalarının önbelleğini elle tazeler. Normalde içerik değişiklikleri (kurs/ders/kategori

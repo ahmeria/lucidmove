@@ -36,7 +36,7 @@ export default async function AdminLayout({ children }: { children: React.ReactN
 
           <div className="mt-auto pt-6 border-t border-zemin/10 space-y-1.5">
             <p className="font-body text-xs text-zemin/50 truncate">{session.user?.email}</p>
-            {session.sistemYoneticisiMi ? (
+            {sayfaErisimiVarMi(session, "/admin/settings/updates") ? (
               <Link
                 href="/admin/settings/updates"
                 title="Güncellemeleri kontrol et"
@@ -55,6 +55,7 @@ export default async function AdminLayout({ children }: { children: React.ReactN
             userName={session.user?.name || session.user?.email || "Admin"}
             userEmail={session.user?.email || ""}
             sistemYoneticisiMi={session.sistemYoneticisiMi}
+            izinliSayfalar={session.izinliSayfalar}
           />
           <main className="flex-1 p-6 sm:p-10">{children}</main>
         </div>

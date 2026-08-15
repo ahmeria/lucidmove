@@ -44,8 +44,7 @@ function dbBaglantiBilgisiniAl(): DbBaglantiBilgisi {
 }
 
 // mysqldump'ı PATH'ten değil, opsiyonel MYSQLDUMP_PATH env değişkeninden
-// (verilmişse) çözüyoruz — aynı desen lib/filigran.ts > FFMPEG_PATH'te de var.
-// Windows'ta XAMPP kurulumunda mysqldump PATH'e eklenmez.
+// (verilmişse) çözüyoruz. Windows'ta XAMPP kurulumunda mysqldump PATH'e eklenmez.
 function mysqldumpYoluAl(): string {
   return process.env.MYSQLDUMP_PATH || "mysqldump";
 }

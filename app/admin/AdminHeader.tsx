@@ -8,6 +8,17 @@ import { aktifSayfaBasligi, AYARLAR_OGELERI } from "./admin-nav-data";
 
 const AyarlarIkonu = AYARLAR_OGELERI[0].ikon;
 
+// Sistem yöneticisi için her zaman Genel Ayarlar; özel role yalnızca birkaç
+// Ayarlar sayfası verilmişse (Genel Ayarlar hariç), listedeki ilk erişilebilir
+// sayfaya götürür — ör. yalnızca "Sayfa Tasarımı" verilmiş birine tıklayınca
+// erişemeyeceği Genel Ayarlar'a değil, doğrudan Sayfa Tasarımı'na gider.
+function ilkErisilebilirAyarlarHrefi(sistemYoneticisiMi: boolean, izinliSayfalar: string[] | null): string | null {
+  if (sistemYoneticisiMi) return AYARLAR_OGELERI[0].href;
+  if (!izinliSayfalar) return null;
+  const izinli = new Set(izinliSayfalar);
+  return AYARLAR_OGELERI.find((o) => izinli.has(o.href))?.href ?? null;
+}
+
 function OkAsagiIkonu() {
   return (
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" className="size-4 text-metin/40">
@@ -66,15 +77,18 @@ export default function AdminHeader({
   userName,
   userEmail,
   sistemYoneticisiMi,
+  izinliSayfalar,
 }: {
   userName: string;
   userEmail: string;
   sistemYoneticisiMi: boolean;
+  izinliSayfalar: string[] | null;
 }) {
   const pathname = usePathname();
-  const baslik = aktifSayfaBasligi(pathname, sistemYoneticisiMi);
+  const baslik = aktifSayfaBasligi(pathname);
   const [menuAcik, setMenuAcik] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
+  const ayarlarHrefi = ilkErisilebilirAyarlarHrefi(sistemYoneticisiMi, izinliSayfalar);
 
   useEffect(() => {
     function disaTikla(e: MouseEvent) {
@@ -124,10 +138,10 @@ export default function AdminHeader({
             <div className="absolute right-0 mt-2 w-60 rounded-xl border border-cizgi bg-kart py-1.5 shadow-organik-hover max-h-[80vh] overflow-y-auto">
               <p className="px-3.5 py-2 text-xs text-metin/45 truncate border-b border-cizgi">{userEmail}</p>
 
-              {sistemYoneticisiMi && (
+              {ayarlarHrefi && (
                 <>
                   <Link
-                    href={AYARLAR_OGELERI[0].href}
+                    href={ayarlarHrefi}
                     onClick={() => setMenuAcik(false)}
                     className={`flex items-center gap-2.5 px-3.5 py-2 text-sm transition-colors ${
                       pathname.startsWith("/admin/settings")

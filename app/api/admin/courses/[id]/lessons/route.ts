@@ -6,7 +6,6 @@ import { slugifyTr } from "@/lib/slugify";
 import { derslerinSirasiniYenile } from "@/lib/dersler";
 import { dersVideoYoluSemasi } from "@/lib/video";
 import { gorselUrlSemasiOpsiyonel } from "@/lib/gorsel";
-import { dersVideosunuFiligranla } from "@/lib/filigran";
 import { logKaydet } from "@/lib/systemLog";
 
 const dersSemasi = z.object({
@@ -41,15 +40,15 @@ export async function POST(req: Request, { params }: { params: { id: string } })
         kapakUrl: kapakUrl || null,
         sureDakika,
         kaynakVideoUrl,
-        filigranDurumu: "ISLENIYOR",
+        // Filigranlama kaldırıldı (bkz. git geçmişi) — yüklenen dosya
+        // doğrudan servis ediliyor, ekstra işleme adımı yok.
+        videoUrl: kaynakVideoUrl,
+        filigranDurumu: "HAZIR",
         ucretsizMi,
         sira: 9999,
       },
     });
     await derslerinSirasiniYenile(params.id);
-
-    // Fire-and-forget — yanıtı bloklamadan arka planda filigranla.
-    dersVideosunuFiligranla(ders.id, kaynakVideoUrl);
 
     await logKaydet({
       seviye: "INFO",

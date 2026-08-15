@@ -60,11 +60,7 @@ export default async function DersDetay({
           <VideoPlayer url={ders.videoUrl} poster={kurs.kapakUrl} dersId={ders.id} />
         ) : (
           <div className="w-full h-full flex items-center justify-center text-center px-6">
-            <p className="font-body text-sm text-zemin/70">
-              {ders.filigranDurumu === "HATA"
-                ? "Video işlenirken bir sorun oluştu. Lütfen bizimle iletişime geçin."
-                : "Video hazırlanıyor, birazdan tekrar deneyin."}
-            </p>
+            <p className="font-body text-sm text-zemin/70">Video bulunamadı. Lütfen bizimle iletişime geçin.</p>
           </div>
         )}
       </div>

@@ -1,5 +1,6 @@
 import { notFound } from "next/navigation";
 import { getAdminSession } from "@/lib/admin-auth";
+import { sayfaErisimiVarMi } from "@/lib/adminYetki";
 import { db } from "@/lib/db";
 import Kart from "@/components/admin/Kart";
 import SayfaBasligi from "@/components/admin/SayfaBasligi";
@@ -17,7 +18,7 @@ function boyutuBicimlendir(byte: number): string {
 
 export default async function AdminYedekleme() {
   const session = await getAdminSession();
-  if (!session?.sistemYoneticisiMi) notFound();
+  if (!session || !sayfaErisimiVarMi(session, "/admin/settings/backups")) notFound();
 
   const yedekler = await db.backup.findMany({
     orderBy: { createdAt: "desc" },
@@ -27,7 +28,9 @@ export default async function AdminYedekleme() {
 
   return (
     <div>
-      <SayfaBasligi sag={<AyarlarSekmeleri />} />
+      <SayfaBasligi
+        sag={<AyarlarSekmeleri sistemYoneticisiMi={session.sistemYoneticisiMi} izinliSayfalar={session.izinliSayfalar} />}
+      />
 
       <p className="font-body text-sm text-metin/60 mb-6 max-w-2xl">
         Veritabanının tam bir kopyasını (.sql.gz) alır. Otomatik/zamanlanmış yedekleme bu sürümde yok — yalnızca

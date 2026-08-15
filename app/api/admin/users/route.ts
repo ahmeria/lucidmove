@@ -4,6 +4,7 @@ import bcrypt from "bcryptjs";
 import { getAdminSession } from "@/lib/admin-auth";
 import { db } from "@/lib/db";
 import { logKaydet } from "@/lib/systemLog";
+import { sayfaErisimiVarMi, rolKendiErisimindeMi } from "@/lib/adminYetki";
 
 // Panelden elle kullanıcı oluşturma — normalde /register üzerinden üye olunup
 // admin panelden rol yükseltilir; bu, sistem yöneticisinin doğrudan bir
@@ -21,7 +22,13 @@ const kullaniciSemasi = z.object({
 
 export async function POST(req: Request) {
   const session = await getAdminSession();
-  if (!session?.sistemYoneticisiMi) return NextResponse.json({ hata: "Yetkisiz" }, { status: 403 });
+  // "Kullanıcılar" sayfası artık özel role da devredilebiliyor (bkz.
+  // lib/adminYetki.ts). Ama devredilen kişi sistemYoneticisiMi DEĞİLSE bu iki
+  // yükseltme yolu kapalı tutuluyor: (1) yeni hesaba sistemYoneticisiMi
+  // veremez, (2) kendi erişemediği sayfaları içeren bir rol atayamaz.
+  if (!session || !sayfaErisimiVarMi(session, "/admin/settings/users")) {
+    return NextResponse.json({ hata: "Yetkisiz" }, { status: 403 });
+  }
 
   const govde = kullaniciSemasi.safeParse(await req.json());
   if (!govde.success) {
@@ -29,8 +36,29 @@ export async function POST(req: Request) {
   }
 
   const { ad, email, telefon, role, sifre } = govde.data;
-  const sistemYoneticisiMi = role === "ADMIN" ? govde.data.sistemYoneticisiMi : false;
+  const sistemYoneticisiMi = session.sistemYoneticisiMi && role === "ADMIN" ? govde.data.sistemYoneticisiMi : false;
   const adminRoleId = role === "ADMIN" && !sistemYoneticisiMi ? govde.data.adminRoleId || null : null;
+
+  if (role === "ADMIN" && !sistemYoneticisiMi && !session.sistemYoneticisiMi) {
+    // Devredilmiş "Kullanıcılar" yetkisi sahibi açıkça kendi eriştiği
+    // sayfalardan oluşan bir rol seçmek ZORUNDA — "rol atanmamış" (Ayarlar
+    // hariç TÜM içerik sayfalarına varsayılan erişim) bir admin oluşturamaz,
+    // bu da kendi kümesini aşan bir erişimi dolaylı devretmenin yolu olurdu.
+    if (!adminRoleId) {
+      return NextResponse.json(
+        { hata: "Bir panel rolü seçmelisiniz — sistem yöneticisi olmayan bir yetkili 'varsayılan admin' erişimi veremez" },
+        { status: 403 }
+      );
+    }
+    const hedefRol = await db.adminRole.findUnique({ where: { id: adminRoleId }, select: { sayfalar: true } });
+    const hedefSayfalar = (hedefRol?.sayfalar as string[] | undefined) ?? [];
+    if (!hedefRol || !rolKendiErisimindeMi(session.izinliSayfalar ?? [], hedefSayfalar)) {
+      return NextResponse.json(
+        { hata: "Yalnızca kendi erişebildiğiniz sayfaları içeren bir rol atayabilirsiniz" },
+        { status: 403 }
+      );
+    }
+  }
 
   try {
     const passwordHash = await bcrypt.hash(sifre, 12);

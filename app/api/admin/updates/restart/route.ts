@@ -1,12 +1,15 @@
 import { NextResponse } from "next/server";
 import { getAdminSession } from "@/lib/admin-auth";
+import { sayfaErisimiVarMi } from "@/lib/adminYetki";
 import { otomatikYenidenBaslatilabilirMi, yenidenBaslat } from "@/lib/gitUpdate";
 
 export const dynamic = "force-dynamic";
 
 export async function POST() {
   const session = await getAdminSession();
-  if (!session?.sistemYoneticisiMi) return NextResponse.json({ hata: "Yetkisiz" }, { status: 403 });
+  if (!session || !sayfaErisimiVarMi(session, "/admin/settings/updates")) {
+    return NextResponse.json({ hata: "Yetkisiz" }, { status: 403 });
+  }
 
   if (!otomatikYenidenBaslatilabilirMi()) {
     return NextResponse.json({ hata: "Bu ortamda otomatik yeniden başlatma desteklenmiyor (pm2 algılanmadı)" }, { status: 400 });

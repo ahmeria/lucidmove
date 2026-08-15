@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
 import { getAdminSession } from "@/lib/admin-auth";
+import { sayfaErisimiVarMi } from "@/lib/adminYetki";
 import { db } from "@/lib/db";
 import { PARA_BIRIMLERI, PARA_BIRIMI_GOSTERIMLERI } from "@/lib/settings";
 
@@ -11,7 +12,9 @@ const semasi = z.object({
 
 export async function PATCH(req: Request) {
   const session = await getAdminSession();
-  if (!session?.sistemYoneticisiMi) return NextResponse.json({ hata: "Yetkisiz" }, { status: 403 });
+  if (!session || !sayfaErisimiVarMi(session, "/admin/settings")) {
+    return NextResponse.json({ hata: "Yetkisiz" }, { status: 403 });
+  }
 
   const govde = semasi.safeParse(await req.json());
   if (!govde.success) {

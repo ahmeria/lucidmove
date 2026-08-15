@@ -3,10 +3,11 @@ import { z } from "zod";
 import { getAdminSession } from "@/lib/admin-auth";
 import { db } from "@/lib/db";
 import { logKaydet } from "@/lib/systemLog";
-import { adminNavGruplariniAl } from "@/app/admin/admin-nav-data";
+import { sayfaErisimiVarMi } from "@/lib/adminYetki";
+import { adminNavGruplariniAl, AYARLAR_OGELERI } from "@/app/admin/admin-nav-data";
 
 function gecerliSayfaHrefleri(): string[] {
-  return adminNavGruplariniAl().flatMap((g) => g.ogeler.map((o) => o.href));
+  return [...adminNavGruplariniAl().flatMap((g) => g.ogeler.map((o) => o.href)), ...AYARLAR_OGELERI.map((o) => o.href)];
 }
 
 const rolSemasi = z.object({
@@ -16,7 +17,9 @@ const rolSemasi = z.object({
 
 export async function PATCH(req: Request, { params }: { params: { id: string } }) {
   const session = await getAdminSession();
-  if (!session?.sistemYoneticisiMi) return NextResponse.json({ hata: "Yetkisiz" }, { status: 403 });
+  if (!session || !sayfaErisimiVarMi(session, "/admin/settings/roles")) {
+    return NextResponse.json({ hata: "Yetkisiz" }, { status: 403 });
+  }
 
   const govde = rolSemasi.safeParse(await req.json());
   if (!govde.success) {
@@ -24,7 +27,12 @@ export async function PATCH(req: Request, { params }: { params: { id: string } }
   }
 
   const gecerli = new Set(gecerliSayfaHrefleri());
-  const sayfalar = govde.data.sayfalar.filter((s) => gecerli.has(s));
+  let sayfalar = govde.data.sayfalar.filter((s) => gecerli.has(s));
+  // Bkz. POST route'undaki aynı desen — yetki yükseltmeyi önlemek için.
+  if (!session.sistemYoneticisiMi) {
+    const kendiSayfalari = new Set(session.izinliSayfalar ?? []);
+    sayfalar = sayfalar.filter((s) => kendiSayfalari.has(s));
+  }
 
   try {
     const rol = await db.adminRole.update({
@@ -50,7 +58,9 @@ export async function PATCH(req: Request, { params }: { params: { id: string } }
 
 export async function DELETE(_req: Request, { params }: { params: { id: string } }) {
   const session = await getAdminSession();
-  if (!session?.sistemYoneticisiMi) return NextResponse.json({ hata: "Yetkisiz" }, { status: 403 });
+  if (!session || !sayfaErisimiVarMi(session, "/admin/settings/roles")) {
+    return NextResponse.json({ hata: "Yetkisiz" }, { status: 403 });
+  }
 
   // Bu role atanmış kullanıcılar silindiğinde otomatik olarak "role atanmamış"
   // (eski/varsayılan admin erişimi) durumuna döner — onDelete: SetNull.

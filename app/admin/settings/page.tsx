@@ -1,5 +1,6 @@
 import { notFound } from "next/navigation";
 import { getAdminSession } from "@/lib/admin-auth";
+import { sayfaErisimiVarMi } from "@/lib/adminYetki";
 import { getSiteSettings } from "@/lib/settings";
 import { analitikAyarlariniAl } from "@/lib/analitikVerisi";
 import Kart from "@/components/admin/Kart";
@@ -16,13 +17,15 @@ export const dynamic = "force-dynamic";
 // geneli ayarlar: para birimi, analitik, iletişim bilgisi, SEO.
 export default async function AdminAyarlar() {
   const session = await getAdminSession();
-  if (!session?.sistemYoneticisiMi) notFound();
+  if (!session || !sayfaErisimiVarMi(session, "/admin/settings")) notFound();
 
   const [ayarlar, analitik] = await Promise.all([getSiteSettings(), analitikAyarlariniAl()]);
 
   return (
     <div>
-      <SayfaBasligi sag={<AyarlarSekmeleri />} />
+      <SayfaBasligi
+        sag={<AyarlarSekmeleri sistemYoneticisiMi={session.sistemYoneticisiMi} izinliSayfalar={session.izinliSayfalar} />}
+      />
 
       <div className="space-y-6">
         <Kart baslik="Para Birimi">

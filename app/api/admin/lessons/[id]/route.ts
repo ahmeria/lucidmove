@@ -6,7 +6,6 @@ import { slugifyTr } from "@/lib/slugify";
 import { derslerinSirasiniYenile } from "@/lib/dersler";
 import { dersVideoYoluSemasi } from "@/lib/video";
 import { gorselUrlSemasiOpsiyonel } from "@/lib/gorsel";
-import { dersVideosunuFiligranla } from "@/lib/filigran";
 import { logKaydet } from "@/lib/systemLog";
 
 // Slug artık istemciden alınmıyor — admin panelinde ayrı bir alanı yok,
@@ -34,9 +33,6 @@ export async function PATCH(req: Request, { params }: { params: { id: string } }
   const slug = slugifyTr(baslik);
 
   try {
-    const oncekiDers = await db.lesson.findUnique({ where: { id: params.id }, select: { kaynakVideoUrl: true } });
-    const videoDegisti = oncekiDers?.kaynakVideoUrl !== kaynakVideoUrl;
-
     const ders = await db.lesson.update({
       where: { id: params.id },
       data: {
@@ -48,16 +44,13 @@ export async function PATCH(req: Request, { params }: { params: { id: string } }
         ucretsizMi,
         sira,
         kaynakVideoUrl,
-        // Video dosyası değiştiyse yeniden filigranlamak gerekir; değişmediyse
-        // mevcut filigranlı dosya ve durum aynen kalır.
-        ...(videoDegisti && { videoUrl: null, filigranDurumu: "ISLENIYOR" as const }),
+        // Filigranlama kaldırıldı (bkz. git geçmişi) — yüklenen dosya
+        // doğrudan servis ediliyor, ekstra işleme adımı yok.
+        videoUrl: kaynakVideoUrl,
+        filigranDurumu: "HAZIR",
       },
     });
     await derslerinSirasiniYenile(ders.courseId);
-
-    if (videoDegisti) {
-      dersVideosunuFiligranla(ders.id, kaynakVideoUrl);
-    }
 
     await logKaydet({
       seviye: "INFO",

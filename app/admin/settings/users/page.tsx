@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { getAdminSession } from "@/lib/admin-auth";
+import { sayfaErisimiVarMi } from "@/lib/adminYetki";
 import { db } from "@/lib/db";
 import Kart, { StatKart } from "@/components/admin/Kart";
 import SayfaBasligi from "@/components/admin/SayfaBasligi";
@@ -21,7 +22,7 @@ function uyelikRozetiniAl(abonelik: { status: string; currentPeriodEnd: Date } |
 
 export default async function AdminKullanicilar() {
   const session = await getAdminSession();
-  if (!session?.sistemYoneticisiMi) notFound();
+  if (!session || !sayfaErisimiVarMi(session, "/admin/settings/users")) notFound();
 
   // Üye (UYE) rolündeki hesaplar artık burada değil — onlar için bkz.
   // /admin/members. Burası yalnızca admin erişimi olan hesapları yönetir.
@@ -50,7 +51,7 @@ export default async function AdminKullanicilar() {
             >
               Yeni kullanıcı
             </Link>
-            <AyarlarSekmeleri />
+            <AyarlarSekmeleri sistemYoneticisiMi={session.sistemYoneticisiMi} izinliSayfalar={session.izinliSayfalar} />
           </div>
         }
       />
@@ -98,18 +99,26 @@ export default async function AdminKullanicilar() {
                     {new Intl.DateTimeFormat("tr-TR", { dateStyle: "medium" }).format(k.createdAt)}
                   </td>
                   <td className="px-5 py-3 text-right space-x-4 whitespace-nowrap">
-                    <Link
-                      href={`/admin/settings/users/${k.id}/edit`}
-                      className="text-vurgu hover:text-vurgu-dark"
-                    >
-                      Düzenle
-                    </Link>
-                    <KullaniciSilButonu
-                      kullaniciId={k.id}
-                      kullaniciAdi={k.ad}
-                      kendisiMi={k.id === session.user?.id}
-                      tekSistemYoneticisiMi={k.sistemYoneticisiMi && sistemYoneticisiSayisi <= 1}
-                    />
+                    {/* Sistem yöneticisi olmayan bir "Kullanıcılar" yetkilisi,
+                        sistem yöneticisi işaretli bir hesabı düzenleyemez/silemez
+                        (bkz. app/api/admin/users) — bu yüzden o satırlarda
+                        düğmeler hiç gösterilmiyor. */}
+                    {(session.sistemYoneticisiMi || !k.sistemYoneticisiMi) && (
+                      <>
+                        <Link
+                          href={`/admin/settings/users/${k.id}/edit`}
+                          className="text-vurgu hover:text-vurgu-dark"
+                        >
+                          Düzenle
+                        </Link>
+                        <KullaniciSilButonu
+                          kullaniciId={k.id}
+                          kullaniciAdi={k.ad}
+                          kendisiMi={k.id === session.user?.id}
+                          tekSistemYoneticisiMi={k.sistemYoneticisiMi && sistemYoneticisiSayisi <= 1}
+                        />
+                      </>
+                    )}
                   </td>
                 </tr>
               );

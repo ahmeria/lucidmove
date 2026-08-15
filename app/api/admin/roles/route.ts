@@ -3,13 +3,13 @@ import { z } from "zod";
 import { getAdminSession } from "@/lib/admin-auth";
 import { db } from "@/lib/db";
 import { logKaydet } from "@/lib/systemLog";
-import { adminNavGruplariniAl } from "@/app/admin/admin-nav-data";
+import { sayfaErisimiVarMi } from "@/lib/adminYetki";
+import { adminNavGruplariniAl, AYARLAR_OGELERI } from "@/app/admin/admin-nav-data";
 
-// Yalnızca gerçekten var olan, Ayarlar dışı admin sayfaları seçilebilir —
-// istemciden gelen keyfi bir href listesine güvenmiyoruz (bkz. lib/adminYetki.ts
-// > Ayarlar bilerek bu mekanizmanın tamamen dışında).
+// Yalnızca gerçekten var olan admin sayfaları seçilebilir (içerik VE Ayarlar) —
+// istemciden gelen keyfi bir href listesine güvenmiyoruz.
 function gecerliSayfaHrefleri(): string[] {
-  return adminNavGruplariniAl().flatMap((g) => g.ogeler.map((o) => o.href));
+  return [...adminNavGruplariniAl().flatMap((g) => g.ogeler.map((o) => o.href)), ...AYARLAR_OGELERI.map((o) => o.href)];
 }
 
 const rolSemasi = z.object({
@@ -19,7 +19,15 @@ const rolSemasi = z.object({
 
 export async function POST(req: Request) {
   const session = await getAdminSession();
-  if (!session?.sistemYoneticisiMi) return NextResponse.json({ hata: "Yetkisiz" }, { status: 403 });
+  // "Roller" sayfası artık özel role da devredilebiliyor — ama devredilen kişi
+  // (sistemYoneticisiMi değilse) yalnızca KENDİ erişebildiği sayfalardan oluşan
+  // bir rol oluşturabilir. Aksi halde "Roller" yetkisi, kendi sayfa kümesinin
+  // dışına çıkıp daha geniş bir rol icat edip (ör. Kullanıcılar + Roller içeren)
+  // kendine/bir başkasına atayarak yetki yükseltmenin (privilege escalation)
+  // yolu olurdu.
+  if (!session || !sayfaErisimiVarMi(session, "/admin/settings/roles")) {
+    return NextResponse.json({ hata: "Yetkisiz" }, { status: 403 });
+  }
 
   const govde = rolSemasi.safeParse(await req.json());
   if (!govde.success) {
@@ -27,7 +35,11 @@ export async function POST(req: Request) {
   }
 
   const gecerli = new Set(gecerliSayfaHrefleri());
-  const sayfalar = govde.data.sayfalar.filter((s) => gecerli.has(s));
+  let sayfalar = govde.data.sayfalar.filter((s) => gecerli.has(s));
+  if (!session.sistemYoneticisiMi) {
+    const kendiSayfalari = new Set(session.izinliSayfalar ?? []);
+    sayfalar = sayfalar.filter((s) => kendiSayfalari.has(s));
+  }
 
   try {
     const rol = await db.adminRole.create({ data: { ad: govde.data.ad, sayfalar } });
