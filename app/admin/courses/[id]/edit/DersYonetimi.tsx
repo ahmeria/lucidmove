@@ -2,7 +2,7 @@
 
 import { useRouter } from "next/navigation";
 import Image from "next/image";
-import { useState, FormEvent } from "react";
+import { useState, useEffect, FormEvent, DragEvent } from "react";
 import { useToast } from "@/components/Toast";
 import GorselKutusu from "@/components/admin/GorselKutusu";
 import VideoKareSecici from "@/components/admin/VideoKareSecici";
@@ -36,13 +36,50 @@ function CopIkonu({ className }: { className?: string }) {
   );
 }
 
+// Sürükleme tutamacı — 6 noktalı klasik "grip" simgesi.
+function TutamacIkonu({ className }: { className?: string }) {
+  return (
+    <svg viewBox="0 0 24 24" fill="currentColor" className={className}>
+      <circle cx="9" cy="6" r="1.4" />
+      <circle cx="9" cy="12" r="1.4" />
+      <circle cx="9" cy="18" r="1.4" />
+      <circle cx="15" cy="6" r="1.4" />
+      <circle cx="15" cy="12" r="1.4" />
+      <circle cx="15" cy="18" r="1.4" />
+    </svg>
+  );
+}
+
 // Görsel + Başlık + İçerik dosyası tek satırda — Slug artık ayrı bir alan
 // değil, kaydedilirken başlıktan otomatik türetiliyor (bkz. API route).
 //
 // Kart daraltılmış (özet) halde açılır — bir kursta çok sayıda ders varken
 // hepsinin video seçici/açıklama vb. ile tam açık durması sayfayı kullanışsız
 // kılıyordu. Özet satırına tıklanınca düzenleme alanları görünür.
-function DersSatiri({ ders, courseId }: { ders: Ders; courseId: string }) {
+//
+// Sıra artık elle bir sayı girilerek değil, kartın sürüklenip bırakılmasıyla
+// belirleniyor (bkz. DersYonetimi'ndeki sürükle-bırak durumu) — bu yüzden
+// kart açıkken (düzenleme sırasında) sürükleme kasıtlı olarak devre dışı.
+function DersSatiri({
+  ders,
+  courseId,
+  pozisyon,
+  suruklenebilir,
+  suruklenen,
+  suruklemeOlaylari,
+}: {
+  ders: Ders;
+  courseId: string;
+  pozisyon: number;
+  suruklenebilir: boolean;
+  suruklenen: boolean;
+  suruklemeOlaylari: {
+    onDragStart: (e: DragEvent<HTMLDivElement>) => void;
+    onDragEnter: () => void;
+    onDragOver: (e: DragEvent<HTMLDivElement>) => void;
+    onDragEnd: () => void;
+  };
+}) {
   const router = useRouter();
   const toast = useToast();
   const [acik, setAcik] = useState(false);
@@ -52,7 +89,6 @@ function DersSatiri({ ders, courseId }: { ders: Ders; courseId: string }) {
   const [sureDakika, setSureDakika] = useState(ders.sureDakika);
   const [kaynakVideoUrl, setKaynakVideoUrl] = useState(ders.kaynakVideoUrl);
   const [ucretsizMi, setUcretsizMi] = useState(ders.ucretsizMi);
-  const [sira, setSira] = useState(ders.sira);
   const [gonderiliyor, setGonderiliyor] = useState(false);
   const [siliniyor, setSiliniyor] = useState(false);
 
@@ -68,7 +104,7 @@ function DersSatiri({ ders, courseId }: { ders: Ders; courseId: string }) {
         sureDakika: Number(sureDakika),
         kaynakVideoUrl,
         ucretsizMi,
-        sira: Number(sira),
+        sira: ders.sira, // sıra burada değişmiyor — bkz. yukarıdaki not
       }),
     });
     const veri = await res.json();
@@ -98,20 +134,34 @@ function DersSatiri({ ders, courseId }: { ders: Ders; courseId: string }) {
     }
   }
 
+  const surukleneblirGorunum = suruklenebilir && !acik;
+
   return (
-    <div className="rounded-2xl bg-kart border border-cizgi shadow-organik overflow-hidden">
+    <div
+      draggable={surukleneblirGorunum}
+      onDragStart={surukleneblirGorunum ? suruklemeOlaylari.onDragStart : undefined}
+      onDragEnter={suruklemeOlaylari.onDragEnter}
+      onDragOver={suruklemeOlaylari.onDragOver}
+      onDragEnd={suruklemeOlaylari.onDragEnd}
+      className={`rounded-2xl bg-kart border shadow-organik overflow-hidden transition-opacity ${
+        suruklenen ? "opacity-40 border-vurgu" : "border-cizgi"
+      }`}
+    >
       {/* Özet satırı — daima görünür, tıklanınca düzenleme alanı açılır/kapanır */}
       <button
         type="button"
         onClick={() => setAcik((v) => !v)}
         aria-expanded={acik}
-        className="w-full flex items-center gap-3.5 p-4 text-left hover:bg-zemin/60 transition-colors cursor-pointer"
+        className={`w-full flex items-center gap-3.5 p-4 text-left hover:bg-zemin/60 transition-colors ${
+          surukleneblirGorunum ? "cursor-grab active:cursor-grabbing" : "cursor-pointer"
+        }`}
       >
+        {suruklenebilir && <TutamacIkonu className="shrink-0 size-4 text-metin/25" />}
         <span className="shrink-0 flex items-center justify-center size-7 rounded-full bg-vurgu/10 text-vurgu-dark font-mono text-xs font-bold">
-          {sira}
+          {pozisyon}
         </span>
         <div className="relative shrink-0 size-12 rounded-xl overflow-hidden bg-zemin border border-cizgi">
-          {kapakUrl && <Image src={kapakUrl} alt="" fill sizes="48px" className="object-cover" />}
+          {kapakUrl && <Image src={kapakUrl} alt="" fill sizes="48px" draggable={false} className="object-cover" />}
         </div>
         <div className="flex-1 min-w-0">
           <p className="font-medium text-metin truncate">{baslik || "(Başlıksız ders)"}</p>
@@ -155,7 +205,13 @@ function DersSatiri({ ders, courseId }: { ders: Ders; courseId: string }) {
 
             <div className="w-72 shrink-0">
               <label className="block text-xs text-metin/50 mb-1.5">İçerik dosyası</label>
-              <VideoInput value={kaynakVideoUrl} onChange={setKaynakVideoUrl} zorunlu sadeceYukleme />
+              <VideoInput
+                value={kaynakVideoUrl}
+                onChange={setKaynakVideoUrl}
+                zorunlu
+                sadeceYukleme
+                onSureAlgila={setSureDakika}
+              />
               {kaynakVideoUrl.startsWith("/uploads/") && (
                 <VideoKareSecici videoUrl={kaynakVideoUrl} onSecildi={setKapakUrl} oran={4 / 3} />
               )}
@@ -164,15 +220,6 @@ function DersSatiri({ ders, courseId }: { ders: Ders; courseId: string }) {
 
           <div className="flex flex-wrap items-center justify-between gap-4 pt-1">
             <div className="flex flex-wrap items-center gap-3 text-sm">
-              <label className="flex items-center gap-1.5 text-metin/70">
-                Sıra
-                <input
-                  type="number"
-                  value={sira}
-                  onChange={(e) => setSira(Number(e.target.value))}
-                  className="w-14 border border-cizgi rounded-lg px-2 py-1.5 bg-zemin text-metin focus:border-vurgu outline-none"
-                />
-              </label>
               <label className="flex items-center gap-1.5 text-metin/70">
                 Süre (dk)
                 <input
@@ -290,7 +337,13 @@ function YeniDersFormu({ courseId }: { courseId: string }) {
 
         <div className="w-72 shrink-0">
           <label className="block text-xs text-metin/50 mb-1.5">İçerik dosyası</label>
-          <VideoInput value={kaynakVideoUrl} onChange={setKaynakVideoUrl} zorunlu sadeceYukleme />
+          <VideoInput
+            value={kaynakVideoUrl}
+            onChange={setKaynakVideoUrl}
+            zorunlu
+            sadeceYukleme
+            onSureAlgila={setSureDakika}
+          />
           {kaynakVideoUrl.startsWith("/uploads/") && (
             <VideoKareSecici videoUrl={kaynakVideoUrl} onSecildi={setKapakUrl} />
           )}
@@ -336,10 +389,84 @@ function YeniDersFormu({ courseId }: { courseId: string }) {
 }
 
 export default function DersYonetimi({ courseId, dersler }: { courseId: string; dersler: Ders[] }) {
+  const router = useRouter();
+  const toast = useToast();
+  const [liste, setListe] = useState(dersler);
+  const [suruklenenId, setSuruklenenId] = useState<string | null>(null);
+
+  // Sunucudan taze veri geldiğinde (router.refresh() sonrası) yerel listeyi
+  // eşitle — ör. yeni eklenen/silinen bir ders veya başka bir sekmeden gelen
+  // değişiklik burada da yansısın.
+  useEffect(() => {
+    setListe(dersler);
+  }, [dersler]);
+
+  async function siralamayiKaydet(yeniListe: Ders[]) {
+    const res = await fetch(`/api/admin/courses/${courseId}/lessons/sirala`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ siraliIdler: yeniListe.map((d) => d.id) }),
+    });
+    if (!res.ok) {
+      toast.error("Sıralama kaydedilemedi");
+      setListe(dersler); // sunucudaki son bilinen sıraya geri dön
+      return;
+    }
+    router.refresh();
+  }
+
+  // Sürüklenen kart, üzerine gelinen kartın konumuna anında taşınır
+  // (bırakılmayı beklemeden) — klasik sürükle-bırak liste deseni. Kalıcı
+  // kayıt yalnızca sürükleme bittiğinde (onDragEnd) bir kez tetiklenir.
+  function uzerineGelindi(hedefId: string) {
+    if (!suruklenenId || suruklenenId === hedefId) return;
+    setListe((mevcut) => {
+      const kaynakIndex = mevcut.findIndex((d) => d.id === suruklenenId);
+      const hedefIndex = mevcut.findIndex((d) => d.id === hedefId);
+      if (kaynakIndex === -1 || hedefIndex === -1) return mevcut;
+      const yeni = [...mevcut];
+      const [tasinan] = yeni.splice(kaynakIndex, 1);
+      yeni.splice(hedefIndex, 0, tasinan);
+      return yeni;
+    });
+  }
+
+  function suruklemeBitti() {
+    if (suruklenenId) {
+      setListe((mevcut) => {
+        siralamayiKaydet(mevcut);
+        return mevcut;
+      });
+    }
+    setSuruklenenId(null);
+  }
+
   return (
     <div className="space-y-3">
-      {dersler.map((d) => (
-        <DersSatiri key={d.id} ders={d} courseId={courseId} />
+      {liste.length > 1 && (
+        <p className="text-xs text-metin/40 flex items-center gap-1.5 -mt-1">
+          <TutamacIkonu className="size-3.5" />
+          Sırasını değiştirmek için kartları sürükleyip bırakın
+        </p>
+      )}
+      {liste.map((d, i) => (
+        <DersSatiri
+          key={d.id}
+          ders={d}
+          courseId={courseId}
+          pozisyon={i + 1}
+          suruklenebilir={liste.length > 1}
+          suruklenen={suruklenenId === d.id}
+          suruklemeOlaylari={{
+            onDragStart: (e) => {
+              e.dataTransfer.effectAllowed = "move";
+              setSuruklenenId(d.id);
+            },
+            onDragEnter: () => uzerineGelindi(d.id),
+            onDragOver: (e) => e.preventDefault(),
+            onDragEnd: suruklemeBitti,
+          }}
+        />
       ))}
       <YeniDersFormu courseId={courseId} />
     </div>

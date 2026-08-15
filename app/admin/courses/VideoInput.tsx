@@ -2,6 +2,7 @@
 
 import { useState, ChangeEvent } from "react";
 import { dosyaYukleParcali } from "@/lib/istemciDosyaYukleme";
+import { videoSuresiniOku, saniyeyiDakikayaYuvarla } from "@/lib/istemciVideoSuresi";
 
 const alan = "w-full border border-cizgi rounded-lg px-3 py-2 bg-zemin text-metin text-sm focus:border-vurgu outline-none";
 
@@ -12,12 +13,17 @@ export default function VideoInput({
   onChange,
   zorunlu,
   sadeceYukleme,
+  onSureAlgila,
 }: {
   value: string;
   onChange: (v: string) => void;
   zorunlu?: boolean;
   // Ders videoları artık yalnızca sunucuya yüklenebilir — YouTube sekmesi gizlenir.
   sadeceYukleme?: boolean;
+  // Dosya seçilir seçilmez (yükleme bitmeden) tarayıcıda okunan süre — admin
+  // "Süre (dk)" alanını elle doldurmasın diye. Süre okunamazsa sessizce
+  // geçilir, alan boş/eski değerinde kalır ve admin elle girebilir.
+  onSureAlgila?: (dakika: number) => void;
 }) {
   const [sekme, setSekme] = useState<"youtube" | "yukle">(
     sadeceYukleme || value.startsWith("/uploads/") ? "yukle" : "youtube"
@@ -39,6 +45,15 @@ export default function VideoInput({
     setYukleniyor(true);
     setYuzde(0);
     setHata("");
+
+    // Yükleme bitmesini beklemeden, dosyanın kendisinden (tarayıcıda,
+    // ffmpeg vb. gerekmeden) süreyi okumayı dene — başarısız olursa admin
+    // elle girer, yüklemeyi etkilemez.
+    if (onSureAlgila) {
+      videoSuresiniOku(dosya)
+        .then((saniye) => onSureAlgila(saniyeyiDakikayaYuvarla(saniye)))
+        .catch(() => {});
+    }
 
     try {
       const veri = await dosyaYukleParcali(dosya, setYuzde);
