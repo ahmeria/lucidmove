@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useToast } from "@/components/Toast";
 
 interface CommitBilgisi {
@@ -41,6 +41,14 @@ export default function GuncellemeManager() {
   const [tamamlandi, setTamamlandi] = useState<{ basarili: boolean; mesaj: string } | null>(null);
   const [yenidenBaslatiliyor, setYenidenBaslatiliyor] = useState(false);
   const [yenidenBaslatmaHatasi, setYenidenBaslatmaHatasi] = useState("");
+  const gunlukRef = useRef<HTMLPreElement>(null);
+
+  // Yeni satır geldikçe günlük kutusu kendi içinde en alta kaysın — akış
+  // sürerken kullanıcı elle aşağı kaydırmak zorunda kalmasın diye.
+  useEffect(() => {
+    const el = gunlukRef.current;
+    if (el) el.scrollTop = el.scrollHeight;
+  }, [gunluk]);
 
   async function kontrolEt() {
     setYukleniyor(true);
@@ -200,7 +208,10 @@ export default function GuncellemeManager() {
       )}
 
       {gunluk.length > 0 && (
-        <pre className="bg-koyu text-zemin/90 text-xs rounded-xl p-4 max-h-64 overflow-y-auto whitespace-pre-wrap font-mono">
+        <pre
+          ref={gunlukRef}
+          className="bg-koyu text-zemin/90 text-xs rounded-xl p-4 max-h-64 overflow-y-auto whitespace-pre-wrap font-mono"
+        >
           {gunluk.join("\n")}
         </pre>
       )}

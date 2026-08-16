@@ -87,12 +87,24 @@ export default function Navbar() {
                 {hesabimEtiketi}
               </Link>
             ) : (
-              <p className="hidden sm:block text-sm font-body text-white/90">
-                {t("zatenUye")}{" "}
-                <Link href="/login" className="text-white underline underline-offset-4 hover:no-underline">
+              <>
+                {/* Küçük ekranda tam cümle sığmadığı/dikkat dağıttığı için
+                    yalnızca kompakt bir "Giriş yap" pill'i gösteriliyor —
+                    öncesinde bu blok "hidden sm:block" olduğu için mobilde
+                    giriş linkine navbar'dan ULAŞILAMIYORDU. */}
+                <Link
+                  href="/login"
+                  className="sm:hidden text-sm font-body text-white/90 hover:text-white border border-white/40 hover:border-white/70 rounded-full px-4 py-1.5 transition-colors"
+                >
                   {t("girisYap")}
                 </Link>
-              </p>
+                <p className="hidden sm:block text-sm font-body text-white/90">
+                  {t("zatenUye")}{" "}
+                  <Link href="/login" className="text-white underline underline-offset-4 hover:no-underline">
+                    {t("girisYap")}
+                  </Link>
+                </p>
+              </>
             )}
             <DilSecici varyant="acik" />
           </div>

@@ -1,6 +1,4 @@
 import type { Metadata } from "next";
-import Link from "next/link";
-import Image from "next/image";
 import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 import { getAdminSession } from "@/lib/admin-auth";
@@ -9,7 +7,7 @@ import { uygulamaSurumunuAl } from "@/lib/gitUpdate";
 import { ToastProvider } from "@/components/Toast";
 import Providers from "@/components/Providers";
 import { fontDegiskenleri } from "@/lib/fonts";
-import AdminNav from "./AdminNav";
+import AdminSidebar from "./AdminSidebar";
 import AdminHeader from "./AdminHeader";
 import "../globals.css";
 
@@ -48,35 +46,13 @@ export default async function AdminLayout({ children }: { children: React.ReactN
         <Providers>
           <ToastProvider>
             <div className="min-h-screen grid lg:grid-cols-[248px_1fr] bg-zemin-acik">
-              <aside className="bg-koyu lg:h-screen lg:sticky lg:top-0 p-6 flex flex-col">
-                <Link href="/">
-                  <Image
-                    src="/logo.png"
-                    alt="lucidmove"
-                    width={754}
-                    height={147}
-                    className="h-6 w-auto brightness-0 invert"
-                  />
-                </Link>
-                <p className="font-mono text-[11px] uppercase tracking-[0.2em] text-zemin/45 mt-1 mb-8">Yönetim</p>
-
-                <AdminNav sistemYoneticisiMi={session.sistemYoneticisiMi} izinliSayfalar={session.izinliSayfalar} />
-
-                <div className="mt-auto pt-6 border-t border-zemin/10 space-y-1.5">
-                  <p className="font-body text-xs text-zemin/50 truncate">{session.user?.email}</p>
-                  {sayfaErisimiVarMi(session, "/admin/settings/updates") ? (
-                    <Link
-                      href="/admin/settings/updates"
-                      title="Güncellemeleri kontrol et"
-                      className="font-mono text-[11px] text-zemin/35 hover:text-zemin/60 transition-colors"
-                    >
-                      {surum}
-                    </Link>
-                  ) : (
-                    <p className="font-mono text-[11px] text-zemin/35">{surum}</p>
-                  )}
-                </div>
-              </aside>
+              <AdminSidebar
+                surum={surum}
+                userEmail={session.user?.email || ""}
+                guncellemeErisimiVar={sayfaErisimiVarMi(session, "/admin/settings/updates")}
+                sistemYoneticisiMi={session.sistemYoneticisiMi}
+                izinliSayfalar={session.izinliSayfalar}
+              />
 
               <div className="flex flex-col min-h-screen min-w-0">
                 <AdminHeader
