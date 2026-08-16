@@ -9,14 +9,22 @@ import { logKaydet } from "@/lib/systemLog";
 
 // Slug artık istemciden alınmıyor — admin panelinde ayrı bir alanı yok,
 // başlıktan otomatik türetiliyor (bkz. app/admin/courses/KursForm.tsx).
+// Sıra da istemciden alınmıyor — kurs listesinde sürükle-bırakla belirleniyor
+// (bkz. app/admin/courses/KursListesi.tsx), yeni kurs listenin en sonuna eklenir.
+const cevSemasi = z.string().optional();
+
 const kursSemasi = z.object({
   baslik: z.string().min(2),
+  baslikEn: cevSemasi,
+  baslikAz: cevSemasi,
   aciklama: z.string().min(2),
+  aciklamaEn: cevSemasi,
+  aciklamaAz: cevSemasi,
   seviye: z.string().min(2),
+  seviyeEn: cevSemasi,
+  seviyeAz: cevSemasi,
   kapakUrl: gorselUrlSemasiOpsiyonel,
   tanitimVideoUrl: videoUrlSemasiOpsiyonel,
-  categoryId: z.string().nullable().optional(),
-  sira: z.number().int(),
 });
 
 export async function POST(req: Request) {
@@ -28,19 +36,27 @@ export async function POST(req: Request) {
     return NextResponse.json({ hata: "Geçersiz form verisi" }, { status: 400 });
   }
 
-  const { baslik, aciklama, seviye, kapakUrl, tanitimVideoUrl, categoryId, sira } = govde.data;
+  const { baslik, baslikEn, baslikAz, aciklama, aciklamaEn, aciklamaAz, seviye, seviyeEn, seviyeAz, kapakUrl, tanitimVideoUrl } =
+    govde.data;
   const slug = slugifyTr(baslik);
+  const { _max } = await db.course.aggregate({ _max: { sira: true } });
+  const sira = (_max.sira ?? 0) + 1;
 
   try {
     const kurs = await db.course.create({
       data: {
         baslik,
+        baslikEn: baslikEn || null,
+        baslikAz: baslikAz || null,
         slug,
         aciklama,
+        aciklamaEn: aciklamaEn || null,
+        aciklamaAz: aciklamaAz || null,
         seviye,
+        seviyeEn: seviyeEn || null,
+        seviyeAz: seviyeAz || null,
         kapakUrl: kapakUrl || null,
         tanitimVideoUrl: tanitimVideoUrl || null,
-        categoryId: categoryId || null,
         sira,
       },
     });

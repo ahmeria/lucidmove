@@ -1,9 +1,12 @@
 import { notFound } from "next/navigation";
 import { getAdminSession } from "@/lib/admin-auth";
 import { sayfaErisimiVarMi } from "@/lib/adminYetki";
+import { getSiteSettings } from "@/lib/settings";
+import { analitikAyarlariniAl } from "@/lib/analitikVerisi";
 import Kart from "@/components/admin/Kart";
 import SayfaBasligi from "@/components/admin/SayfaBasligi";
 import AyarlarSekmeleri from "../AyarlarSekmeleri";
+import GoogleAnalyticsForm from "../GoogleAnalyticsForm";
 import { iyzicoDurumunuAl } from "@/lib/iyzicoDurumu";
 import IyzicoBaglantiTest from "./IyzicoBaglantiTest";
 
@@ -18,6 +21,7 @@ export default async function AdminEntegrasyon() {
   if (!session || !sayfaErisimiVarMi(session, "/admin/settings/integrations")) notFound();
 
   const durum = iyzicoDurumunuAl();
+  const [ayarlar, analitik] = await Promise.all([getSiteSettings(), analitikAyarlariniAl()]);
 
   return (
     <div>
@@ -121,6 +125,17 @@ export default async function AdminEntegrasyon() {
           </div>
         </div>
       </Kart>
+
+      <div className="mt-6">
+        <Kart baslik="Google Analytics">
+          <GoogleAnalyticsForm
+            gaMeasurementId={ayarlar.gaMeasurementId}
+            gaPropertyId={analitik.propertyId}
+            servisHesabiVarMi={analitik.servisHesabiVarMi}
+            servisHesabiEmail={analitik.servisHesabiEmail}
+          />
+        </Kart>
+      </div>
     </div>
   );
 }

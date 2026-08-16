@@ -5,7 +5,6 @@ import { useRouter, useSearchParams } from "next/navigation";
 const KATEGORILER = [
   { deger: "", etiket: "Tüm kategoriler" },
   { deger: "auth", etiket: "Giriş" },
-  { deger: "kategori", etiket: "Kategori" },
   { deger: "kurs", etiket: "Kurs" },
   { deger: "ders", etiket: "Ders" },
   { deger: "kullanici", etiket: "Kullanıcı" },

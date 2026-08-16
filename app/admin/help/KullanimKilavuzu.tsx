@@ -69,13 +69,7 @@ export default function KullanimKilavuzu() {
 
       <div id="icerik" className="scroll-mt-20 rounded-2xl bg-kart border border-cizgi shadow-organik p-7">
         <h2 className="font-display text-xl font-bold text-metin mb-1">İçerik Yönetimi</h2>
-        <P>Site içeriğinin omurgası: Kategori → Kurs → Ders hiyerarşisi.</P>
-
-        <Alt>Kategoriler</Alt>
-        <P>
-          Kurslar kategoriler altında gruplanır. &ldquo;Yeni kategori&rdquo; ile eklenir; her kartın &ldquo;Sıra&rdquo;
-          değeri, kategorinin site üzerindeki gösterim sırasını belirler.
-        </P>
+        <P>Site içeriğinin omurgası: Kurs → Ders yapısı.</P>
 
         <Alt>Kurslar ve Dersler</Alt>
         <P>
@@ -99,12 +93,31 @@ export default function KullanimKilavuzu() {
           </li>
           <li>Kapak görseli, videodan bir kare seçilerek de oluşturulabilir.</li>
           <li>&ldquo;Ücretsiz tanıtım&rdquo; işaretli dersler, üyeliği olmayan ziyaretçilere de açık izlenebilir.</li>
+          <li>
+            Her derse opsiyonel bir &ldquo;Mood&rdquo; (ruh hali) etiketi verilebilir — herkese açık{" "}
+            <Kod>/courses</Kod> sayfasındaki &ldquo;Moodlar&rdquo; bölümü, en az bir dersi o etikete sahip olan
+            kursları filtrelemek için kullanılır.
+          </li>
         </Liste>
+        <P>
+          Kurs kataloğu (<Kod>/courses</Kod>) herkese açıktır: üstte kurs adlarından oluşan sekmeler + arama, altında
+          seviyeye göre, ardından mood&apos;a göre görsel filtre kartları, en altta her kurs kendi başlığıyla ve
+          içindeki derslerle listelenir. Aktif üyeliği olmayan bir ziyaretçi, ders kartının üzerine gelince kilit
+          simgesi ve &ldquo;Üye ol&rdquo; ipucu görür.
+        </P>
+
+        <Alt>Moodlar</Alt>
+        <P>
+          Ders etiketlemede kullanılan mood listesi (Enerji Ver, Güçlen, Besle, Rahatla gibi) admin panelinden
+          eklenip düzenlenebilir. Her mood&apos;a opsiyonel bir kapak görseli verilebilir — Kurslar sayfasındaki
+          &ldquo;Moodlar&rdquo; bölümünde bu görsel gösterilir, yoksa kart düz renkle görünür. Bir mood silinirse ona
+          sahip derslerdeki etiket sessizce kaldırılır, bir hata oluşmaz.
+        </P>
 
         <Alt>Yorumlar</Alt>
         <P>
-          Anasayfadaki &ldquo;Pratikleriyle değişenler&rdquo; bölümünün içeriği buradan yönetilir. Üçten fazla kayıt
-          olduğunda bölüm anasayfada otomatik olarak yatay kaydırmalı bir şeride dönüşür.
+          Panelden yönetilen yorumlar (isim, rol, metin) şu an anasayfada gösterilmiyor — içerik burada durmaya
+          devam ediyor, ileride tekrar bir bölümde kullanılabilir.
         </P>
       </div>
 

@@ -10,13 +10,20 @@ import { logKaydet } from "@/lib/systemLog";
 
 // Slug artık istemciden alınmıyor — admin panelinde ayrı bir alanı yok,
 // başlıktan otomatik türetiliyor (bkz. app/admin/courses/[id]/edit/DersYonetimi.tsx).
+const cevSemasi = z.string().optional();
+
 const dersSemasi = z.object({
   baslik: z.string().min(2),
+  baslikEn: cevSemasi,
+  baslikAz: cevSemasi,
   aciklama: z.string().optional(),
+  aciklamaEn: cevSemasi,
+  aciklamaAz: cevSemasi,
   kapakUrl: gorselUrlSemasiOpsiyonel,
   sureDakika: z.number().int().positive(),
   kaynakVideoUrl: dersVideoYoluSemasi,
   ucretsizMi: z.boolean(),
+  mood: z.string().nullable().optional(),
   sira: z.number().int(),
 });
 
@@ -29,7 +36,8 @@ export async function PATCH(req: Request, { params }: { params: { id: string } }
     return NextResponse.json({ hata: "Geçersiz form verisi" }, { status: 400 });
   }
 
-  const { baslik, aciklama, kapakUrl, sureDakika, kaynakVideoUrl, ucretsizMi, sira } = govde.data;
+  const { baslik, baslikEn, baslikAz, aciklama, aciklamaEn, aciklamaAz, kapakUrl, sureDakika, kaynakVideoUrl, ucretsizMi, mood, sira } =
+    govde.data;
   const slug = slugifyTr(baslik);
 
   try {
@@ -37,11 +45,16 @@ export async function PATCH(req: Request, { params }: { params: { id: string } }
       where: { id: params.id },
       data: {
         baslik,
+        baslikEn: baslikEn || null,
+        baslikAz: baslikAz || null,
         slug,
         aciklama: aciklama || null,
+        aciklamaEn: aciklamaEn || null,
+        aciklamaAz: aciklamaAz || null,
         kapakUrl: kapakUrl || null,
         sureDakika,
         ucretsizMi,
+        mood: mood || null,
         sira,
         kaynakVideoUrl,
         // Filigranlama kaldırıldı (bkz. git geçmişi) — yüklenen dosya

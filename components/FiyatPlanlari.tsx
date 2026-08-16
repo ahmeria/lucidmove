@@ -1,8 +1,9 @@
 "use client";
 
 import { useState } from "react";
-import { useRouter } from "next/navigation";
+import { useTranslations } from "next-intl";
 import { useSession } from "next-auth/react";
+import { useRouter } from "@/i18n/navigation";
 import PricingCard from "@/components/PricingCard";
 
 export interface FiyatPlani {
@@ -23,6 +24,7 @@ export default function FiyatPlanlari({
   planlar: FiyatPlani[];
   sonraUrl?: string;
 }) {
+  const t = useTranslations("membership");
   const { data: session } = useSession();
   const router = useRouter();
   const [yuklenenPlan, setYuklenenPlan] = useState<string | null>(null);
@@ -47,7 +49,7 @@ export default function FiyatPlanlari({
       const veri = await res.json();
 
       if (!res.ok) {
-        setHata(veri.hata || "Ödeme başlatılamadı, lütfen tekrar deneyin.");
+        setHata(veri.hata || t("odemeBaslatilamadi"));
         return;
       }
 
@@ -57,7 +59,7 @@ export default function FiyatPlanlari({
         setCheckoutFormHtml(veri.checkoutFormContent);
       }
     } catch {
-      setHata("Bir bağlantı hatası oluştu. Lütfen tekrar deneyin.");
+      setHata(t("baglantiHatasi"));
     } finally {
       setYuklenenPlan(null);
     }
@@ -66,9 +68,7 @@ export default function FiyatPlanlari({
   if (checkoutFormHtml) {
     return (
       <div className="max-w-xl mx-auto">
-        <p className="font-body text-sm text-metin/60 mb-4 text-center">
-          Ödemenizi güvenli Iyzico formu üzerinden tamamlayın.
-        </p>
+        <p className="font-body text-sm text-metin/60 mb-4 text-center">{t("iyzicoFormu")}</p>
         <div dangerouslySetInnerHTML={{ __html: checkoutFormHtml }} />
       </div>
     );

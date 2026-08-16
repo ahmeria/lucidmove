@@ -15,19 +15,22 @@ function PanelIkonu({ className }: IkonProps) {
   );
 }
 
-function KategorilerIkonu({ className }: IkonProps) {
-  return (
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" className={className}>
-      <path d="M3.5 6.5a2 2 0 0 1 2-2h4l2 2.2h7a2 2 0 0 1 2 2V17a2 2 0 0 1-2 2h-13a2 2 0 0 1-2-2Z" strokeLinejoin="round" />
-    </svg>
-  );
-}
-
 function KurslarIkonu({ className }: IkonProps) {
   return (
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" className={className}>
       <path d="M4 5.5A1.5 1.5 0 0 1 5.5 4H15l5 5v9.5a1.5 1.5 0 0 1-1.5 1.5h-13A1.5 1.5 0 0 1 4 18.5Z" strokeLinejoin="round" />
       <path d="M10.5 10.5v6l5-3Z" strokeLinejoin="round" />
+    </svg>
+  );
+}
+
+function MoodlarIkonu({ className }: IkonProps) {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" className={className}>
+      <circle cx="12" cy="12" r="8.5" />
+      <circle cx="9" cy="10" r="1" fill="currentColor" stroke="none" />
+      <circle cx="15" cy="10" r="1" fill="currentColor" stroke="none" />
+      <path d="M8.5 14.5c1 1.2 2.2 1.8 3.5 1.8s2.5-.6 3.5-1.8" strokeLinecap="round" />
     </svg>
   );
 }
@@ -224,9 +227,8 @@ export function adminNavGruplariniAl(): AdminNavGrubu[] {
     {
       baslik: "İçerik",
       ogeler: [
-        { href: "/admin/categories", label: "Kategoriler", ikon: KategorilerIkonu },
+        { href: "/admin/moods", label: "Moodlar", ikon: MoodlarIkonu },
         { href: "/admin/courses", label: "Kurslar", ikon: KurslarIkonu },
-        { href: "/admin/testimonials", label: "Yorumlar", ikon: YorumlarIkonu },
       ],
     },
     {
@@ -239,7 +241,10 @@ export function adminNavGruplariniAl(): AdminNavGrubu[] {
     },
     {
       baslik: "İletişim",
-      ogeler: [{ href: "/admin/messages", label: "Mesajlar", ikon: MesajlarIkonu }],
+      ogeler: [
+        { href: "/admin/messages", label: "Mesajlar", ikon: MesajlarIkonu },
+        { href: "/admin/testimonials", label: "Yorumlar", ikon: YorumlarIkonu },
+      ],
     },
     {
       baslik: "Raporlar",

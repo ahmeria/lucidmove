@@ -157,34 +157,27 @@ model Payment {
   @@index([userId])
 }
 
-model Category {
-  id        String   @id @default(cuid())
-  ad        String   @db.VarChar(255)
-  slug      String   @unique
-  aciklama  String?  @db.Text
-  sira      Int      @default(0)
-  createdAt DateTime @default(now())
-
-  courses Course[]
-}
-
 model Course {
   id          String   @id @default(cuid())
   slug        String   @unique
   baslik      String
   aciklama    String   @db.Text
-  seviye      String   // Başlangıç / Orta / İleri
+  seviye      String   // Başlangıç / Orta / İleri — GRUPLAMA anahtarı, dilden bağımsız SABİT kalır
+  // İngilizce/Azerbaycan çeviri varyantları — boşsa frontend Türkçe'ye düşer
+  // (bkz. lib/i18nIcerik.ts > cevrilenAlan). seviyeEn/seviyeAz yalnızca GÖSTERİM
+  // etiketidir, filtre/gruplama mantığı hep `seviye` (Türkçe) üzerinden çalışır.
+  baslikEn    String?
+  baslikAz    String?
+  aciklamaEn  String?  @db.Text
+  aciklamaAz  String?  @db.Text
+  seviyeEn    String?
+  seviyeAz    String?
   kapakUrl    String?  @db.VarChar(512)
   tanitimVideoUrl String? @db.VarChar(512) // YouTube linki ya da /uploads/videos/... yerel dosya yolu
   sira        Int      @default(0)
   createdAt   DateTime @default(now())
 
-  category   Category? @relation(fields: [categoryId], references: [id])
-  categoryId String?
-
   lessons Lesson[]
-
-  @@index([categoryId])
 }
 
 model Lesson {
@@ -194,6 +187,11 @@ model Lesson {
   slug        String
   baslik      String
   aciklama    String?  @db.Text // video özeti / içerik bilgisi
+  // İngilizce/Azerbaycan çeviri varyantları — bkz. Course'daki aynı desen.
+  baslikEn    String?
+  baslikAz    String?
+  aciklamaEn  String?  @db.Text
+  aciklamaAz  String?  @db.Text
   kapakUrl    String?  @db.VarChar(512) // ders listesinde küçük önizleme — yoksa boş görsel yer tutucu gösterilir
   sureDakika  Int
   kaynakVideoUrl String @db.VarChar(512) // admin'in yüklediği ham dosya — /uploads/videos/...
@@ -205,6 +203,10 @@ model Lesson {
   // kaçınmak amacıyla) kaldırılmadı.
   filigranDurumu FiligranDurumu @default(BEKLIYOR)
   ucretsizMi  Boolean  @default(false) // tanıtım için ücretsiz izlenebilir mi
+  // Ruh hali etiketi (ör. "enerji", "guc", "besle", "rahatla") — bkz.
+  // lib/moods.ts. Opsiyonel: eski dersler boş kalır, admin dilerse elle
+  // etiketler. Kurslar sayfasındaki "Moodlar" bölümü buna göre filtreler.
+  mood        String?  @db.VarChar(50)
   sira        Int      @default(0)
   createdAt   DateTime @default(now())
 
@@ -230,27 +232,66 @@ model LessonProgress {
 model SiteSettings {
   id String @id @default("ana")
 
+  // Kayıtlı/gösterilen "varsayılan site dili" — Admin > Genel Ayarlar'dan
+  // seçilir ("tr" | "en" | "az"). NOT: URL'de hangi dilin öneksiz (gerçek
+  // varsayılan) olacağı next-intl'in routing yapılandırmasında (bkz.
+  // i18n/routing.ts) SABİT kod seviyesinde tutuluyor — bu, Next.js'in
+  // locale yönlendirmesini Edge ortamındaki middleware'de yaptığı ve o
+  // ortamın bu projenin MySQL/Prisma bağlantısına performans/güvenilirlik
+  // riski olmadan erişemediği için bilinçli bir sınır. Bu alan şu an için
+  // kayıtlı bir tercih/gösterge; gerçek routing varsayılanını değiştirmek
+  // kod tarafında tek satırlık bir güncelleme gerektiriyor.
+  varsayilanDil   String @default("tr") @db.VarChar(2)
+
   siteBasligi     String @db.VarChar(255)
   siteAciklamasi  String @db.Text
+  siteBasligiEn    String? @db.VarChar(255)
+  siteBasligiAz    String? @db.VarChar(255)
+  siteAciklamasiEn String? @db.Text
+  siteAciklamasiAz String? @db.Text
 
   heroEyebrow      String @db.VarChar(255)
   heroBaslik       String @db.Text
   heroAltBaslik    String @db.Text
+  heroEyebrowEn    String? @db.VarChar(255)
+  heroEyebrowAz    String? @db.VarChar(255)
+  heroBaslikEn     String? @db.Text
+  heroBaslikAz     String? @db.Text
+  heroAltBaslikEn  String? @db.Text
+  heroAltBaslikAz  String? @db.Text
   // Ana sayfa üst bölümün arkaplan görseli — admin panelden yüklenir (bkz.
   // /admin/ayarlar/sayfa-tasarimi). Var olan kurulumlarda geriye dönük
   // uyumluluk için önceki sabit kodlanmış görsel varsayılan değer olarak atanır.
   heroGorselUrl    String @default("https://images.unsplash.com/photo-1544367567-0f2fcb009e0b?q=80&w=1800&auto=format&fit=crop") @db.VarChar(512)
+  // Arkaplan videosu (opsiyonel) — doluysa hero bölümünde heroGorselUrl yerine
+  // bu video oynatılır (görsel yalnızca poster/yüklenene kadar geçici görüntü
+  // olarak kullanılır); boşsa heroGorselUrl statik arkaplan olarak gösterilir.
+  heroVideoUrl     String? @db.VarChar(512)
   heroCtaBirincil  String @db.VarChar(100)
   heroCtaIkincil   String @db.VarChar(100)
+  heroCtaBirincilEn String? @db.VarChar(100)
+  heroCtaBirincilAz String? @db.VarChar(100)
+  heroCtaIkincilEn  String? @db.VarChar(100)
+  heroCtaIkincilAz  String? @db.VarChar(100)
 
   uyelikEyebrow    String @db.VarChar(255)
   uyelikBaslik     String @db.Text
   uyelikAltBaslik  String @db.Text
+  uyelikEyebrowEn    String? @db.VarChar(255)
+  uyelikEyebrowAz    String? @db.VarChar(255)
+  uyelikBaslikEn     String? @db.Text
+  uyelikBaslikAz     String? @db.Text
+  uyelikAltBaslikEn  String? @db.Text
+  uyelikAltBaslikAz  String? @db.Text
 
   iletisimEmail    String @db.VarChar(255)
   calismaSaatleri  String @db.VarChar(255)
+  calismaSaatleriEn String? @db.VarChar(255)
+  calismaSaatleriAz String? @db.VarChar(255)
   instagramUrl     String @db.VarChar(512)
   footerTagline    String @db.Text
+  footerTaglineEn  String? @db.Text
+  footerTaglineAz  String? @db.Text
 
   // Para birimi: yalnızca EKRANDA GÖSTERİM biçimini etkiler — Iyzico ödeme tutarı her
   // zaman PricingPlan.fiyat'tan (TL) hesaplanır, bu alan tutarı DEĞİŞTİRMEZ.
@@ -276,12 +317,20 @@ model SiteSettings {
 model InstructorProfile {
   id String @id @default("ana")
 
-  ad                  String @db.VarChar(255)
+  ad                  String @db.VarChar(255) // özel isim — dilden bağımsız, çevrilmiyor
   bio                 String @db.Text // paragraflar boş satırla ayrılır
   sertifikalar        String @db.Text // satır satır liste
   yaklasim            String @db.Text // satır satır liste
   portreUrl           String @db.VarChar(512)
   hakkimdaTeaserOzet  String @db.Text // ana sayfadaki kısa tanıtım metni
+  bioEn                String? @db.Text
+  bioAz                String? @db.Text
+  sertifikalarEn       String? @db.Text
+  sertifikalarAz       String? @db.Text
+  yaklasimEn           String? @db.Text
+  yaklasimAz           String? @db.Text
+  hakkimdaTeaserOzetEn String? @db.Text
+  hakkimdaTeaserOzetAz String? @db.Text
 
   updatedAt DateTime @updatedAt
 }
@@ -295,6 +344,16 @@ model PricingPlan {
   aciklama   String   @db.Text
   ozellikler String   @db.Text // satır satır liste
   rozet      String?  @db.VarChar(100)
+  baslikEn     String? @db.VarChar(100)
+  baslikAz     String? @db.VarChar(100)
+  periyotEn    String? @db.VarChar(50)
+  periyotAz    String? @db.VarChar(50)
+  aciklamaEn   String? @db.Text
+  aciklamaAz   String? @db.Text
+  ozelliklerEn String? @db.Text
+  ozelliklerAz String? @db.Text
+  rozetEn      String? @db.VarChar(100)
+  rozetAz      String? @db.VarChar(100)
   vurgulu    Boolean  @default(false)
   sira       Int      @default(0)
   updatedAt  DateTime @updatedAt
@@ -311,6 +370,23 @@ model Testimonial {
   sira      Int      @default(0)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+}
+
+// Ders "mood" (ruh hali) etiketleri — admin panelden yönetilir (bkz.
+// app/admin/moods). Lesson.mood bu tabloya FK değil, "slug" değerine göre
+// SERBEST eşleşir (Course.seviye ile aynı desen) — bir mood silinirse
+// bağlı derslerdeki etiket sessizce "yetim" kalır, hata vermez. "slug"
+// yalnızca oluşturulurken addan türetilir ve sonrasında SABİT kalır — aksi
+// halde ad değişince mevcut ders eşleşmeleri kopardı.
+model Mood {
+  id        String   @id @default(cuid())
+  ad        String   @db.VarChar(100)
+  adEn      String?  @db.VarChar(100)
+  adAz      String?  @db.VarChar(100)
+  slug      String   @unique @db.VarChar(50)
+  gorselUrl String?  @db.VarChar(512)
+  sira      Int      @default(0)
+  createdAt DateTime @default(now())
 }
 
 // Anasayfa "Stüdyodan kareler" galerisi — admin panelden yönetilir (bkz.

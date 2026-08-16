@@ -430,7 +430,7 @@ Bu projede kurulum sihirbazı yok — admin hesabı iki adımda oluşturulur:
    npx ts-node --compiler-options {\"module\":\"CommonJS\"} scripts/make-admin.ts eposta@ornek.com
    ```
 
-> Örnek kurs/kategori/fiyat verisiyle başlamak isterseniz
+> Örnek kurs/fiyat verisiyle başlamak isterseniz
 > `npx prisma db seed` çalıştırabilirsiniz — `NODE_ENV=production` olduğu
 > için (`prisma/seed.ts`'teki kontrol) admin hesabı **oluşturmaz**, yalnızca
 > örnek içerik ekler; içeriği zaten admin panelden kendiniz gireceksiniz,

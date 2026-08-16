@@ -13,6 +13,7 @@ export default function VideoInput({
   onChange,
   zorunlu,
   sadeceYukleme,
+  temizlenebilir,
   onSureAlgila,
 }: {
   value: string;
@@ -20,6 +21,10 @@ export default function VideoInput({
   zorunlu?: boolean;
   // Ders videoları artık yalnızca sunucuya yüklenebilir — YouTube sekmesi gizlenir.
   sadeceYukleme?: boolean;
+  // Alan opsiyonelse (ör. hero arkaplan videosu) mevcut videoyu kaldırıp
+  // boşa döndüren küçük bir "Kaldır" bağlantısı gösterir. Ders videosu gibi
+  // zorunlu alanlarda gösterilmez.
+  temizlenebilir?: boolean;
   // Dosya seçilir seçilmez (yükleme bitmeden) tarayıcıda okunan süre — admin
   // "Süre (dk)" alanını elle doldurmasın diye. Süre okunamazsa sessizce
   // geçilir, alan boş/eski değerinde kalır ve admin elle girebilir.
@@ -112,8 +117,22 @@ export default function VideoInput({
               <p className="text-xs text-metin/50 mt-1.5">Yükleniyor… %{yuzde} — büyük dosyalarda uzun sürebilir, sayfadan ayrılmayın</p>
             </div>
           )}
-          {!yukleniyor && value && value.startsWith("/uploads/") && (
-            <p className="text-xs text-vurgu-dark mt-1.5">Yüklendi: {value.split("/").pop()}</p>
+          {!yukleniyor && value && (
+            <p className="text-xs text-vurgu-dark mt-1.5">
+              {value.startsWith("/uploads/") ? "Yüklendi" : "Mevcut video"}: {value.split("/").pop()}
+              {temizlenebilir && (
+                <>
+                  {" · "}
+                  <button
+                    type="button"
+                    onClick={() => onChange("")}
+                    className="underline hover:text-metin cursor-pointer"
+                  >
+                    Kaldır
+                  </button>
+                </>
+              )}
+            </p>
           )}
         </div>
       )}

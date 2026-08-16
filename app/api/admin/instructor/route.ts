@@ -3,15 +3,25 @@ import { z } from "zod";
 import { getAdminSession } from "@/lib/admin-auth";
 import { db } from "@/lib/db";
 
+const cevSemasi = z.string().optional();
+
 const semasi = z.object({
   ad: z.string().min(2),
   bio: z.string().min(2),
+  bioEn: cevSemasi,
+  bioAz: cevSemasi,
   sertifikalar: z.string(),
+  sertifikalarEn: cevSemasi,
+  sertifikalarAz: cevSemasi,
   yaklasim: z.string(),
+  yaklasimEn: cevSemasi,
+  yaklasimAz: cevSemasi,
   // Yükleme /uploads/... gibi göreli bir yol üretiyor (mutlak URL değil) —
   // bkz. components/admin/GorselInput.tsx.
   portreUrl: z.string().min(1),
   hakkimdaTeaserOzet: z.string().min(2),
+  hakkimdaTeaserOzetEn: cevSemasi,
+  hakkimdaTeaserOzetAz: cevSemasi,
 });
 
 export async function PATCH(req: Request) {

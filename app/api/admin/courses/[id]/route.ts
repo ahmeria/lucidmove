@@ -9,14 +9,22 @@ import { logKaydet } from "@/lib/systemLog";
 
 // Slug artık istemciden alınmıyor — admin panelinde ayrı bir alanı yok,
 // başlıktan otomatik türetiliyor (bkz. app/admin/courses/KursForm.tsx).
+// Sıra bu şemada YOK — kurs listesinde sürükle-bırakla belirleniyor (bkz.
+// app/admin/courses/KursListesi.tsx), bu form onu değiştirmiyor.
+const cevSemasi = z.string().optional();
+
 const kursSemasi = z.object({
   baslik: z.string().min(2),
+  baslikEn: cevSemasi,
+  baslikAz: cevSemasi,
   aciklama: z.string().min(2),
+  aciklamaEn: cevSemasi,
+  aciklamaAz: cevSemasi,
   seviye: z.string().min(2),
+  seviyeEn: cevSemasi,
+  seviyeAz: cevSemasi,
   kapakUrl: gorselUrlSemasiOpsiyonel,
   tanitimVideoUrl: videoUrlSemasiOpsiyonel,
-  categoryId: z.string().nullable().optional(),
-  sira: z.number().int(),
 });
 
 export async function GET(_req: Request, { params }: { params: { id: string } }) {
@@ -38,7 +46,8 @@ export async function PATCH(req: Request, { params }: { params: { id: string } }
     return NextResponse.json({ hata: "Geçersiz form verisi" }, { status: 400 });
   }
 
-  const { baslik, aciklama, seviye, kapakUrl, tanitimVideoUrl, categoryId, sira } = govde.data;
+  const { baslik, baslikEn, baslikAz, aciklama, aciklamaEn, aciklamaAz, seviye, seviyeEn, seviyeAz, kapakUrl, tanitimVideoUrl } =
+    govde.data;
   const slug = slugifyTr(baslik);
 
   try {
@@ -46,13 +55,17 @@ export async function PATCH(req: Request, { params }: { params: { id: string } }
       where: { id: params.id },
       data: {
         baslik,
+        baslikEn: baslikEn || null,
+        baslikAz: baslikAz || null,
         slug,
         aciklama,
+        aciklamaEn: aciklamaEn || null,
+        aciklamaAz: aciklamaAz || null,
         seviye,
+        seviyeEn: seviyeEn || null,
+        seviyeAz: seviyeAz || null,
         kapakUrl: kapakUrl || null,
         tanitimVideoUrl: tanitimVideoUrl || null,
-        categoryId: categoryId || null,
-        sira,
       },
     });
     await logKaydet({

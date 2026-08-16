@@ -1,7 +1,9 @@
 import { db } from "@/lib/db";
+import { ayAraligi, ayEtiketi, gosterilecekAy } from "@/lib/ayFiltresi";
 import Kart from "@/components/admin/Kart";
 import SayfaBasligi from "@/components/admin/SayfaBasligi";
 import RaporlarSekmeleri from "./RaporlarSekmeleri";
+import AyFiltresi from "@/components/admin/AyFiltresi";
 
 export const dynamic = "force-dynamic";
 
@@ -15,11 +17,16 @@ function uyelikDurumunuAl(abonelik: { status: string; currentPeriodEnd: Date } |
 
 // Kullanıcı raporu — her üyenin kayıt, üyelik durumu, ödeme ve izlenme
 // (tamamlanan ders) özetini tek satırda gösterir. İzlenme ve ödeme
-// DETAYLARI için bkz. sekme şeridindeki diğer iki rapor.
-export default async function AdminRaporlarKullanicilar() {
+// DETAYLARI için bkz. sekme şeridindeki diğer iki rapor. Ay filtresi burada
+// KAYIT tarihine göre süzer (bkz. AyFiltresi.tsx) — "toplam ödeme"/
+// "tamamlanan ders" sütunları her zaman üyenin tüm zamanlar toplamı.
+export default async function AdminRaporlarKullanicilar({ searchParams }: { searchParams: { ay?: string } }) {
+  const araligi = ayAraligi(searchParams.ay);
+  const donemEtiketi = ayEtiketi(gosterilecekAy(searchParams.ay));
+
   const [kullanicilar, izlenmeSayilari] = await Promise.all([
     db.user.findMany({
-      where: { role: "UYE" },
+      where: { role: "UYE", ...(araligi ? { createdAt: araligi } : {}) },
       orderBy: { createdAt: "desc" },
       include: {
         payments: { where: { durum: "BASARILI" }, select: { tutar: true } },
@@ -33,10 +40,19 @@ export default async function AdminRaporlarKullanicilar() {
 
   return (
     <div>
-      <SayfaBasligi sag={<RaporlarSekmeleri />} />
+      <SayfaBasligi
+        sag={
+          <div className="flex items-center gap-3">
+            <AyFiltresi />
+            <RaporlarSekmeleri />
+          </div>
+        }
+      />
 
       {kullanicilar.length === 0 ? (
-        <p className="font-body text-metin/60">Henüz kayıtlı üye yok.</p>
+        <p className="font-body text-metin/60">
+          {araligi ? `${donemEtiketi} içinde kayıt olan üye yok.` : "Henüz kayıtlı üye yok."}
+        </p>
       ) : (
         <Kart dolgu={false} className="overflow-x-auto">
           <table className="w-full text-left font-body text-sm">

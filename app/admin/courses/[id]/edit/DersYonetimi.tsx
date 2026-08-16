@@ -5,19 +5,33 @@ import Image from "next/image";
 import { useState, useEffect, FormEvent, DragEvent } from "react";
 import { useToast } from "@/components/Toast";
 import GorselKutusu from "@/components/admin/GorselKutusu";
+import DilSekmeli from "@/components/admin/DilSekmeli";
 import VideoKareSecici from "@/components/admin/VideoKareSecici";
 import VideoInput from "../../VideoInput";
 
 interface Ders {
   id: string;
   baslik: string;
+  baslikEn: string | null;
+  baslikAz: string | null;
   slug: string;
   aciklama: string | null;
+  aciklamaEn: string | null;
+  aciklamaAz: string | null;
   kapakUrl: string | null;
   sureDakika: number;
   kaynakVideoUrl: string;
   ucretsizMi: boolean;
+  mood: string | null;
   sira: number;
+}
+
+// Mood'lar artık admin panelinden yönetiliyor (bkz. app/admin/moods) — sabit
+// bir liste değil, DersYonetimi'ye üstten (bkz. app/admin/courses/[id]/edit/page.tsx)
+// prop olarak geçiriliyor.
+interface MoodSecenegi {
+  deger: string;
+  etiket: string;
 }
 
 function OkIkonu({ className }: { className?: string }) {
@@ -64,6 +78,7 @@ function DersSatiri({
   ders,
   courseId,
   pozisyon,
+  moodlar,
   suruklenebilir,
   suruklenen,
   suruklemeOlaylari,
@@ -71,6 +86,7 @@ function DersSatiri({
   ders: Ders;
   courseId: string;
   pozisyon: number;
+  moodlar: MoodSecenegi[];
   suruklenebilir: boolean;
   suruklenen: boolean;
   suruklemeOlaylari: {
@@ -84,11 +100,16 @@ function DersSatiri({
   const toast = useToast();
   const [acik, setAcik] = useState(false);
   const [baslik, setBaslik] = useState(ders.baslik);
+  const [baslikEn, setBaslikEn] = useState(ders.baslikEn ?? "");
+  const [baslikAz, setBaslikAz] = useState(ders.baslikAz ?? "");
   const [aciklama, setAciklama] = useState(ders.aciklama ?? "");
+  const [aciklamaEn, setAciklamaEn] = useState(ders.aciklamaEn ?? "");
+  const [aciklamaAz, setAciklamaAz] = useState(ders.aciklamaAz ?? "");
   const [kapakUrl, setKapakUrl] = useState(ders.kapakUrl ?? "");
   const [sureDakika, setSureDakika] = useState(ders.sureDakika);
   const [kaynakVideoUrl, setKaynakVideoUrl] = useState(ders.kaynakVideoUrl);
   const [ucretsizMi, setUcretsizMi] = useState(ders.ucretsizMi);
+  const [mood, setMood] = useState(ders.mood ?? "");
   const [gonderiliyor, setGonderiliyor] = useState(false);
   const [siliniyor, setSiliniyor] = useState(false);
 
@@ -99,11 +120,16 @@ function DersSatiri({
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         baslik,
+        baslikEn,
+        baslikAz,
         aciklama,
+        aciklamaEn,
+        aciklamaAz,
         kapakUrl,
         sureDakika: Number(sureDakika),
         kaynakVideoUrl,
         ucretsizMi,
+        mood: mood || null,
         sira: ders.sira, // sıra burada değişmiyor — bkz. yukarıdaki not
       }),
     });
@@ -183,23 +209,25 @@ function DersSatiri({
             <GorselKutusu value={kapakUrl} onChange={setKapakUrl} boyutSinifi="size-40" oran={4 / 3} />
 
             <div className="flex-1 min-w-0 space-y-3">
-              <div>
-                <label className="block text-xs text-metin/50 mb-1.5">Başlık</label>
-                <input
-                  value={baslik}
-                  onChange={(e) => setBaslik(e.target.value)}
-                  aria-label="Ders başlığı"
-                  className="w-full border border-cizgi rounded-lg px-3 py-2.5 bg-zemin text-metin text-sm focus:border-vurgu outline-none"
-                  placeholder="Başlık"
-                />
-              </div>
-              <textarea
-                value={aciklama}
-                onChange={(e) => setAciklama(e.target.value)}
+              <DilSekmeli
+                etiket="Başlık"
+                tr={baslik}
+                en={baslikEn}
+                az={baslikAz}
+                onTrChange={setBaslik}
+                onEnChange={setBaslikEn}
+                onAzChange={setBaslikAz}
+              />
+              <DilSekmeli
+                etiket="Video özeti / içerik bilgisi (opsiyonel)"
+                tr={aciklama}
+                en={aciklamaEn}
+                az={aciklamaAz}
+                onTrChange={setAciklama}
+                onEnChange={setAciklamaEn}
+                onAzChange={setAciklamaAz}
+                textarea
                 rows={2}
-                aria-label="Video özeti / içerik bilgisi"
-                placeholder="Video özeti / içerik bilgisi (opsiyonel)"
-                className="w-full border border-cizgi rounded-lg px-3 py-2 bg-zemin text-metin text-sm focus:border-vurgu outline-none resize-none"
               />
             </div>
 
@@ -233,6 +261,21 @@ function DersSatiri({
                 <input type="checkbox" checked={ucretsizMi} onChange={(e) => setUcretsizMi(e.target.checked)} />
                 Ücretsiz tanıtım
               </label>
+              <label className="flex items-center gap-1.5 text-metin/70">
+                Mood
+                <select
+                  value={mood}
+                  onChange={(e) => setMood(e.target.value)}
+                  className="border border-cizgi rounded-lg px-2 py-1.5 bg-zemin text-metin focus:border-vurgu outline-none"
+                >
+                  <option value="">Seçilmedi</option>
+                  {moodlar.map((m) => (
+                    <option key={m.deger} value={m.deger}>
+                      {m.etiket}
+                    </option>
+                  ))}
+                </select>
+              </label>
             </div>
 
             <div className="flex items-center gap-3">
@@ -262,16 +305,21 @@ function DersSatiri({
   );
 }
 
-function YeniDersFormu({ courseId }: { courseId: string }) {
+function YeniDersFormu({ courseId, moodlar }: { courseId: string; moodlar: MoodSecenegi[] }) {
   const router = useRouter();
   const toast = useToast();
   const [acik, setAcik] = useState(false);
   const [baslik, setBaslik] = useState("");
+  const [baslikEn, setBaslikEn] = useState("");
+  const [baslikAz, setBaslikAz] = useState("");
   const [aciklama, setAciklama] = useState("");
+  const [aciklamaEn, setAciklamaEn] = useState("");
+  const [aciklamaAz, setAciklamaAz] = useState("");
   const [kapakUrl, setKapakUrl] = useState("");
   const [sureDakika, setSureDakika] = useState(10);
   const [kaynakVideoUrl, setKaynakVideoUrl] = useState("");
   const [ucretsizMi, setUcretsizMi] = useState(false);
+  const [mood, setMood] = useState("");
   const [gonderiliyor, setGonderiliyor] = useState(false);
 
   async function handleSubmit(e: FormEvent) {
@@ -280,7 +328,19 @@ function YeniDersFormu({ courseId }: { courseId: string }) {
     const res = await fetch(`/api/admin/courses/${courseId}/lessons`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ baslik, aciklama, kapakUrl, sureDakika: Number(sureDakika), kaynakVideoUrl, ucretsizMi }),
+      body: JSON.stringify({
+        baslik,
+        baslikEn,
+        baslikAz,
+        aciklama,
+        aciklamaEn,
+        aciklamaAz,
+        kapakUrl,
+        sureDakika: Number(sureDakika),
+        kaynakVideoUrl,
+        ucretsizMi,
+        mood: mood || null,
+      }),
     });
     const veri = await res.json();
     setGonderiliyor(false);
@@ -290,11 +350,16 @@ function YeniDersFormu({ courseId }: { courseId: string }) {
     }
     toast.success("Ders eklendi.");
     setBaslik("");
+    setBaslikEn("");
+    setBaslikAz("");
     setAciklama("");
+    setAciklamaEn("");
+    setAciklamaAz("");
     setKapakUrl("");
     setKaynakVideoUrl("");
     setSureDakika(10);
     setUcretsizMi(false);
+    setMood("");
     setAcik(false);
     router.refresh();
   }
@@ -317,21 +382,25 @@ function YeniDersFormu({ courseId }: { courseId: string }) {
         <GorselKutusu value={kapakUrl} onChange={setKapakUrl} boyutSinifi="size-40" oran={4 / 3} />
 
         <div className="flex-1 min-w-0 space-y-3">
-          <input
-            value={baslik}
-            onChange={(e) => setBaslik(e.target.value)}
-            required
-            aria-label="Ders başlığı"
-            placeholder="Başlık"
-            className="w-full border border-cizgi rounded-lg px-3 py-2.5 bg-zemin text-metin text-sm focus:border-vurgu outline-none"
+          <DilSekmeli
+            etiket="Başlık"
+            tr={baslik}
+            en={baslikEn}
+            az={baslikAz}
+            onTrChange={setBaslik}
+            onEnChange={setBaslikEn}
+            onAzChange={setBaslikAz}
           />
-          <textarea
-            value={aciklama}
-            onChange={(e) => setAciklama(e.target.value)}
+          <DilSekmeli
+            etiket="Video özeti / içerik bilgisi (opsiyonel)"
+            tr={aciklama}
+            en={aciklamaEn}
+            az={aciklamaAz}
+            onTrChange={setAciklama}
+            onEnChange={setAciklamaEn}
+            onAzChange={setAciklamaAz}
+            textarea
             rows={2}
-            aria-label="Video özeti / içerik bilgisi"
-            placeholder="Video özeti / içerik bilgisi (opsiyonel)"
-            className="w-full border border-cizgi rounded-lg px-3 py-2 bg-zemin text-metin text-sm focus:border-vurgu outline-none resize-none"
           />
         </div>
 
@@ -365,6 +434,21 @@ function YeniDersFormu({ courseId }: { courseId: string }) {
             <input type="checkbox" checked={ucretsizMi} onChange={(e) => setUcretsizMi(e.target.checked)} />
             Ücretsiz tanıtım
           </label>
+          <label className="flex items-center gap-1.5 text-metin/70">
+            Mood
+            <select
+              value={mood}
+              onChange={(e) => setMood(e.target.value)}
+              className="border border-cizgi rounded-lg px-2 py-1.5 bg-zemin text-metin focus:border-vurgu outline-none"
+            >
+              <option value="">Seçilmedi</option>
+              {moodlar.map((m) => (
+                <option key={m.deger} value={m.deger}>
+                  {m.etiket}
+                </option>
+              ))}
+            </select>
+          </label>
         </div>
 
         <div className="flex items-center gap-4">
@@ -388,7 +472,15 @@ function YeniDersFormu({ courseId }: { courseId: string }) {
   );
 }
 
-export default function DersYonetimi({ courseId, dersler }: { courseId: string; dersler: Ders[] }) {
+export default function DersYonetimi({
+  courseId,
+  dersler,
+  moodlar,
+}: {
+  courseId: string;
+  dersler: Ders[];
+  moodlar: MoodSecenegi[];
+}) {
   const router = useRouter();
   const toast = useToast();
   const [liste, setListe] = useState(dersler);
@@ -455,6 +547,7 @@ export default function DersYonetimi({ courseId, dersler }: { courseId: string; 
           ders={d}
           courseId={courseId}
           pozisyon={i + 1}
+          moodlar={moodlar}
           suruklenebilir={liste.length > 1}
           suruklenen={suruklenenId === d.id}
           suruklemeOlaylari={{
@@ -468,7 +561,7 @@ export default function DersYonetimi({ courseId, dersler }: { courseId: string; 
           }}
         />
       ))}
-      <YeniDersFormu courseId={courseId} />
+      <YeniDersFormu courseId={courseId} moodlar={moodlar} />
     </div>
   );
 }

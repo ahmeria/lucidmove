@@ -1,4 +1,5 @@
 import { db } from "@/lib/db";
+import type { AppLocale } from "@/i18n/routing";
 
 const SITE_SETTINGS_ID = "ana";
 const INSTRUCTOR_PROFILE_ID = "ana";
@@ -13,6 +14,7 @@ const varsayilanSiteAyarlari = {
   heroAltBaslik:
     "Stüdyoya gitmeden, kendi salonunuzda; başlangıçtan ileri seviyeye haftalık yeni derslerle büyüyen bir video kütüphanesi.",
   heroGorselUrl: "https://images.unsplash.com/photo-1544367567-0f2fcb009e0b?q=80&w=1800&auto=format&fit=crop",
+  heroVideoUrl: "/hero/desktop.mp4",
   heroCtaBirincil: "Üyeliği başlat",
   heroCtaIkincil: "Kursları incele",
   uyelikEyebrow: "Üyelik",
@@ -94,21 +96,31 @@ export type ParaBirimiGosterimi = (typeof PARA_BIRIMI_GOSTERIMLERI)[number];
 
 const PARA_BIRIMI_SEMBOLU: Record<ParaBirimi, string> = { TRY: "₺", USD: "$", EUR: "€" };
 
+// Locale -> Intl.NumberFormat/DateTimeFormat etiketi. "en" bilerek en-GB
+// (en-US değil): gün/ay sırası diğer iki dille (tr-TR, az-AZ) tutarlı kalsın
+// diye (social projesindeki aynı gerekçe).
+const INTL_ETIKETI: Record<AppLocale, string> = { tr: "tr-TR", en: "en-GB", az: "az-AZ" };
+export function intlEtiketi(locale: AppLocale): string {
+  return INTL_ETIKETI[locale];
+}
+
 // Ekranda gösterilecek fiyat metnini üretir — Iyzico'ya giden gerçek tutarı
 // ETKİLEMEZ, yalnızca sitede/admin önizlemesinde nasıl göründüğünü belirler
 // (bkz. prisma/schema.prisma > SiteSettings.paraBirimi notu).
 export function formatFiyat(
   tutar: number | string,
-  ayarlar: { paraBirimi: string; paraBirimiGosterimi: string }
+  ayarlar: { paraBirimi: string; paraBirimiGosterimi: string },
+  locale: AppLocale = "tr"
 ): string {
   const sayi = typeof tutar === "string" ? Number(tutar) : tutar;
   const paraBirimi = (PARA_BIRIMLERI as readonly string[]).includes(ayarlar.paraBirimi)
     ? (ayarlar.paraBirimi as ParaBirimi)
     : "TRY";
   const sembol = PARA_BIRIMI_SEMBOLU[paraBirimi];
-  const sayiMetni = new Intl.NumberFormat("tr-TR", { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(
-    Number.isFinite(sayi) ? sayi : 0
-  );
+  const sayiMetni = new Intl.NumberFormat(intlEtiketi(locale), {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  }).format(Number.isFinite(sayi) ? sayi : 0);
 
   switch (ayarlar.paraBirimiGosterimi) {
     case "SONRA_SEMBOL":

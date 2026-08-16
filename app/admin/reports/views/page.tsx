@@ -1,24 +1,37 @@
 import { db } from "@/lib/db";
+import { ayAraligi, ayEtiketi, gosterilecekAy } from "@/lib/ayFiltresi";
 import Kart from "@/components/admin/Kart";
 import SayfaBasligi from "@/components/admin/SayfaBasligi";
 import RaporlarSekmeleri from "../RaporlarSekmeleri";
+import AyFiltresi from "@/components/admin/AyFiltresi";
 
 export const dynamic = "force-dynamic";
 
 const SAYFA_BOYUTU = 40;
 
 // Bir ders videosu sonuna kadar izlendiğinde (bkz. components/VideoPlayer.tsx
-// > onEnded, app/api/membership/watch) burada bir satır olarak görünür.
+// > onEnded, app/api/membership/watch) burada bir satır olarak görünür. Ay
+// filtresi tamamlanma tarihine (updatedAt) göre süzer.
 export default async function AdminRaporlarIzlenmeler({
   searchParams,
 }: {
-  searchParams: { sayfa?: string };
+  searchParams: { sayfa?: string; ay?: string };
 }) {
   const sayfa = Math.max(1, Number(searchParams.sayfa) || 1);
+  const araligi = ayAraligi(searchParams.ay);
+  const donemEtiketi = ayEtiketi(gosterilecekAy(searchParams.ay));
+  const where = { tamamlandi: true, ...(araligi ? { updatedAt: araligi } : {}) };
+
+  function sayfaUrl(hedefSayfa: number) {
+    const params = new URLSearchParams();
+    if (searchParams.ay) params.set("ay", searchParams.ay);
+    params.set("sayfa", String(hedefSayfa));
+    return `/admin/reports/views?${params.toString()}`;
+  }
 
   const [kayitlar, toplam] = await Promise.all([
     db.lessonProgress.findMany({
-      where: { tamamlandi: true },
+      where,
       orderBy: { updatedAt: "desc" },
       skip: (sayfa - 1) * SAYFA_BOYUTU,
       take: SAYFA_BOYUTU,
@@ -27,17 +40,26 @@ export default async function AdminRaporlarIzlenmeler({
         lesson: { select: { baslik: true, course: { select: { baslik: true } } } },
       },
     }),
-    db.lessonProgress.count({ where: { tamamlandi: true } }),
+    db.lessonProgress.count({ where }),
   ]);
   const sonSayfa = Math.max(1, Math.ceil(toplam / SAYFA_BOYUTU));
 
   return (
     <div>
-      <SayfaBasligi sag={<RaporlarSekmeleri />} />
+      <SayfaBasligi
+        sag={
+          <div className="flex items-center gap-3">
+            <AyFiltresi />
+            <RaporlarSekmeleri />
+          </div>
+        }
+      />
 
       {kayitlar.length === 0 ? (
         <p className="font-body text-metin/60">
-          Henüz tamamlanan ders yok. Bir üye bir ders videosunu sonuna kadar izlediğinde burada görünür.
+          {araligi
+            ? `${donemEtiketi} içinde tamamlanan ders yok.`
+            : "Henüz tamamlanan ders yok. Bir üye bir ders videosunu sonuna kadar izlediğinde burada görünür."}
         </p>
       ) : (
         <Kart dolgu={false} className="overflow-x-auto">
@@ -76,12 +98,12 @@ export default async function AdminRaporlarIzlenmeler({
           </p>
           <div className="flex gap-3">
             {sayfa > 1 && (
-              <a href={`/admin/reports/views?sayfa=${sayfa - 1}`} className="text-vurgu hover:text-vurgu-dark">
+              <a href={sayfaUrl(sayfa - 1)} className="text-vurgu hover:text-vurgu-dark">
                 ← Önceki
               </a>
             )}
             {sayfa < sonSayfa && (
-              <a href={`/admin/reports/views?sayfa=${sayfa + 1}`} className="text-vurgu hover:text-vurgu-dark">
+              <a href={sayfaUrl(sayfa + 1)} className="text-vurgu hover:text-vurgu-dark">
                 Sonraki →
               </a>
             )}

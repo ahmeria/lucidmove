@@ -1,3 +1,7 @@
+import createNextIntlPlugin from "next-intl/plugin";
+
+const withNextIntl = createNextIntlPlugin();
+
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   images: {
@@ -19,7 +23,7 @@ const nextConfig = {
   // etkilemiyor. Not: /courses/:slug (kurs detayı) bundan etkilenmez.
   async redirects() {
     return [
-      { source: "/kurslar", destination: "/#courses", permanent: false },
+      { source: "/kurslar", destination: "/courses", permanent: false },
       { source: "/hakkimda", destination: "/#about", permanent: false },
       { source: "/uyelik", destination: "/#membership", permanent: false },
     ];
@@ -44,4 +48,4 @@ const nextConfig = {
   },
 };
 
-export default nextConfig;
+export default withNextIntl(nextConfig);

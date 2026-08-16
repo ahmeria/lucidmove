@@ -18,17 +18,14 @@ const kayitSemasi = z.object({
 export async function POST(req: Request) {
   const ip = istemciIpAdresiniAl(req);
   if (!hizSiniriniKontrolEt(`register:${ip}`, KAYIT_LIMITI, KAYIT_PENCERESI_MS)) {
-    return NextResponse.json({ hata: "Çok fazla kayıt denemesi — lütfen daha sonra tekrar deneyin" }, { status: 429 });
+    return NextResponse.json({ kod: "COK_FAZLA_DENEME" }, { status: 429 });
   }
 
   const govde = await req.json();
   const sonuc = kayitSemasi.safeParse(govde);
 
   if (!sonuc.success) {
-    return NextResponse.json(
-      { hata: sonuc.error.issues[0]?.message || "Geçersiz veri" },
-      { status: 400 }
-    );
+    return NextResponse.json({ kod: "GECERSIZ_VERI" }, { status: 400 });
   }
 
   const { ad, email, password, telefon } = sonuc.data;
@@ -36,7 +33,7 @@ export async function POST(req: Request) {
 
   const mevcutKullanici = await db.user.findUnique({ where: { email: normalizedEmail } });
   if (mevcutKullanici) {
-    return NextResponse.json({ hata: "Bu e-posta zaten kayıtlı" }, { status: 409 });
+    return NextResponse.json({ kod: "EPOSTA_KAYITLI" }, { status: 409 });
   }
 
   const passwordHash = await bcrypt.hash(password, 12);

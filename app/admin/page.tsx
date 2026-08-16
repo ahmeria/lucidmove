@@ -3,7 +3,9 @@ import Link from "next/link";
 import { db } from "@/lib/db";
 import { analitikOzetiniGetir } from "@/lib/analitikVerisi";
 import { toplamIzlenmeSayisiniAl } from "@/lib/raporlar";
+import { ayAraligi, ayEtiketi, gosterilecekAy, TUM_ZAMANLAR } from "@/lib/ayFiltresi";
 import { StatKart } from "@/components/admin/Kart";
+import AyFiltresi from "@/components/admin/AyFiltresi";
 import { UyeIkonu, AbonelikIkonu, GelirIkonu, MesajIkonu, KursIkonu, IzlenmeIkonu } from "@/components/admin/StatIkonlari";
 import { AnalyticsPanel } from "@/components/admin/charts/AnalyticsPanel";
 
@@ -50,43 +52,65 @@ async function AnalitikBolumu({ gun }: { gun: number }) {
   return <AnalyticsPanel veri={await analitikOzetiniGetir(gun)} />;
 }
 
-export default async function AdminDashboard({ searchParams }: { searchParams: { gun?: string } }) {
+export default async function AdminDashboard({ searchParams }: { searchParams: { gun?: string; ay?: string } }) {
   const gun = GUN_SECENEKLERI.includes(Number(searchParams.gun)) ? Number(searchParams.gun) : 28;
 
-  const ayBasi = new Date();
-  ayBasi.setDate(1);
-  ayBasi.setHours(0, 0, 0, 0);
+  // Panel varsayılan olarak BU AYIN özetini gösterir (bkz. lib/ayFiltresi.ts)
+  // — "Tüm zamanlar" filtreden açıkça seçilebilir. araligi null ise (tüm
+  // zamanlar) dönem-bağlı kartlar filtresiz, tüm-zamanlar toplamını gösterir.
+  const araligi = ayAraligi(searchParams.ay);
+  const seciliAy = gosterilecekAy(searchParams.ay);
+  const donemEtiketi = ayEtiketi(seciliAy);
+  const tumZamanlarMi = seciliAy === TUM_ZAMANLAR;
 
-  const [uyeSayisi, aktifAbonelikSayisi, buAyGelir, okunmamisMesajSayisi, kursSayisi, dersSayisi, izlenmeSayisi] =
+  const [uyeSayisi, aktifAbonelikSayisi, gelir, okunmamisMesajSayisi, kursSayisi, dersSayisi, izlenmeSayisi] =
     await Promise.all([
-      db.user.count(),
+      // "Toplam üye" yalnızca role: UYE olanları sayar — admin hesapları
+      // (bu dashboard'u görüntüleyen dahil) buraya karışmasın diye. Bir
+      // dönem seçiliyken bu, o dönemde KAYIT OLAN üye sayısına daralır
+      // (bkz. aşağıdaki dinamik etiket).
+      db.user.count({ where: { role: "UYE", ...(araligi ? { createdAt: araligi } : {}) } }),
       db.subscription.count({ where: { status: "AKTIF" } }),
       db.payment.aggregate({
         _sum: { tutar: true },
-        where: { durum: "BASARILI", createdAt: { gte: ayBasi } },
+        where: { durum: "BASARILI", ...(araligi ? { createdAt: araligi } : {}) },
       }),
       db.contactMessage.count({ where: { okunduMu: false } }),
       db.course.count(),
       db.lesson.count(),
-      toplamIzlenmeSayisiniAl(),
+      toplamIzlenmeSayisiniAl(araligi),
     ]);
 
   return (
     <div className="space-y-8">
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <p className="font-mono text-xs uppercase tracking-wide text-metin/40">Özet</p>
+        <AyFiltresi />
+      </div>
+
       <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
-        <StatKart etiket="Toplam üye" deger={uyeSayisi} href="/admin/subscriptions" renk="vurgu" ikon={UyeIkonu} />
+        <StatKart
+          etiket={tumZamanlarMi ? "Toplam üye" : "Yeni üye"}
+          deger={uyeSayisi}
+          href="/admin/subscriptions"
+          renk="vurgu"
+          altYazi={donemEtiketi}
+          ikon={UyeIkonu}
+        />
         <StatKart
           etiket="Aktif abonelik"
           deger={aktifAbonelikSayisi}
           href="/admin/subscriptions"
           renk="ikincil"
+          altYazi="Güncel durum"
           ikon={AbonelikIkonu}
         />
         <StatKart
-          etiket="Bu ay gelir"
-          deger={`₺${(buAyGelir._sum.tutar ?? 0).toString()}`}
+          etiket="Gelir"
+          deger={`₺${(gelir._sum.tutar ?? 0).toString()}`}
           href="/admin/subscriptions"
           renk="ikincil"
+          altYazi={donemEtiketi}
           ikon={GelirIkonu}
         />
         <StatKart
@@ -104,10 +128,11 @@ export default async function AdminDashboard({ searchParams }: { searchParams: {
           ikon={KursIkonu}
         />
         <StatKart
-          etiket="Toplam izlenme"
+          etiket="İzlenme"
           deger={izlenmeSayisi}
           href="/admin/reports/views"
           renk="ikincil"
+          altYazi={donemEtiketi}
           ikon={IzlenmeIkonu}
         />
       </div>

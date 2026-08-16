@@ -4,14 +4,6 @@ import bcrypt from "bcryptjs";
 const db = new PrismaClient();
 
 async function main() {
-  // Mevcut kursları bir kategoriye bağlamak için varsayılan "Genel" kategori —
-  // admin dilerse sonradan yeni kategoriler oluşturup kursları taşıyabilir.
-  const genelKategori = await db.category.upsert({
-    where: { slug: "genel" },
-    update: {},
-    create: { ad: "Genel", slug: "genel", sira: 0 },
-  });
-
   const kurslar = [
     {
       slug: "sabah-uyanisi",
@@ -19,7 +11,6 @@ async function main() {
       aciklama: "Güne bedeninizi ve nefesinizi uyandırarak, yumuşak bir akışla başlayın.",
       seviye: "Başlangıç",
       sira: 1,
-      categoryId: genelKategori.id,
       kapakUrl: "https://images.unsplash.com/photo-1506126613408-eca07ce68773?q=80&w=800&auto=format&fit=crop",
       dersler: [
         { slug: "gunaydin-nefesi", baslik: "Günaydın Nefesi", sureDakika: 8, ucretsizMi: true },
@@ -33,7 +24,6 @@ async function main() {
       aciklama: "Esneklik ve güç dengesini kuran, orta seviye bir vinyasa serisi.",
       seviye: "Orta",
       sira: 2,
-      categoryId: genelKategori.id,
       kapakUrl: "https://images.unsplash.com/photo-1518611012118-696072aa579a?q=80&w=800&auto=format&fit=crop",
       dersler: [
         { slug: "isinma", baslik: "Isınma ve Hizalanma", sureDakika: 10, ucretsizMi: true },
@@ -48,7 +38,6 @@ async function main() {
       aciklama: "Yin Yoga ve nefes çalışmasıyla sinir sistemini yavaşlatan bir seans.",
       seviye: "Tüm seviyeler",
       sira: 3,
-      categoryId: genelKategori.id,
       kapakUrl: "https://images.unsplash.com/photo-1545389336-cf090694435e?q=80&w=800&auto=format&fit=crop",
       dersler: [
         { slug: "giris", baslik: "Girişe Nefes", sureDakika: 6, ucretsizMi: true },

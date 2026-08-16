@@ -4,26 +4,52 @@ import { useRouter } from "next/navigation";
 import { useState, FormEvent } from "react";
 import { useToast } from "@/components/Toast";
 import GorselInput from "@/components/admin/GorselInput";
+import DilSekmeli from "@/components/admin/DilSekmeli";
 
 type Profil = {
   ad: string;
   bio: string;
+  bioEn: string | null;
+  bioAz: string | null;
   sertifikalar: string;
+  sertifikalarEn: string | null;
+  sertifikalarAz: string | null;
   yaklasim: string;
+  yaklasimEn: string | null;
+  yaklasimAz: string | null;
   portreUrl: string;
   hakkimdaTeaserOzet: string;
+  hakkimdaTeaserOzetEn: string | null;
+  hakkimdaTeaserOzetAz: string | null;
 };
 
 const alan = "w-full border border-cizgi rounded-lg px-3 py-2 bg-zemin text-metin text-sm focus:border-vurgu outline-none";
 const etiket = "block text-sm text-metin/70 mb-1.5";
 
+function bos(v: string | null): string {
+  return v ?? "";
+}
+
+// Ad özel isim — dilden bağımsız, tek alan kalıyor. Diğer tüm metin
+// alanları (bio, sertifikalar, yaklaşım, tanıtım cümlesi) DilSekmeli ile
+// TR/EN/AZ alıyor.
 export default function EgitmenForm({ profil }: { profil: Profil }) {
   const router = useRouter();
   const toast = useToast();
-  const [form, setForm] = useState(profil);
+  const [form, setForm] = useState({
+    ...profil,
+    bioEn: bos(profil.bioEn),
+    bioAz: bos(profil.bioAz),
+    sertifikalarEn: bos(profil.sertifikalarEn),
+    sertifikalarAz: bos(profil.sertifikalarAz),
+    yaklasimEn: bos(profil.yaklasimEn),
+    yaklasimAz: bos(profil.yaklasimAz),
+    hakkimdaTeaserOzetEn: bos(profil.hakkimdaTeaserOzetEn),
+    hakkimdaTeaserOzetAz: bos(profil.hakkimdaTeaserOzetAz),
+  });
   const [gonderiliyor, setGonderiliyor] = useState(false);
 
-  function alanGuncelle<K extends keyof Profil>(anahtar: K, deger: string) {
+  function alanGuncelle<K extends keyof typeof form>(anahtar: K, deger: string) {
     setForm((f) => ({ ...f, [anahtar]: deger }));
   }
 
@@ -56,32 +82,49 @@ export default function EgitmenForm({ profil }: { profil: Profil }) {
         <label className={etiket}>Portre görseli — Hakkımda bölümünde gösterilir</label>
         <GorselInput value={form.portreUrl} onChange={(v) => alanGuncelle("portreUrl", v)} oran={4 / 5} />
       </div>
-      <div>
-        <label className={etiket}>Ana sayfa tanıtım cümlesi</label>
-        <input
-          value={form.hakkimdaTeaserOzet}
-          onChange={(e) => alanGuncelle("hakkimdaTeaserOzet", e.target.value)}
-          className={alan}
-        />
-      </div>
-      <div>
-        <label className={etiket}>Biyografi (paragraflar arasında boş satır bırakın)</label>
-        <textarea value={form.bio} onChange={(e) => alanGuncelle("bio", e.target.value)} rows={8} className={alan + " resize-none"} />
-      </div>
+      <DilSekmeli
+        etiket="Ana sayfa tanıtım cümlesi"
+        tr={form.hakkimdaTeaserOzet}
+        en={form.hakkimdaTeaserOzetEn}
+        az={form.hakkimdaTeaserOzetAz}
+        onTrChange={(v) => alanGuncelle("hakkimdaTeaserOzet", v)}
+        onEnChange={(v) => alanGuncelle("hakkimdaTeaserOzetEn", v)}
+        onAzChange={(v) => alanGuncelle("hakkimdaTeaserOzetAz", v)}
+      />
+      <DilSekmeli
+        etiket="Biyografi (paragraflar arasında boş satır bırakın)"
+        tr={form.bio}
+        en={form.bioEn}
+        az={form.bioAz}
+        onTrChange={(v) => alanGuncelle("bio", v)}
+        onEnChange={(v) => alanGuncelle("bioEn", v)}
+        onAzChange={(v) => alanGuncelle("bioAz", v)}
+        textarea
+        rows={8}
+      />
       <div className="grid sm:grid-cols-2 gap-4">
-        <div>
-          <label className={etiket}>Sertifikalar (satır satır)</label>
-          <textarea
-            value={form.sertifikalar}
-            onChange={(e) => alanGuncelle("sertifikalar", e.target.value)}
-            rows={4}
-            className={alan + " resize-none"}
-          />
-        </div>
-        <div>
-          <label className={etiket}>Yaklaşım (satır satır)</label>
-          <textarea value={form.yaklasim} onChange={(e) => alanGuncelle("yaklasim", e.target.value)} rows={4} className={alan + " resize-none"} />
-        </div>
+        <DilSekmeli
+          etiket="Sertifikalar (satır satır)"
+          tr={form.sertifikalar}
+          en={form.sertifikalarEn}
+          az={form.sertifikalarAz}
+          onTrChange={(v) => alanGuncelle("sertifikalar", v)}
+          onEnChange={(v) => alanGuncelle("sertifikalarEn", v)}
+          onAzChange={(v) => alanGuncelle("sertifikalarAz", v)}
+          textarea
+          rows={4}
+        />
+        <DilSekmeli
+          etiket="Yaklaşım (satır satır)"
+          tr={form.yaklasim}
+          en={form.yaklasimEn}
+          az={form.yaklasimAz}
+          onTrChange={(v) => alanGuncelle("yaklasim", v)}
+          onEnChange={(v) => alanGuncelle("yaklasimEn", v)}
+          onAzChange={(v) => alanGuncelle("yaklasimAz", v)}
+          textarea
+          rows={4}
+        />
       </div>
 
       <div className="flex justify-end">

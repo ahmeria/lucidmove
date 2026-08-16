@@ -6,16 +6,18 @@ import Kart from "@/components/admin/Kart";
 import SayfaBasligi from "@/components/admin/SayfaBasligi";
 import AyarlarSekmeleri from "../AyarlarSekmeleri";
 import EgitmenForm from "../EgitmenForm";
+import SiteAyarlariForm from "../SiteAyarlariForm";
 import AnaSayfaMetinleriForm from "./AnaSayfaMetinleriForm";
 import GaleriYonetimi from "./GaleriYonetimi";
 
 export const dynamic = "force-dynamic";
 
 // Anasayfanın görsel/metin içeriği için tek, detaylı sayfa — genel Ayarlar
-// sayfasındaki (Para Birimi, Google Analytics, İletişim, SEO) sistem
-// ayarlarından ayrı tutuluyor. Hero, Üyelik başlığı, Eğitmen profili
-// (Hakkımda bölümü) ve Galeri buradan yönetilir; hepsi görsel yükleme
-// destekliyor (ham URL yapıştırmak yerine).
+// sayfasındaki (Para Birimi, Google Analytics) sistem ayarlarından ayrı
+// tutuluyor. Hero, Üyelik başlığı, Eğitmen profili (Hakkımda bölümü), Site &
+// İletişim ve Galeri buradan yönetilir. Çevrilebilir metin alanları (bkz.
+// DilSekmeli) burada TR/EN/AZ olarak girilebiliyor — frontend /en, /az
+// sürümlerinde bunları gösteriyor (admin arayüzünün kendisi hep Türkçe).
 export default async function SayfaTasarimi() {
   const session = await getAdminSession();
   if (!session || !sayfaErisimiVarMi(session, "/admin/settings/page-design")) notFound();
@@ -39,6 +41,10 @@ export default async function SayfaTasarimi() {
 
         <Kart baslik="Eğitmen Profili — Hakkımda bölümü">
           <EgitmenForm profil={profil} />
+        </Kart>
+
+        <Kart baslik="Site & İletişim">
+          <SiteAyarlariForm ayarlar={ayarlar} />
         </Kart>
 
         <Kart baslik="Galeri — Stüdyodan kareler">

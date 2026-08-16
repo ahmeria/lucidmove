@@ -22,6 +22,14 @@ const config: Config = {
         koyu: "#133241", // koyu bölüm zemini (footer, kontrast bölümler) — koyu lacivert-yeşil
         cizgi: "#E5E1D6", // border/ayraç
         hata: "#DC2626", // destructive
+        // Yalnızca anasayfada (bkz. app/(site)/page.tsx) kullanılan sıcak
+        // toprak/kahve vurgu — sitenin geri kalanındaki marka rengi (vurgu
+        // yeşili) değil, editoryal/sıcak bir anasayfa tarzı için eklendi.
+        toprak: {
+          DEFAULT: "#6B4A34",
+          light: "#B98A63",
+          dark: "#432D1F",
+        },
       },
       fontFamily: {
         display: ["var(--font-bricolage)", "sans-serif"],

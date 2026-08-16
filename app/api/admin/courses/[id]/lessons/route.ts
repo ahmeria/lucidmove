@@ -8,14 +8,21 @@ import { dersVideoYoluSemasi } from "@/lib/video";
 import { gorselUrlSemasiOpsiyonel } from "@/lib/gorsel";
 import { logKaydet } from "@/lib/systemLog";
 
+const cevSemasi = z.string().optional();
+
 const dersSemasi = z.object({
   baslik: z.string().min(2),
+  baslikEn: cevSemasi,
+  baslikAz: cevSemasi,
   slug: z.string().min(2).optional(),
   aciklama: z.string().optional(),
+  aciklamaEn: cevSemasi,
+  aciklamaAz: cevSemasi,
   kapakUrl: gorselUrlSemasiOpsiyonel,
   sureDakika: z.number().int().positive(),
   kaynakVideoUrl: dersVideoYoluSemasi,
   ucretsizMi: z.boolean().default(false),
+  mood: z.string().nullable().optional(),
 });
 
 export async function POST(req: Request, { params }: { params: { id: string } }) {
@@ -27,7 +34,8 @@ export async function POST(req: Request, { params }: { params: { id: string } })
     return NextResponse.json({ hata: "Geçersiz form verisi" }, { status: 400 });
   }
 
-  const { baslik, aciklama, kapakUrl, sureDakika, kaynakVideoUrl, ucretsizMi } = govde.data;
+  const { baslik, baslikEn, baslikAz, aciklama, aciklamaEn, aciklamaAz, kapakUrl, sureDakika, kaynakVideoUrl, ucretsizMi, mood } =
+    govde.data;
   const slug = govde.data.slug ? slugifyTr(govde.data.slug) : slugifyTr(baslik);
 
   try {
@@ -35,8 +43,12 @@ export async function POST(req: Request, { params }: { params: { id: string } })
       data: {
         courseId: params.id,
         baslik,
+        baslikEn: baslikEn || null,
+        baslikAz: baslikAz || null,
         slug,
         aciklama: aciklama || null,
+        aciklamaEn: aciklamaEn || null,
+        aciklamaAz: aciklamaAz || null,
         kapakUrl: kapakUrl || null,
         sureDakika,
         kaynakVideoUrl,
@@ -45,6 +57,7 @@ export async function POST(req: Request, { params }: { params: { id: string } })
         videoUrl: kaynakVideoUrl,
         filigranDurumu: "HAZIR",
         ucretsizMi,
+        mood: mood || null,
         sira: 9999,
       },
     });
