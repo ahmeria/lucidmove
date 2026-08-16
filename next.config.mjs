@@ -23,9 +23,9 @@ const nextConfig = {
   // etkilemiyor. Not: /courses/:slug (kurs detayı) bundan etkilenmez.
   async redirects() {
     return [
-      { source: "/kurslar", destination: "/courses", permanent: false },
-      { source: "/hakkimda", destination: "/#about", permanent: false },
-      { source: "/uyelik", destination: "/#membership", permanent: false },
+      { source: "/kurslar", destination: "/courses", permanent: true },
+      { source: "/hakkimda", destination: "/#about", permanent: true },
+      { source: "/uyelik", destination: "/#membership", permanent: true },
     ];
   },
   // Temel güvenlik başlıkları — tüm route'lara uygulanır. Not: kapsamlı bir

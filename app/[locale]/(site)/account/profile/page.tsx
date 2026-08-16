@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import { redirect } from "next/navigation";
 import { getServerSession } from "next-auth";
 import { getTranslations } from "next-intl/server";
@@ -8,6 +9,11 @@ import { Link, getPathname } from "@/i18n/navigation";
 import ProfilForm from "../ProfilForm";
 
 export const dynamic = "force-dynamic";
+
+export async function generateMetadata({ params }: { params: { locale: string } }): Promise<Metadata> {
+  const t = await getTranslations({ locale: params.locale, namespace: "profile" });
+  return { title: t("profilAyarlari"), robots: { index: false, follow: true } };
+}
 
 export default async function HesabimProfil({ params }: { params: { locale: string } }) {
   const locale = params.locale as AppLocale;

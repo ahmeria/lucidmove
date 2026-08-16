@@ -1,3 +1,4 @@
+import { cache } from "react";
 import { db } from "@/lib/db";
 import type { AppLocale } from "@/i18n/routing";
 
@@ -44,13 +45,16 @@ const varsayilanEgitmenProfili = {
   hakkimdaTeaserOzet: "10 yıldır aynı soruyu soruyorum: bugün bedenine nasıl bakacaksın?",
 };
 
-export async function getSiteSettings() {
+// React'ın request-scoped cache()'i ile sarmalı — aynı istek içinde (ör.
+// generateMetadata + layout + page gibi) birden çok yerden çağrılırsa
+// veritabanına tekrar tekrar gitmek yerine ilk sonucu paylaşır.
+export const getSiteSettings = cache(async function getSiteSettings() {
   return db.siteSettings.upsert({
     where: { id: SITE_SETTINGS_ID },
     update: {},
     create: varsayilanSiteAyarlari,
   });
-}
+});
 
 export async function getInstructorProfile() {
   return db.instructorProfile.upsert({

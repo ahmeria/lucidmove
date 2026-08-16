@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import { redirect } from "next/navigation";
 import { getServerSession } from "next-auth";
 import { getTranslations } from "next-intl/server";
@@ -13,6 +14,14 @@ import HesabimClient from "./HesabimClient";
 import KursKatalogu from "../courses/KursKatalogu";
 
 export const dynamic = "force-dynamic";
+
+// Kişiye özel/oturum gerektiren bir sayfa — arama sonuçlarında görünmesinin
+// bir değeri yok, "noindex" ile dışarıda bırakılıyor (bkz. login/register/
+// account/profile'daki aynı desen).
+export async function generateMetadata({ params }: { params: { locale: string } }): Promise<Metadata> {
+  const t = await getTranslations({ locale: params.locale, namespace: "account" });
+  return { title: t("uyelikPaneli"), robots: { index: false, follow: true } };
+}
 
 // Mobilde "Profil ayarları" yazılı buton yerine kullanılan ikon — dar
 // ekranda satırın boğulmaması için.

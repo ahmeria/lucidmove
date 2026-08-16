@@ -1,3 +1,5 @@
+import { cache } from "react";
+import type { Metadata } from "next";
 import { notFound, redirect } from "next/navigation";
 import { getServerSession } from "next-auth";
 import { getTranslations } from "next-intl/server";
@@ -5,12 +7,57 @@ import { authOptions } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { aktifUyelikVarMi } from "@/lib/uyelik";
 import { moodlariAl } from "@/lib/moods";
+import { getSiteSettings } from "@/lib/settings";
 import { cevrilenAlan } from "@/lib/i18nIcerik";
+import { localeUrl, localeAlternates, ogLocale } from "@/lib/seo";
 import type { AppLocale } from "@/i18n/routing";
 import { Link, getPathname } from "@/i18n/navigation";
 import VideoPlayer from "@/components/VideoPlayer";
 
 export const dynamic = "force-dynamic";
+
+// generateMetadata + sayfanın kendisi aynı kursu ayrı ayrı sorgulamasın diye
+// (bkz. courses/[slug]/page.tsx'teki aynı gerekçe) React cache().
+const kursuGetir = cache((slug: string) =>
+  db.course.findUnique({ where: { slug }, include: { lessons: { orderBy: { sira: "asc" } } } })
+);
+
+export async function generateMetadata({
+  params,
+}: {
+  params: { slug: string; lessonSlug: string; locale: string };
+}): Promise<Metadata> {
+  const locale = params.locale as AppLocale;
+  const [kurs, ayarlar] = await Promise.all([kursuGetir(params.slug), getSiteSettings()]);
+  const ders = kurs?.lessons.find((d) => d.slug === params.lessonSlug);
+  if (!kurs || !ders) return {};
+
+  const marka = ayarlar.siteBasligi.split("—")[0].trim() || "LucidMove";
+  const kursBaslik = cevrilenAlan(kurs.baslik, kurs.baslikEn, kurs.baslikAz, locale);
+  const kursAciklama = cevrilenAlan(kurs.aciklama, kurs.aciklamaEn, kurs.aciklamaAz, locale);
+  const dersBaslik = cevrilenAlan(ders.baslik, ders.baslikEn, ders.baslikAz, locale);
+  // Derste kendine ait bir açıklama girilmemişse (demo verilerin çoğunda
+  // olduğu gibi) kursun açıklamasına düşer — boş meta description'dan iyi.
+  const dersAciklama = ders.aciklama
+    ? cevrilenAlan(ders.aciklama, ders.aciklamaEn, ders.aciklamaAz, locale)
+    : kursAciklama;
+  const baslik = `${dersBaslik} — ${kursBaslik} — ${marka}`;
+  const yol = `/courses/${kurs.slug}/${ders.slug}`;
+
+  return {
+    title: baslik,
+    description: dersAciklama,
+    alternates: localeAlternates(yol, locale),
+    openGraph: {
+      title: baslik,
+      description: dersAciklama,
+      url: localeUrl(yol, locale),
+      images: ders.kapakUrl || kurs.kapakUrl ? [{ url: (ders.kapakUrl || kurs.kapakUrl)! }] : undefined,
+      locale: ogLocale(locale),
+      type: "website",
+    },
+  };
+}
 
 export default async function DersDetay({
   params,
@@ -18,14 +65,7 @@ export default async function DersDetay({
   params: { slug: string; lessonSlug: string; locale: string };
 }) {
   const locale = params.locale as AppLocale;
-  const [kurs, moodlar, t] = await Promise.all([
-    db.course.findUnique({
-      where: { slug: params.slug },
-      include: { lessons: { orderBy: { sira: "asc" } } },
-    }),
-    moodlariAl(),
-    getTranslations("lessonDetail"),
-  ]);
+  const [kurs, moodlar, t] = await Promise.all([kursuGetir(params.slug), moodlariAl(), getTranslations("lessonDetail")]);
   if (!kurs) notFound();
 
   const ders = kurs.lessons.find((d) => d.slug === params.lessonSlug);

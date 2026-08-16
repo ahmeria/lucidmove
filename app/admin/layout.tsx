@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import Link from "next/link";
 import Image from "next/image";
 import { headers } from "next/headers";
@@ -13,6 +14,16 @@ import AdminHeader from "./AdminHeader";
 import "../globals.css";
 
 export const dynamic = "force-dynamic";
+
+// Önceden HİÇBİR admin sayfasının <title>'ı yoktu (tarayıcı sekmesi boş
+// görünüyordu) — bu, tüm /admin/** için bir varsayılan sağlıyor. Alt
+// sayfalar isterse kendi "metadata.title"ını export ederek "%s — LucidMove
+// Yönetim" şablonunu doldurabilir (şu an hiçbiri etmiyor, hepsi varsayılanı
+// kullanıyor). Admin herkese açık aranabilirlikte yer almamalı — noindex.
+export const metadata: Metadata = {
+  title: { default: "LucidMove Yönetim", template: "%s — LucidMove Yönetim" },
+  robots: { index: false, follow: false },
+};
 
 // Admin'in BAĞIMSIZ kök layout'u — kendi <html>/<body>'sini basıyor, site
 // tarafındaki (app/[locale]/layout.tsx) locale routing'inin tamamen dışında.

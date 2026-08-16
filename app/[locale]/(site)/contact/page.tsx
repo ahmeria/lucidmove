@@ -1,13 +1,23 @@
 import type { Metadata } from "next";
 import { getTranslations } from "next-intl/server";
 import { getSiteSettings } from "@/lib/settings";
+import { localeUrl, localeAlternates } from "@/lib/seo";
+import type { AppLocale } from "@/i18n/routing";
 import IletisimForm from "./IletisimForm";
 
 export const dynamic = "force-dynamic";
 
 export async function generateMetadata({ params }: { params: { locale: string } }): Promise<Metadata> {
-  const t = await getTranslations({ locale: params.locale, namespace: "contact" });
-  return { title: t("metaBaslik"), description: t("metaAciklama") };
+  const locale = params.locale as AppLocale;
+  const t = await getTranslations({ locale, namespace: "contact" });
+  const baslik = t("metaBaslik");
+  const aciklama = t("metaAciklama");
+  return {
+    title: baslik,
+    description: aciklama,
+    alternates: localeAlternates("/contact", locale),
+    openGraph: { title: baslik, description: aciklama, url: localeUrl("/contact", locale) },
+  };
 }
 
 export default async function Iletisim() {

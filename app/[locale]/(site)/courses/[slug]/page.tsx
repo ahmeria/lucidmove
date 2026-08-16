@@ -1,3 +1,5 @@
+import { cache } from "react";
+import type { Metadata } from "next";
 import { notFound, redirect } from "next/navigation";
 import Image from "next/image";
 import { getServerSession } from "next-auth";
@@ -6,7 +8,9 @@ import { authOptions } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { aktifUyelikVarMi } from "@/lib/uyelik";
 import { moodlariAl } from "@/lib/moods";
+import { getSiteSettings } from "@/lib/settings";
 import { cevrilenAlan } from "@/lib/i18nIcerik";
+import { SITE_URL, localeUrl, localeAlternates, ogLocale } from "@/lib/seo";
 import type { AppLocale } from "@/i18n/routing";
 import { Link, getPathname } from "@/i18n/navigation";
 import VideoPlayer from "@/components/VideoPlayer";
@@ -14,13 +18,46 @@ import DersKarti from "../DersKarti";
 
 export const dynamic = "force-dynamic";
 
+// generateMetadata + sayfanın kendisi aynı kursu ayrı ayrı sorgulamasın diye
+// (bkz. app/[locale]/(site)/contact/page.tsx'teki aynı gerekçe) React cache().
+const kursuGetir = cache((slug: string) =>
+  db.course.findUnique({ where: { slug }, include: { lessons: { orderBy: { sira: "asc" } } } })
+);
+
+export async function generateMetadata({
+  params,
+}: {
+  params: { slug: string; locale: string };
+}): Promise<Metadata> {
+  const locale = params.locale as AppLocale;
+  const [kurs, ayarlar] = await Promise.all([kursuGetir(params.slug), getSiteSettings()]);
+  if (!kurs) return {};
+
+  const marka = ayarlar.siteBasligi.split("—")[0].trim() || "LucidMove";
+  const kursBaslik = cevrilenAlan(kurs.baslik, kurs.baslikEn, kurs.baslikAz, locale);
+  const kursAciklama = cevrilenAlan(kurs.aciklama, kurs.aciklamaEn, kurs.aciklamaAz, locale);
+  const baslik = `${kursBaslik} — ${marka}`;
+  const yol = `/courses/${kurs.slug}`;
+
+  return {
+    title: baslik,
+    description: kursAciklama,
+    alternates: localeAlternates(yol, locale),
+    openGraph: {
+      title: baslik,
+      description: kursAciklama,
+      url: localeUrl(yol, locale),
+      images: kurs.kapakUrl ? [{ url: kurs.kapakUrl }] : undefined,
+      locale: ogLocale(locale),
+      type: "website",
+    },
+  };
+}
+
 export default async function KursDetay({ params }: { params: { slug: string; locale: string } }) {
   const locale = params.locale as AppLocale;
   const [kurs, moodlar, t] = await Promise.all([
-    db.course.findUnique({
-      where: { slug: params.slug },
-      include: { lessons: { orderBy: { sira: "asc" } } },
-    }),
+    kursuGetir(params.slug),
     moodlariAl(),
     getTranslations("courseDetail"),
   ]);
@@ -45,8 +82,19 @@ export default async function KursDetay({ params }: { params: { slug: string; lo
   const kursAciklama = cevrilenAlan(kurs.aciklama, kurs.aciklamaEn, kurs.aciklamaAz, locale);
   const kursSeviyeEtiket = cevrilenAlan(kurs.seviye, kurs.seviyeEn, kurs.seviyeAz, locale);
 
+  const kursJsonLd = {
+    "@context": "https://schema.org",
+    "@type": "Course",
+    name: kursBaslik,
+    description: kursAciklama,
+    url: localeUrl(`/courses/${kurs.slug}`, locale),
+    provider: { "@type": "Organization", name: "LucidMove", url: SITE_URL },
+    ...(kurs.kapakUrl ? { image: kurs.kapakUrl } : {}),
+  };
+
   return (
     <div>
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(kursJsonLd) }} />
       {/* HERO — kapak görseli/tanıtım videosu artık her zaman görünür, konu
           bilgisi ve görsel tam genişlikteki bir iki-sütun yerleşimini paylaşır. */}
       <section className="container-nefes pt-14 sm:pt-20 pb-20">

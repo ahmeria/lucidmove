@@ -7,13 +7,22 @@ import { aktifUyelikVarMi } from "@/lib/uyelik";
 import { moodlariAl } from "@/lib/moods";
 import { cevrilenAlan } from "@/lib/i18nIcerik";
 import type { AppLocale } from "@/i18n/routing";
+import { localeUrl, localeAlternates } from "@/lib/seo";
 import KursKatalogu from "./KursKatalogu";
 
 export const dynamic = "force-dynamic";
 
 export async function generateMetadata({ params }: { params: { locale: string } }): Promise<Metadata> {
-  const t = await getTranslations({ locale: params.locale, namespace: "coursesPage" });
-  return { title: t("metaBaslik"), description: t("metaAciklama") };
+  const locale = params.locale as AppLocale;
+  const t = await getTranslations({ locale, namespace: "coursesPage" });
+  const baslik = t("metaBaslik");
+  const aciklama = t("metaAciklama");
+  return {
+    title: baslik,
+    description: aciklama,
+    alternates: localeAlternates("/courses", locale),
+    openGraph: { title: baslik, description: aciklama, url: localeUrl("/courses", locale) },
+  };
 }
 
 // Herkese açık kurs kataloğu — Magda Werner referansındaki "Online Studio"

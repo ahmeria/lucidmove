@@ -1,11 +1,19 @@
 import type { Metadata } from "next";
 import { getTranslations, getLocale } from "next-intl/server";
 import { getSiteSettings, intlEtiketi } from "@/lib/settings";
+import { localeUrl, localeAlternates } from "@/lib/seo";
 import type { AppLocale } from "@/i18n/routing";
 
 export async function generateMetadata(): Promise<Metadata> {
-  const t = await getTranslations("privacy");
-  return { title: t("metaBaslik"), description: t("metaAciklama") };
+  const [t, locale] = await Promise.all([getTranslations("privacy"), getLocale()]);
+  const baslik = t("metaBaslik");
+  const aciklama = t("metaAciklama");
+  return {
+    title: baslik,
+    description: aciklama,
+    alternates: localeAlternates("/privacy", locale as AppLocale),
+    openGraph: { title: baslik, description: aciklama, url: localeUrl("/privacy", locale as AppLocale) },
+  };
 }
 
 export const dynamic = "force-dynamic";
