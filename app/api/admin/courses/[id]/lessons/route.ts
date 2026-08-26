@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
-import { getAdminSession } from "@/lib/admin-auth";
+import { sayfaYetkisiOlanOturum } from "@/lib/admin-auth";
 import { db } from "@/lib/db";
 import { slugifyTr } from "@/lib/slugify";
 import { derslerinSirasiniYenile } from "@/lib/dersler";
@@ -26,7 +26,7 @@ const dersSemasi = z.object({
 });
 
 export async function POST(req: Request, { params }: { params: { id: string } }) {
-  const session = await getAdminSession();
+  const session = await sayfaYetkisiOlanOturum("/admin/courses");
   if (!session) return NextResponse.json({ hata: "Yetkisiz" }, { status: 403 });
 
   const govde = dersSemasi.safeParse(await req.json());

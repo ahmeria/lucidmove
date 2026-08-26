@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { getAdminSession } from "@/lib/admin-auth";
+import { sayfaYetkisiOlanOturum } from "@/lib/admin-auth";
 import { db } from "@/lib/db";
 import { logKaydet } from "@/lib/systemLog";
 
@@ -7,7 +7,7 @@ import { logKaydet } from "@/lib/systemLog";
 // almayı elle "ödendi" işaretlemesi için — bkz. Kamplar'daki manuel-ödeme
 // emsali. Rezervasyon/iptal kavramı yok, bu yüzden tek aksiyon bu.
 export async function POST(_req: Request, { params }: { params: { id: string; purchaseId: string } }) {
-  const session = await getAdminSession();
+  const session = await sayfaYetkisiOlanOturum("/admin/private-lessons");
   if (!session) return NextResponse.json({ hata: "Yetkisiz" }, { status: 403 });
 
   const satinAlma = await db.privateLessonPurchase.findUnique({

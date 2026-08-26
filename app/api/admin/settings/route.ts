@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
-import { getAdminSession } from "@/lib/admin-auth";
+import { sayfaYetkisiOlanOturum } from "@/lib/admin-auth";
 import { db } from "@/lib/db";
 
 // Kısmi güncelleme: bu tek uç, hem genel Ayarlar sayfasının (Site & İletişim,
@@ -57,7 +57,11 @@ const semasi = z
   .partial();
 
 export async function PATCH(req: Request) {
-  const session = await getAdminSession();
+  // Bu uç hem Genel Ayarlar (Site & İletişim, SEO) hem Sayfa Tasarımı (Hero,
+  // Üyelik metinleri) formundan çağrılıyor (bkz. yukarıdaki not) — bu yüzden
+  // ikisinden HERHANGİ birine erişimi olan kabul edilir.
+  const session =
+    (await sayfaYetkisiOlanOturum("/admin/settings")) ?? (await sayfaYetkisiOlanOturum("/admin/settings/page-design"));
   if (!session) return NextResponse.json({ hata: "Yetkisiz" }, { status: 403 });
 
   const govde = semasi.safeParse(await req.json());

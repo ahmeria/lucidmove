@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
-import { getAdminSession } from "@/lib/admin-auth";
+import { sayfaYetkisiOlanOturum } from "@/lib/admin-auth";
 import { db } from "@/lib/db";
 import { slugifyTr } from "@/lib/slugify";
 import { videoUrlSemasiOpsiyonel } from "@/lib/video";
@@ -25,7 +25,7 @@ const ozelDersSemasi = z.object({
 // Düzenleme ekranındaki "Satın alanları görüntüle" linki + silme öncesi
 // uyarı için — bkz. app/api/admin/camps/[id]/route.ts'teki aynı gerekçe.
 export async function GET(_req: Request, { params }: { params: { id: string } }) {
-  const session = await getAdminSession();
+  const session = await sayfaYetkisiOlanOturum("/admin/private-lessons");
   if (!session) return NextResponse.json({ hata: "Yetkisiz" }, { status: 403 });
 
   const satinAlmaSayisi = await db.privateLessonPurchase.count({ where: { privateLessonId: params.id } });
@@ -33,7 +33,7 @@ export async function GET(_req: Request, { params }: { params: { id: string } })
 }
 
 export async function PATCH(req: Request, { params }: { params: { id: string } }) {
-  const session = await getAdminSession();
+  const session = await sayfaYetkisiOlanOturum("/admin/private-lessons");
   if (!session) return NextResponse.json({ hata: "Yetkisiz" }, { status: 403 });
 
   const govde = ozelDersSemasi.safeParse(await req.json());
@@ -83,7 +83,7 @@ export async function PATCH(req: Request, { params }: { params: { id: string } }
 // kayıtları CASCADE ile silinir; onlara bağlı Payment satırları SetNull ile
 // hayatta kalır — finansal kayıt korunur.
 export async function DELETE(_req: Request, { params }: { params: { id: string } }) {
-  const session = await getAdminSession();
+  const session = await sayfaYetkisiOlanOturum("/admin/private-lessons");
   if (!session) return NextResponse.json({ hata: "Yetkisiz" }, { status: 403 });
 
   const silinen = await db.privateLesson.delete({ where: { id: params.id } });

@@ -62,8 +62,20 @@ export async function DELETE(_req: Request, { params }: { params: { id: string }
     return NextResponse.json({ hata: "Yetkisiz" }, { status: 403 });
   }
 
-  // Bu role atanmış kullanıcılar silindiğinde otomatik olarak "role atanmamış"
-  // (eski/varsayılan admin erişimi) durumuna döner — onDelete: SetNull.
+  // GÜVENLİK: bu role atanmış kullanıcılar SİLİNMEDEN önce role atanmamışsa
+  // (onDelete: SetNull) "eski/varsayılan admin erişimi"ne (Ayarlar hariç TÜM
+  // içerik sayfaları) döner — bu, sınırlı yetkili bir rol sahibinin KENDİ
+  // rolünü silerek kendi kendine daha geniş erişim kazanmasına izin verirdi.
+  // Role atanmış kimse varken silinmesini reddediyoruz — admin önce o
+  // kullanıcıları başka bir role taşımalı/kaldırmalı.
+  const atanmisKullaniciSayisi = await db.user.count({ where: { adminRoleId: params.id } });
+  if (atanmisKullaniciSayisi > 0) {
+    return NextResponse.json(
+      { hata: `Bu role atanmış ${atanmisKullaniciSayisi} kullanıcı var — önce onları başka bir role taşıyın ya da kaldırın` },
+      { status: 409 }
+    );
+  }
+
   const silinen = await db.adminRole.delete({ where: { id: params.id } });
   await logKaydet({
     seviye: "INFO",

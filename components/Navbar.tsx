@@ -33,7 +33,17 @@ function baslangicHarfleri(isim: string) {
     .join("");
 }
 
-export default function Navbar() {
+export default function Navbar({
+  kampVarMi,
+  ozelDersVarMi,
+}: {
+  // Anasayfadaki #camps/#private-lessons bölümleri yayında içerik varsa
+  // görünüyor (bkz. app/[locale]/(site)/page.tsx) — menüde kırık bir çapaya
+  // (hiçbir şeyin olmadığı bir kaydırma hedefine) link vermemek için aynı
+  // varlık kontrolü burada da uygulanıyor (bkz. layout.tsx).
+  kampVarMi: boolean;
+  ozelDersVarMi: boolean;
+}) {
   const t = useTranslations("nav");
   const [open, setOpen] = useState(false);
   const [fotoHata, setFotoHata] = useState(false);
@@ -213,6 +223,16 @@ export default function Navbar() {
             <Link href="/#membership" onClick={() => setOpen(false)} className="text-metin hover:text-toprak-dark">
               {t("uyelik")}
             </Link>
+            {ozelDersVarMi && (
+              <Link href="/#private-lessons" onClick={() => setOpen(false)} className="text-metin hover:text-toprak-dark">
+                {t("ozelDersler")}
+              </Link>
+            )}
+            {kampVarMi && (
+              <Link href="/#camps" onClick={() => setOpen(false)} className="text-metin hover:text-toprak-dark">
+                {t("kamplar")}
+              </Link>
+            )}
             <Link href="/#about" onClick={() => setOpen(false)} className="text-metin hover:text-toprak-dark">
               {t("hakkimda")}
             </Link>

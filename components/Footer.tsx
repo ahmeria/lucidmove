@@ -12,11 +12,17 @@ export default function Footer({
   calismaSaatleri,
   iletisimEmail,
   instagramUrl,
+  kampVarMi,
+  ozelDersVarMi,
 }: {
   footerTagline: string;
   calismaSaatleri: string;
   iletisimEmail: string;
   instagramUrl: string;
+  // bkz. Navbar.tsx'teki aynı gerekçe — yayında içerik yoksa boş bir
+  // bölüme (#camps/#private-lessons) link vermiyoruz.
+  kampVarMi: boolean;
+  ozelDersVarMi: boolean;
 }) {
   const t = useTranslations("nav");
   const tFooter = useTranslations("footer");
@@ -56,6 +62,20 @@ export default function Footer({
                 {t("uyelik")}
               </Link>
             </li>
+            {ozelDersVarMi && (
+              <li>
+                <Link href="/#private-lessons" className="hover:text-zemin">
+                  {t("ozelDersler")}
+                </Link>
+              </li>
+            )}
+            {kampVarMi && (
+              <li>
+                <Link href="/#camps" className="hover:text-zemin">
+                  {t("kamplar")}
+                </Link>
+              </li>
+            )}
             <li>
               <Link href="/#about" className="hover:text-zemin">
                 {t("hakkimda")}

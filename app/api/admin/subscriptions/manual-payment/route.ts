@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
-import { getAdminSession } from "@/lib/admin-auth";
+import { sayfaYetkisiOlanOturum } from "@/lib/admin-auth";
 import { db } from "@/lib/db";
 import { logKaydet } from "@/lib/systemLog";
 
@@ -15,7 +15,7 @@ const semaFn = z.object({
 });
 
 export async function POST(req: Request) {
-  const session = await getAdminSession();
+  const session = await sayfaYetkisiOlanOturum("/admin/subscriptions");
   if (!session) return NextResponse.json({ hata: "Yetkisiz" }, { status: 403 });
 
   const govde = semaFn.safeParse(await req.json());

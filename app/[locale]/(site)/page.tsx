@@ -273,7 +273,7 @@ export default async function Anasayfa({
                     {d.kapakUrl && (
                       <Image
                         src={d.kapakUrl}
-                        alt=""
+                        alt={cevrilenAlan(d.baslik, d.baslikEn, d.baslikAz, locale)}
                         fill
                         sizes="(min-width: 1024px) 33vw, (min-width: 640px) 50vw, 100vw"
                         className="object-cover group-hover:scale-105 transition-transform duration-500"
@@ -329,7 +329,7 @@ export default async function Anasayfa({
                       {k.kapakUrl && (
                         <Image
                           src={k.kapakUrl}
-                          alt=""
+                          alt={cevrilenAlan(k.ad, k.adEn, k.adAz, locale)}
                           fill
                           sizes="(min-width: 1024px) 33vw, (min-width: 640px) 50vw, 100vw"
                           className="object-cover group-hover:scale-105 transition-transform duration-500"

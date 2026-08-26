@@ -49,14 +49,22 @@ export function sayfaErisimiVarMi(session: AdminYetkiSinyalleri, pathname: strin
   // sayfalara erişir.
   return session.izinliSayfalar.some((href) => {
     if (pathname === href) return true;
-    // "/admin/settings" (Genel Ayarlar) TÜM diğer Ayarlar sayfalarının da
-    // ortak URL ön eki ("/admin/settings/roller" vb.) — bu yüzden burada
-    // BİLEREK prefix eşleşmesine dahil edilmiyor. Aksi halde yalnızca Genel
-    // Ayarlar verilen biri, salt URL yapısı yüzünden yanlışlıkla TÜM Ayarlar
+    // GÜVENLİK: "/admin" (Panel) ve "/admin/settings" (Genel Ayarlar) her
+    // ikisi de BAŞKA sayfaların da ortak URL ön eki — bu yüzden BİLEREK
+    // prefix eşleşmesine dahil edilmiyor. "/admin" zaten yukarıdaki
+    // `pathname === "/admin"` satırıyla herkese koşulsuz açık; eğer bir
+    // rolün listesinde yer alıp buradaki prefix kontrolüne dahil edilseydi,
+    // `pathname.startsWith("/admin/")` HER admin alt yoluyla eşleşir —
+    // yalnızca Panel'e erişim vermek isteyen bir admin, Kullanıcılar/
+    // Roller/Yedekleme/Sistem Logları/Güncelleme gibi hiç açıkça
+    // verilmemiş Ayarlar sayfaları dahil TÜM panele sessiz bir joker
+    // karakterle erişmiş olurdu (gerçek üretim rolünde bulunan bir hata).
+    // "/admin/settings" için de aynı gerekçe: yalnızca Genel Ayarlar
+    // verilen biri, salt URL yapısı yüzünden yanlışlıkla TÜM Ayarlar
     // sayfalarına (Kullanıcılar, Roller dahil) erişmiş olurdu. Diğer Ayarlar
     // sayfaları (ör. "/admin/settings/users") kendi alt yollarını
     // (new/[id]/edit) kapsaması için prefix eşleşmesini korur.
-    if (href === "/admin/settings") return false;
+    if (href === "/admin" || href === "/admin/settings") return false;
     return pathname.startsWith(`${href}/`);
   });
 }

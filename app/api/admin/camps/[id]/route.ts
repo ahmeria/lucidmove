@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
-import { getAdminSession } from "@/lib/admin-auth";
+import { sayfaYetkisiOlanOturum } from "@/lib/admin-auth";
 import { db } from "@/lib/db";
 import { slugifyTr } from "@/lib/slugify";
 import { gorselUrlSemasiOpsiyonel } from "@/lib/gorsel";
@@ -36,7 +36,7 @@ const kampSemasi = z
 // bkz. app/admin/courses/[id]/route.ts'teki aynı gerekçe (silme öncesi
 // etkilenen kayıt sayısını göstermek).
 export async function GET(_req: Request, { params }: { params: { id: string } }) {
-  const session = await getAdminSession();
+  const session = await sayfaYetkisiOlanOturum("/admin/camps");
   if (!session) return NextResponse.json({ hata: "Yetkisiz" }, { status: 403 });
 
   const rezervasyonSayisi = await db.campReservation.count({ where: { campId: params.id } });
@@ -44,7 +44,7 @@ export async function GET(_req: Request, { params }: { params: { id: string } })
 }
 
 export async function PATCH(req: Request, { params }: { params: { id: string } }) {
-  const session = await getAdminSession();
+  const session = await sayfaYetkisiOlanOturum("/admin/camps");
   if (!session) return NextResponse.json({ hata: "Yetkisiz" }, { status: 403 });
 
   const govde = kampSemasi.safeParse(await req.json());
@@ -116,7 +116,7 @@ export async function PATCH(req: Request, { params }: { params: { id: string } }
 // onlara bağlı Payment satırları ise SetNull ile hayatta kalır — finansal
 // kayıt korunur (bkz. prisma/schema.prisma > Payment.campReservationId notu).
 export async function DELETE(_req: Request, { params }: { params: { id: string } }) {
-  const session = await getAdminSession();
+  const session = await sayfaYetkisiOlanOturum("/admin/camps");
   if (!session) return NextResponse.json({ hata: "Yetkisiz" }, { status: 403 });
 
   const silinen = await db.camp.delete({ where: { id: params.id } });

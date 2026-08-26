@@ -13,6 +13,10 @@ import { localeUrl } from "@/lib/seo";
 function girdi(pathname: string, oncelik: number, sıklık: MetadataRoute.Sitemap[number]["changeFrequency"]) {
   const languages: Record<string, string> = {};
   for (const l of routing.locales) languages[l] = localeUrl(pathname, l);
+  // lib/seo.ts > localeAlternates (sayfaların kendi <head> hreflang'ı) x-default
+  // ekliyor, burası eklemiyordu — sitemap'in dil hedefleme sinyali sayfanın
+  // kendi meta verisiyle tutarsız kalıyordu.
+  languages["x-default"] = localeUrl(pathname, routing.defaultLocale);
   return {
     url: localeUrl(pathname, routing.defaultLocale),
     changeFrequency: sıklık,

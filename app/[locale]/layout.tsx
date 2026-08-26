@@ -4,10 +4,11 @@ import { NextIntlClientProvider, hasLocale } from "next-intl";
 import "../globals.css";
 import { fontDegiskenleri } from "@/lib/fonts";
 import Providers from "@/components/Providers";
-import { getSiteSettings } from "@/lib/settings";
+import { getSiteSettings, markaAdi } from "@/lib/settings";
 import { cevrilenAlan } from "@/lib/i18nIcerik";
 import { routing, type AppLocale } from "@/i18n/routing";
 import { SITE_URL, localeUrl, localeAlternates, ogLocale } from "@/lib/seo";
+import { jsonLdGuvenli } from "@/lib/jsonLd";
 
 // Site (locale'li) tarafının BAĞIMSIZ kök layout'u — kendi <html>/<body>'sini
 // basıyor. app/admin/** bunun dışında, kendi bağımsız kök layout'unu kullanıyor
@@ -70,10 +71,12 @@ export default async function LocaleLayout({
 
   // Sitewide Organization structured data — arama motorlarına marka
   // adı/logo/iletişim/sosyal hesapları bildiriyor (bkz. schema.org/Organization).
+  // name daha önce locale'den bağımsız hep TÜRKÇE siteBasligi'nden ayıklanıyordu
+  // (markaAdi ise cevrilenAlan ile geçerli locale'i kullanıyor — bkz. lib/settings.ts).
   const organizasyonJsonLd = {
     "@context": "https://schema.org",
     "@type": "Organization",
-    name: ayarlar.siteBasligi.split("—")[0].trim() || "LucidMove",
+    name: markaAdi(ayarlar, locale as AppLocale),
     url: SITE_URL,
     logo: `${SITE_URL}/logo.png`,
     email: ayarlar.iletisimEmail,
@@ -85,7 +88,7 @@ export default async function LocaleLayout({
       <body className="font-body bg-zemin text-metin">
         <script
           type="application/ld+json"
-          dangerouslySetInnerHTML={{ __html: JSON.stringify(organizasyonJsonLd) }}
+          dangerouslySetInnerHTML={{ __html: jsonLdGuvenli(organizasyonJsonLd) }}
         />
         <NextIntlClientProvider>
           <Providers>{children}</Providers>

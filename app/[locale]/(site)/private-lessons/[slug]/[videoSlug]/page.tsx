@@ -29,7 +29,9 @@ export async function generateMetadata({
   const locale = params.locale as AppLocale;
   const [ders, ayarlar] = await Promise.all([dersiGetir(params.slug), getSiteSettings()]);
   const video = ders?.videos.find((v) => v.slug === params.videoSlug);
-  if (!ders || !video) return {};
+  // bkz. private-lessons/[slug]/page.tsx'teki aynı gerekçe — yayında olmayan
+  // bir dersin video meta verisi de generateMetadata üzerinden sızmasın.
+  if (!ders || !ders.yayindaMi || !video) return {};
 
   const marka = ayarlar.siteBasligi.split("—")[0].trim() || "LucidMove";
   const dersBaslik = cevrilenAlan(ders.baslik, ders.baslikEn, ders.baslikAz, locale);
@@ -64,7 +66,10 @@ export default async function OzelDersVideoDetay({
 }) {
   const locale = params.locale as AppLocale;
   const [ders, t] = await Promise.all([dersiGetir(params.slug), getTranslations("privateLessons")]);
-  if (!ders) notFound();
+  // Detay sayfasıyla (bkz. ../page.tsx) TUTARLI: yayında olmayan bir ders
+  // herkes için (satın almış olsa bile) 404 — admin önizlemeyi düzenleme
+  // ekranından yapar.
+  if (!ders || !ders.yayindaMi) notFound();
 
   const video = ders.videos.find((v) => v.slug === params.videoSlug);
   if (!video) notFound();

@@ -7,9 +7,10 @@ import { getTranslations } from "next-intl/server";
 import { authOptions } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { ozelDersSatinAlindiMi } from "@/lib/ozelDersler";
-import { getSiteSettings, formatFiyat } from "@/lib/settings";
+import { getSiteSettings, formatFiyat, markaAdi } from "@/lib/settings";
 import { cevrilenAlan } from "@/lib/i18nIcerik";
-import { SITE_URL, localeUrl, localeAlternates, ogLocale } from "@/lib/seo";
+import { SITE_URL, localeUrl, localeAlternates, ogLocale, mutlakGorselUrl } from "@/lib/seo";
+import { jsonLdGuvenli } from "@/lib/jsonLd";
 import type { AppLocale } from "@/i18n/routing";
 import { Link } from "@/i18n/navigation";
 import VideoPlayer from "@/components/VideoPlayer";
@@ -31,9 +32,13 @@ export async function generateMetadata({
 }): Promise<Metadata> {
   const locale = params.locale as AppLocale;
   const [ders, ayarlar] = await Promise.all([dersiGetir(params.slug), getSiteSettings()]);
-  if (!ders) return {};
+  // Yayında olmayan bir özel ders için de sayfa gövdesi notFound() dönüyor
+  // (bkz. aşağıdaki bileşen) — ama generateMetadata AYRI bir çağrı, o
+  // kontrolü paylaşmıyor. Burada kontrol edilmezse taslak bir dersin başlığı/
+  // açıklaması, sayfa 404 gösterse bile <head>'e (title/OG) sızardı.
+  if (!ders || !ders.yayindaMi) return {};
 
-  const marka = ayarlar.siteBasligi.split("—")[0].trim() || "LucidMove";
+  const marka = markaAdi(ayarlar, locale);
   const baslik = cevrilenAlan(ders.baslik, ders.baslikEn, ders.baslikAz, locale);
   const aciklama = cevrilenAlan(ders.aciklama, ders.aciklamaEn, ders.aciklamaAz, locale);
   const tamBaslik = `${baslik} — ${marka}`;
@@ -85,12 +90,13 @@ export default async function OzelDersDetay({
     name: baslik,
     description: aciklama,
     url: localeUrl(`/private-lessons/${ders.slug}`, locale),
-    provider: { "@type": "Organization", name: "LucidMove", url: SITE_URL },
-    ...(ders.kapakUrl ? { image: ders.kapakUrl } : {}),
+    provider: { "@type": "Organization", name: markaAdi(ayarlar, locale), url: SITE_URL },
+    hasCourseInstance: { "@type": "CourseInstance", courseMode: "online" },
+    ...(mutlakGorselUrl(ders.kapakUrl) ? { image: mutlakGorselUrl(ders.kapakUrl) } : {}),
     offers: {
       "@type": "Offer",
       price: ders.fiyat.toString(),
-      priceCurrency: "TRY",
+      priceCurrency: ayarlar.paraBirimi,
       availability: "https://schema.org/InStock",
       url: localeUrl(`/private-lessons/${ders.slug}`, locale),
     },
@@ -98,7 +104,7 @@ export default async function OzelDersDetay({
 
   return (
     <div>
-      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(dersJsonLd) }} />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: jsonLdGuvenli(dersJsonLd) }} />
       {/* HERO — kurs detay sayfasıyla aynı iki-sütun yerleşim (bkz.
           courses/[slug]/page.tsx). Üyelik yönlendirmesi YOK — özel ders,
           üyelik durumundan bağımsız satın alınabilir. */}

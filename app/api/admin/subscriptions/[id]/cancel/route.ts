@@ -1,10 +1,10 @@
 import { NextResponse } from "next/server";
-import { getAdminSession } from "@/lib/admin-auth";
+import { sayfaYetkisiOlanOturum } from "@/lib/admin-auth";
 import { db } from "@/lib/db";
 import { logKaydet } from "@/lib/systemLog";
 
 export async function POST(_req: Request, { params }: { params: { id: string } }) {
-  const session = await getAdminSession();
+  const session = await sayfaYetkisiOlanOturum("/admin/subscriptions");
   if (!session) return NextResponse.json({ hata: "Yetkisiz" }, { status: 403 });
 
   const abonelik = await db.subscription.findUnique({ where: { id: params.id }, include: { user: true } });

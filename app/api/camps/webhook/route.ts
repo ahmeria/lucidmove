@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { db } from "@/lib/db";
 import { odemeSonucunuGetir } from "@/lib/iyzico";
+import { logKaydet } from "@/lib/systemLog";
 
 // Iyzico, ödeme tamamlandığında kullanıcıyı bu adrese bir "token" ile
 // birlikte POST eder — bkz. app/api/membership/webhook aynı desen. Sonuç
@@ -41,10 +42,43 @@ export async function POST(req: Request) {
     const basariliMi = sonuc.status === "success" && sonuc.paymentStatus === "SUCCESS";
 
     if (basariliMi) {
-      await db.campReservation.update({
-        where: { id: rezervasyonId },
-        data: { status: "ODENDI", odendiTarihi: new Date() },
-      });
+      // GÜVENLİK: rezervasyonu körü körüne ODENDI'ye çevirmeden önce GÜNCEL
+      // durumunu tekrar oku — ödeme sonuçlanana kadar geçen sürede admin bu
+      // rezervasyonu iptal etmiş (bkz. reservations/[reservationId]/cancel)
+      // ya da süresi dolup yeri başka birine satılmış olabilir. Bunu
+      // kontrol etmeden ODENDI yazmak, admin'in bilerek iptal ettiği bir
+      // rezervasyonu sessizce geri açabilir ya da kampı fazla satabilir.
+      if (rezervasyon.status === "IPTAL_EDILDI") {
+        await logKaydet({
+          seviye: "ERROR",
+          kategori: "kamp",
+          aksiyon: "guncelle",
+          kaynakEtiketi: `Rezervasyon ${rezervasyonId} — ${rezervasyon.camp.slug}`,
+          mesaj: "İptal edilmiş bir rezervasyon için ödeme başarıyla tamamlandı (yarış durumu) — manuel inceleme/iade gerekebilir.",
+        });
+        // Admin'in bilerek verdiği iptal kararını sessizce geri almıyoruz —
+        // durum İPTAL_EDILDI kalır, para alınmış olabilir; admin log'dan
+        // görüp iade/manuel çözüm kararını verir.
+      } else {
+        const digerDoluSayisi = await db.campReservation.count({
+          where: { campId: rezervasyon.campId, id: { not: rezervasyonId }, status: { in: ["REZERVE_EDILDI", "ODENDI"] } },
+        });
+        if (digerDoluSayisi >= (await db.camp.findUnique({ where: { id: rezervasyon.campId }, select: { kapasite: true } }))!.kapasite) {
+          await logKaydet({
+            seviye: "ERROR",
+            kategori: "kamp",
+            aksiyon: "guncelle",
+            kaynakEtiketi: `Rezervasyon ${rezervasyonId} — ${rezervasyon.camp.slug}`,
+            mesaj: "Ödeme başarıyla tamamlandı ama kontenjan bu arada dolmuş (yarış durumu) — kamp fazla satılmış olabilir, manuel inceleme gerekiyor.",
+          });
+          // Yine de ODENDI işaretliyoruz — para gerçekten alındı, admin
+          // log'dan durumu görüp müşteriyle iletişime geçer (ek yer/iade).
+        }
+        await db.campReservation.update({
+          where: { id: rezervasyonId },
+          data: { status: "ODENDI", odendiTarihi: new Date() },
+        });
+      }
     }
     // Başarısızsa kayıt REZERVE_EDILDI olarak bırakılır — mevcut son ödeme
     // tarihi geçerliliğini korur, üye /api/camps/[slug]/pay-existing ile

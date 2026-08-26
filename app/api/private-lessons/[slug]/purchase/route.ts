@@ -4,6 +4,10 @@ import { Prisma } from "@prisma/client";
 import { authOptions } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { ozelDersOdemeFormuBaslat } from "@/lib/iyzico";
+import { hizSiniriniKontrolEt } from "@/lib/rateLimit";
+
+const ODEME_LIMITI = 10;
+const ODEME_PENCERESI_MS = 60 * 1000;
 
 // Kamplardan farklı olarak burada kapasite/rezervasyon kavramı yok — tek bir
 // idempotent uç hem ilk satın almayı hem yarım kalmış bir denemenin tekrarını
@@ -12,6 +16,10 @@ export async function POST(_req: Request, { params }: { params: { slug: string }
   const session = await getServerSession(authOptions);
   if (!session?.user?.id) {
     return NextResponse.json({ hata: "Devam etmek için giriş yapın" }, { status: 401 });
+  }
+
+  if (!hizSiniriniKontrolEt(`odeme:${session.user.id}`, ODEME_LIMITI, ODEME_PENCERESI_MS)) {
+    return NextResponse.json({ hata: "Çok fazla deneme, lütfen biraz sonra tekrar deneyin" }, { status: 429 });
   }
 
   const ders = await db.privateLesson.findUnique({ where: { slug: params.slug } });

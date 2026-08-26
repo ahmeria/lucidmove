@@ -3,6 +3,10 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { odemeFormuBaslat } from "@/lib/iyzico";
+import { hizSiniriniKontrolEt } from "@/lib/rateLimit";
+
+const ODEME_LIMITI = 10;
+const ODEME_PENCERESI_MS = 60 * 1000;
 
 export async function POST(req: Request) {
   const session = await getServerSession(authOptions);
@@ -10,7 +14,20 @@ export async function POST(req: Request) {
     return NextResponse.json({ hata: "Devam etmek için giriş yapın" }, { status: 401 });
   }
 
-  const { plan } = (await req.json()) as { plan: "AYLIK" | "YILLIK" };
+  // Her başarılı çağrı yeni bir Subscription + Payment satırı + Iyzico
+  // isteği oluşturuyor — oturum açmış bir kullanıcının bunu art arda
+  // spamlamasına karşı (kullanıcı bazlı, IP değil — IP kolayca sahtelenebilir).
+  if (!hizSiniriniKontrolEt(`odeme:${session.user.id}`, ODEME_LIMITI, ODEME_PENCERESI_MS)) {
+    return NextResponse.json({ hata: "Çok fazla deneme, lütfen biraz sonra tekrar deneyin" }, { status: 429 });
+  }
+
+  let govde: { plan?: "AYLIK" | "YILLIK" };
+  try {
+    govde = await req.json();
+  } catch {
+    return NextResponse.json({ hata: "Geçersiz istek" }, { status: 400 });
+  }
+  const { plan } = govde;
   if (plan !== "AYLIK" && plan !== "YILLIK") {
     return NextResponse.json({ hata: "Geçersiz plan" }, { status: 400 });
   }

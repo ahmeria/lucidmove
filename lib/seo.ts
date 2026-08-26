@@ -38,3 +38,14 @@ export function ogLocale(locale: AppLocale): string {
 // Özel bir görsel verilmeyen sayfalarda (ör. statik metin sayfaları) Open
 // Graph/Twitter paylaşım kartı için kullanılan varsayılan görsel.
 export const VARSAYILAN_OG_GORSEL = "/logo.png";
+
+// JSON-LD'deki "image" alanı için: admin yüklemeleri /uploads/... gibi
+// GÖRELİ bir yol döndürüyor (bkz. app/api/admin/upload/route.ts), ama
+// Google'ın yapılandırılmış veri kuralları mutlak bir görsel URL'i
+// gerektiriyor — göreli haliyle Course/Event zengin sonuçları için görsel
+// alanı sessizce geçersiz sayılıyordu (yalnızca seed verisindeki mutlak
+// Unsplash URL'leriyle test edilirken bu fark edilmiyordu).
+export function mutlakGorselUrl(u: string | null | undefined): string | undefined {
+  if (!u) return undefined;
+  return u.startsWith("http") ? u : `${SITE_URL}${u}`;
+}

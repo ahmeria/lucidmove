@@ -6,10 +6,11 @@ import { getServerSession } from "next-auth";
 import { getTranslations } from "next-intl/server";
 import { authOptions } from "@/lib/auth";
 import { db } from "@/lib/db";
-import { getSiteSettings, formatFiyat, intlEtiketi } from "@/lib/settings";
+import { getSiteSettings, formatFiyat, intlEtiketi, markaAdi } from "@/lib/settings";
 import { cevrilenAlan } from "@/lib/i18nIcerik";
 import { kalanKontenjaniHesapla, sonRezervasyonuGetir } from "@/lib/kamplar";
-import { SITE_URL, localeUrl, localeAlternates, ogLocale } from "@/lib/seo";
+import { SITE_URL, localeUrl, localeAlternates, ogLocale, mutlakGorselUrl } from "@/lib/seo";
+import { jsonLdGuvenli } from "@/lib/jsonLd";
 import type { AppLocale } from "@/i18n/routing";
 import { Link } from "@/i18n/navigation";
 import KampAksiyonlari from "./KampAksiyonlari";
@@ -27,9 +28,13 @@ export async function generateMetadata({
 }): Promise<Metadata> {
   const locale = params.locale as AppLocale;
   const [kamp, ayarlar] = await Promise.all([kampiGetir(params.slug), getSiteSettings()]);
-  if (!kamp) return {};
+  // Yayında olmayan bir kamp için de sayfa gövdesi notFound() dönüyor (bkz.
+  // aşağıdaki bileşen) — ama generateMetadata AYRI bir çağrı, o kontrolü
+  // paylaşmıyor. Burada da kontrol edilmezse taslak bir kampın başlığı/
+  // açıklaması, sayfa 404 gösterse bile <head>'e (title/OG) sızardı.
+  if (!kamp || !kamp.yayindaMi) return {};
 
-  const marka = ayarlar.siteBasligi.split("—")[0].trim() || "LucidMove";
+  const marka = markaAdi(ayarlar, locale);
   const ad = cevrilenAlan(kamp.ad, kamp.adEn, kamp.adAz, locale);
   const detaylar = cevrilenAlan(kamp.detaylar, kamp.detaylarEn, kamp.detaylarAz, locale);
   const baslik = `${ad} — ${marka}`;
@@ -90,13 +95,19 @@ export default async function KampDetay({
     endDate: kamp.bitisTarihi.toISOString(),
     eventAttendanceMode: "https://schema.org/OfflineEventAttendanceMode",
     eventStatus: "https://schema.org/EventScheduled",
-    location: { "@type": "Place", name: yer },
-    organizer: { "@type": "Organization", name: "LucidMove", url: SITE_URL },
-    ...(kamp.kapakUrl ? { image: kamp.kapakUrl } : {}),
+    // "address" Google'ın Event zengin sonuçları için ZORUNLU bir location
+    // alt-alanı — eksikse yapılandırılmış veri testinde hata veriyordu. Camp
+    // modelinde ayrı sokak/şehir/ülke alanları yok, yalnızca serbest metin
+    // "yer" (ör. "Kapadokya, Türkiye") var; schema.org address hem
+    // PostalAddress hem düz Text kabul ettiğinden var olan veriyi olduğu gibi
+    // veriyoruz — sahte bir PostalAddress uydurmuyoruz.
+    location: { "@type": "Place", name: yer, address: yer },
+    organizer: { "@type": "Organization", name: markaAdi(ayarlar, locale), url: SITE_URL },
+    ...(mutlakGorselUrl(kamp.kapakUrl) ? { image: mutlakGorselUrl(kamp.kapakUrl) } : {}),
     offers: {
       "@type": "Offer",
       price: kamp.fiyat.toString(),
-      priceCurrency: "TRY",
+      priceCurrency: ayarlar.paraBirimi,
       url: localeUrl(`/camps/${kamp.slug}`, locale),
       availability: kalanKontenjan > 0 ? "https://schema.org/InStock" : "https://schema.org/SoldOut",
     },
@@ -104,7 +115,7 @@ export default async function KampDetay({
 
   return (
     <div>
-      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(kampJsonLd) }} />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: jsonLdGuvenli(kampJsonLd) }} />
       {/* HERO — kurs detay sayfasıyla aynı iki-sütun yerleşim (bkz.
           courses/[slug]/page.tsx). */}
       <section className="container-nefes pt-14 sm:pt-20 pb-20">

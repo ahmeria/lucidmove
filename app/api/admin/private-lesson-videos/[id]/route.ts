@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
-import { getAdminSession } from "@/lib/admin-auth";
+import { sayfaYetkisiOlanOturum } from "@/lib/admin-auth";
 import { db } from "@/lib/db";
 import { slugifyTr } from "@/lib/slugify";
 import { ozelDersVideolarininSirasiniYenile } from "@/lib/ozelDersler";
@@ -26,7 +26,7 @@ const videoSemasi = z.object({
 });
 
 export async function PATCH(req: Request, { params }: { params: { id: string } }) {
-  const session = await getAdminSession();
+  const session = await sayfaYetkisiOlanOturum("/admin/private-lessons");
   if (!session) return NextResponse.json({ hata: "Yetkisiz" }, { status: 403 });
 
   const govde = videoSemasi.safeParse(await req.json());
@@ -74,7 +74,7 @@ export async function PATCH(req: Request, { params }: { params: { id: string } }
 }
 
 export async function DELETE(_req: Request, { params }: { params: { id: string } }) {
-  const session = await getAdminSession();
+  const session = await sayfaYetkisiOlanOturum("/admin/private-lessons");
   if (!session) return NextResponse.json({ hata: "Yetkisiz" }, { status: 403 });
 
   const video = await db.privateLessonVideo.delete({ where: { id: params.id } });

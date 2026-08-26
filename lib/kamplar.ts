@@ -1,3 +1,4 @@
+import { unstable_cache } from "next/cache";
 import { db } from "@/lib/db";
 import type { Camp, CampReservation } from "@prisma/client";
 
@@ -12,6 +13,28 @@ import type { Camp, CampReservation } from "@prisma/client";
 
 // Kontenjanı DOLDURAN durumlar: henüz süresi dolmamış REZERVE_EDILDI ve ODENDI.
 const DOLU_SAYILAN_DURUMLAR = ["REZERVE_EDILDI", "ODENDI"] as const;
+
+// Navbar/Footer'daki "Kamplar" linkinin gösterilip gösterilmeyeceğine karar
+// vermek için — bkz. app/[locale]/(site)/layout.tsx. Yalnızca varlık sorusu
+// (yayindaMi/tarih), rezervasyon süre-dolma yan etkisi GEREKMİYOR (o,
+// CampReservation'ı ilgilendirir, Camp'in kendisini değil).
+//
+// unstable_cache ile 60 saniye önbelleklendi: bu, layout aracılığıyla SİTE
+// GENELİNDEKİ HER SAYFADA (dynamic="force-dynamic" olan sayfalar dahil, ör.
+// kurs/kamp/özel-ders detay sayfaları) her istekte çalışıyor — önbelleksiz
+// haliyle build sırasındaki 96 sayfalık paralel statik üretimde paylaşılan
+// MySQL'in bağlantı limitini gerçekten aşırdı ("Too many connections",
+// doğrulanmış). Yeni bir kamp yayınlandığında linkin görünmesi en fazla 60
+// saniye gecikebilir — bu ölçekte bir nav linki için kabul edilebilir bir
+// bedel, sitenin her sayfa yüklemesinde ekstra bir DB sorgusuna değmez.
+export const yayindaKampVarMi = unstable_cache(
+  async (): Promise<boolean> => {
+    const sayi = await db.camp.count({ where: { yayindaMi: true, bitisTarihi: { gte: new Date() } } });
+    return sayi > 0;
+  },
+  ["yayinda-kamp-var-mi"],
+  { revalidate: 60 }
+);
 
 // Süresi geçmiş ama hâlâ REZERVE_EDILDI görünen kayıtları SURESI_DOLDU'ya
 // çevirir — bu, o kaydın tuttuğu yeri serbest bırakır. `campId` verilirse

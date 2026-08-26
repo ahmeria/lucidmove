@@ -38,6 +38,7 @@ export default function DersKarti({
   uyeMi,
   dkEtiketi,
   uyeOlEtiketi,
+  baslikSeviye = "h4",
 }: {
   ders: DersKartiVerisi;
   kursSlug: string;
@@ -45,8 +46,14 @@ export default function DersKarti({
   uyeMi: boolean;
   dkEtiketi: string;
   uyeOlEtiketi: string;
+  // Kurs kataloğunda (KursKatalogu.tsx) kartın üstünde bir <h3> grup başlığı
+  // olduğundan varsayılan h4 doğru; ama kurs DETAY sayfasında bu kart
+  // doğrudan sayfanın <h2>'sinin altına geliyor — orada h4 kullanmak h3'ü
+  // atlayan bir başlık hiyerarşisi bozukluğu yaratıyordu (bkz. [slug]/page.tsx).
+  baslikSeviye?: "h3" | "h4";
 }) {
   const erisilebilir = uyeMi || ders.ucretsizMi;
+  const Baslik = baslikSeviye;
 
   return (
     <Link href={`/courses/${kursSlug}/${ders.slug}`} className="group block">
@@ -68,7 +75,7 @@ export default function DersKarti({
         )}
       </div>
       <div className="mt-3.5">
-        <h4 className="font-display text-lg font-bold text-metin line-clamp-1">{ders.baslik}</h4>
+        <Baslik className="font-display text-lg font-bold text-metin line-clamp-1">{ders.baslik}</Baslik>
         <p className="font-body text-sm text-metin/50 mt-1">
           {ders.sureDakika} {dkEtiketi} · {kursSeviye}
           {ders.moodEtiket ? ` · ${ders.moodEtiket}` : ""}

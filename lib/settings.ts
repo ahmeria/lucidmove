@@ -1,5 +1,6 @@
 import { cache } from "react";
 import { db } from "@/lib/db";
+import { cevrilenAlan } from "@/lib/i18nIcerik";
 import type { AppLocale } from "@/i18n/routing";
 
 const SITE_SETTINGS_ID = "ana";
@@ -55,6 +56,21 @@ export const getSiteSettings = cache(async function getSiteSettings() {
     create: varsayilanSiteAyarlari,
   });
 });
+
+// "LucidMove — Evinizde, kendi hızınızda yoga" gibi bir siteBasligi'nden
+// sadece marka adını ("LucidMove") ayıklar — JSON-LD'de provider/organizer/
+// Organization adı ve <title>/OG siteName için tek merkezi yer. Önceden bu
+// satır (locale'e bakmadan) her zaman ayarlar.siteBasligi'nin TÜRKÇE halini
+// bölüyordu; EN/AZ sayfalarda da hep Türkçe başlıktan ayıklanan marka adı
+// kullanılıyordu — pratikte sonuç aynı ("LucidMove") kalıyor olsa da, siteBasligi
+// hiç çevrilmemiş farklı bir marka adına değiştirilirse yanlış dile düşerdi.
+export function markaAdi(
+  ayarlar: { siteBasligi: string; siteBasligiEn?: string | null; siteBasligiAz?: string | null },
+  locale: AppLocale
+): string {
+  const baslik = cevrilenAlan(ayarlar.siteBasligi, ayarlar.siteBasligiEn, ayarlar.siteBasligiAz, locale);
+  return baslik.split("—")[0].trim() || "LucidMove";
+}
 
 export async function getInstructorProfile() {
   return db.instructorProfile.upsert({

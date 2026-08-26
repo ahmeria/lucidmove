@@ -1,9 +1,23 @@
+import { unstable_cache } from "next/cache";
 import { db } from "@/lib/db";
 import type { PrivateLesson } from "@prisma/client";
 
 // Özel Dersler'in kapasite/expiry karşılığı yok — dijital içerikte kıtlık
 // veya tarih kısıtı olmadığından bu dosya lib/kamplar.ts'e göre çok daha
 // küçük: tek bir soru var, "bu kullanıcı bu özel dersi satın aldı mı?".
+
+// Navbar/Footer'daki "Özel Dersler" linkinin gösterilip gösterilmeyeceğine
+// karar vermek için — bkz. app/[locale]/(site)/layout.tsx. 60 saniye
+// önbelleklendi — bkz. lib/kamplar.ts > yayindaKampVarMi'deki aynı gerekçe
+// (önbelleksizken paylaşılan MySQL'in bağlantı limitini gerçekten aşırdı).
+export const yayindaOzelDersVarMi = unstable_cache(
+  async (): Promise<boolean> => {
+    const sayi = await db.privateLesson.count({ where: { yayindaMi: true } });
+    return sayi > 0;
+  },
+  ["yayinda-ozel-ders-var-mi"],
+  { revalidate: 60 }
+);
 
 // aktifUyelikVarMi'nin (lib/uyelik.ts) tekil-ürün karşılığı — üyelik
 // durumundan tamamen bağımsız, yalnızca bu ikili için bir ODENDI kaydı var mı.

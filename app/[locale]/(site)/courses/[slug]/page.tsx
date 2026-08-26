@@ -8,9 +8,10 @@ import { authOptions } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { aktifUyelikVarMi } from "@/lib/uyelik";
 import { moodlariAl } from "@/lib/moods";
-import { getSiteSettings } from "@/lib/settings";
+import { getSiteSettings, markaAdi } from "@/lib/settings";
 import { cevrilenAlan } from "@/lib/i18nIcerik";
-import { SITE_URL, localeUrl, localeAlternates, ogLocale } from "@/lib/seo";
+import { SITE_URL, localeUrl, localeAlternates, ogLocale, mutlakGorselUrl } from "@/lib/seo";
+import { jsonLdGuvenli } from "@/lib/jsonLd";
 import type { AppLocale } from "@/i18n/routing";
 import { Link, getPathname } from "@/i18n/navigation";
 import VideoPlayer from "@/components/VideoPlayer";
@@ -33,7 +34,7 @@ export async function generateMetadata({
   const [kurs, ayarlar] = await Promise.all([kursuGetir(params.slug), getSiteSettings()]);
   if (!kurs) return {};
 
-  const marka = ayarlar.siteBasligi.split("—")[0].trim() || "LucidMove";
+  const marka = markaAdi(ayarlar, locale);
   const kursBaslik = cevrilenAlan(kurs.baslik, kurs.baslikEn, kurs.baslikAz, locale);
   const kursAciklama = cevrilenAlan(kurs.aciklama, kurs.aciklamaEn, kurs.aciklamaAz, locale);
   const baslik = `${kursBaslik} — ${marka}`;
@@ -56,10 +57,11 @@ export async function generateMetadata({
 
 export default async function KursDetay({ params }: { params: { slug: string; locale: string } }) {
   const locale = params.locale as AppLocale;
-  const [kurs, moodlar, t] = await Promise.all([
+  const [kurs, moodlar, t, ayarlar] = await Promise.all([
     kursuGetir(params.slug),
     moodlariAl(),
     getTranslations("courseDetail"),
+    getSiteSettings(),
   ]);
 
   if (!kurs) notFound();
@@ -88,13 +90,14 @@ export default async function KursDetay({ params }: { params: { slug: string; lo
     name: kursBaslik,
     description: kursAciklama,
     url: localeUrl(`/courses/${kurs.slug}`, locale),
-    provider: { "@type": "Organization", name: "LucidMove", url: SITE_URL },
-    ...(kurs.kapakUrl ? { image: kurs.kapakUrl } : {}),
+    provider: { "@type": "Organization", name: markaAdi(ayarlar, locale), url: SITE_URL },
+    hasCourseInstance: { "@type": "CourseInstance", courseMode: "online" },
+    ...(mutlakGorselUrl(kurs.kapakUrl) ? { image: mutlakGorselUrl(kurs.kapakUrl) } : {}),
   };
 
   return (
     <div>
-      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(kursJsonLd) }} />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: jsonLdGuvenli(kursJsonLd) }} />
       {/* HERO — kapak görseli/tanıtım videosu artık her zaman görünür, konu
           bilgisi ve görsel tam genişlikteki bir iki-sütun yerleşimini paylaşır. */}
       <section className="container-nefes pt-14 sm:pt-20 pb-20">
@@ -177,6 +180,7 @@ export default async function KursDetay({ params }: { params: { slug: string; lo
               uyeMi={uye}
               dkEtiketi={t("dk")}
               uyeOlEtiketi={t("uyeOl")}
+              baslikSeviye="h3"
             />
           ))}
         </div>

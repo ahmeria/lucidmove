@@ -205,7 +205,7 @@ function DersSatiri({
 
       {acik && (
         <div className="border-t border-cizgi p-4 space-y-3">
-          <div className="flex gap-4 items-start">
+          <div className="flex flex-col sm:flex-row gap-4 sm:items-start">
             <GorselKutusu value={kapakUrl} onChange={setKapakUrl} boyutSinifi="size-40" oran={4 / 3} />
 
             <div className="flex-1 min-w-0 space-y-3">
@@ -231,7 +231,7 @@ function DersSatiri({
               />
             </div>
 
-            <div className="w-72 shrink-0">
+            <div className="w-full sm:w-72 sm:shrink-0">
               <label className="block text-xs text-metin/50 mb-1.5">İçerik dosyası</label>
               <VideoInput
                 value={kaynakVideoUrl}
@@ -378,7 +378,7 @@ function YeniDersFormu({ courseId, moodlar }: { courseId: string; moodlar: MoodS
 
   return (
     <form onSubmit={handleSubmit} className="rounded-2xl bg-kart border border-cizgi shadow-organik p-4 space-y-3">
-      <div className="flex gap-4 items-start">
+      <div className="flex flex-col sm:flex-row gap-4 sm:items-start">
         <GorselKutusu value={kapakUrl} onChange={setKapakUrl} boyutSinifi="size-40" oran={4 / 3} />
 
         <div className="flex-1 min-w-0 space-y-3">
@@ -404,7 +404,7 @@ function YeniDersFormu({ courseId, moodlar }: { courseId: string; moodlar: MoodS
           />
         </div>
 
-        <div className="w-72 shrink-0">
+        <div className="w-full sm:w-72 sm:shrink-0">
           <label className="block text-xs text-metin/50 mb-1.5">İçerik dosyası</label>
           <VideoInput
             value={kaynakVideoUrl}

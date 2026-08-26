@@ -56,7 +56,11 @@ export default function OzelDersVideoKarti({
         )}
       </div>
       <div className="mt-3.5">
-        <h4 className="font-display text-lg font-bold text-metin line-clamp-1">{video.baslik}</h4>
+        {/* Bu kart yalnızca tek bir yerden (özel ders detay sayfası) çağrılıyor
+            ve doğrudan sayfanın <h2>'sinin altına geliyor — DersKarti.tsx'teki
+            gibi bir kataloğ/detay ikiliği yok, bu yüzden burada sabit h3 yeterli
+            (h3'ü atlayan bir h2->h4 hiyerarşi bozukluğunu önlemek için). */}
+        <h3 className="font-display text-lg font-bold text-metin line-clamp-1">{video.baslik}</h3>
         <p className="font-body text-sm text-metin/50 mt-1">
           {video.sureDakika} {dkEtiketi}
         </p>

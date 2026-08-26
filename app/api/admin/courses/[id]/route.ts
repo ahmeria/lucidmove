@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
-import { getAdminSession } from "@/lib/admin-auth";
+import { sayfaYetkisiOlanOturum } from "@/lib/admin-auth";
 import { db } from "@/lib/db";
 import { slugifyTr } from "@/lib/slugify";
 import { videoUrlSemasiOpsiyonel } from "@/lib/video";
@@ -28,7 +28,7 @@ const kursSemasi = z.object({
 });
 
 export async function GET(_req: Request, { params }: { params: { id: string } }) {
-  const session = await getAdminSession();
+  const session = await sayfaYetkisiOlanOturum("/admin/courses");
   if (!session) return NextResponse.json({ hata: "Yetkisiz" }, { status: 403 });
 
   const etkilenenKullanici = await db.lessonProgress.count({
@@ -38,7 +38,7 @@ export async function GET(_req: Request, { params }: { params: { id: string } })
 }
 
 export async function PATCH(req: Request, { params }: { params: { id: string } }) {
-  const session = await getAdminSession();
+  const session = await sayfaYetkisiOlanOturum("/admin/courses");
   if (!session) return NextResponse.json({ hata: "Yetkisiz" }, { status: 403 });
 
   const govde = kursSemasi.safeParse(await req.json());
@@ -86,7 +86,7 @@ export async function PATCH(req: Request, { params }: { params: { id: string } }
 }
 
 export async function DELETE(_req: Request, { params }: { params: { id: string } }) {
-  const session = await getAdminSession();
+  const session = await sayfaYetkisiOlanOturum("/admin/courses");
   if (!session) return NextResponse.json({ hata: "Yetkisiz" }, { status: 403 });
 
   const silinen = await db.course.delete({ where: { id: params.id } });

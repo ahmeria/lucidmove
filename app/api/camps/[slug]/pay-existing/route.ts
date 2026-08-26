@@ -4,6 +4,10 @@ import { authOptions } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { kampOdemeFormuBaslat } from "@/lib/iyzico";
 import { sonRezervasyonuGetir } from "@/lib/kamplar";
+import { hizSiniriniKontrolEt } from "@/lib/rateLimit";
+
+const ODEME_LIMITI = 10;
+const ODEME_PENCERESI_MS = 60 * 1000;
 
 // Bekleyen (REZERVE_EDILDI, henüz süresi dolmamış) bir rezervasyon için
 // yeniden Iyzico ödeme formu başlatır — ör. üye ilk denemede formu
@@ -14,6 +18,10 @@ export async function POST(req: Request, { params }: { params: { slug: string } 
   const session = await getServerSession(authOptions);
   if (!session?.user?.id) {
     return NextResponse.json({ hata: "Devam etmek için giriş yapın" }, { status: 401 });
+  }
+
+  if (!hizSiniriniKontrolEt(`odeme:${session.user.id}`, ODEME_LIMITI, ODEME_PENCERESI_MS)) {
+    return NextResponse.json({ hata: "Çok fazla deneme, lütfen biraz sonra tekrar deneyin" }, { status: 429 });
   }
 
   const kamp = await db.camp.findUnique({ where: { slug: params.slug } });
