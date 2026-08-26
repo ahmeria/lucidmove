@@ -43,6 +43,13 @@ enum FiligranDurumu {
   HATA
 }
 
+enum CampReservationStatus {
+  REZERVE_EDILDI // rezerve edildi, sonOdemeTarihi'ne kadar ödeme bekleniyor (hem "hemen satın al" hem "rezervasyon" bu durumdan başlar)
+  ODENDI // ödeme tamamlandı — yer kesin
+  SURESI_DOLDU // süresi doldu, ödenmedi — yer serbest kaldı (cron yok, her okumada lazy hesaplanır, bkz. lib/kamplar.ts)
+  IPTAL_EDILDI // admin/üye iptali — yer serbest kaldı
+}
+
 model User {
   id                 String    @id @default(cuid())
   ad                 String
@@ -71,6 +78,7 @@ model User {
   progress      LessonProgress[]
   systemLogs    SystemLog[]
   backups       Backup[]
+  campReservations CampReservation[]
 }
 
 // Admin panelinde özel/kısıtlı erişimli roller — admin panelden oluşturulur
@@ -148,6 +156,12 @@ model Payment {
   userId         String
   subscription   Subscription? @relation(fields: [subscriptionId], references: [id])
   subscriptionId String?
+  // Kamp ödemesi ise doldurulur — subscriptionId ile aynı desen (unique DEĞİL,
+  // böylece başarısız bir deneme sonrası aynı rezervasyona yeni bir Payment
+  // satırıyla tekrar denenebilir). Kamp/rezervasyon silinse bile bu satır
+  // (finansal kayıt) SetNull ile hayatta kalır — bkz. CampReservation.
+  campReservation   CampReservation? @relation(fields: [campReservationId], references: [id], onDelete: SetNull)
+  campReservationId String?
   iyzicoPaymentId String?      @unique
   tutar          Decimal       @db.Decimal(10, 2)
   paraBirimi     String        @default("TRY")
@@ -213,6 +227,62 @@ model Lesson {
   progress LessonProgress[]
 
   @@unique([courseId, slug])
+}
+
+// Kamplar/retreatler — admin panelden yönetilir (bkz. app/admin/camps). Anasayfada
+// yaklaşan/yayındaki kamplar varsa "Pratiğin içinden" galerisinin yerini alır
+// (bkz. app/[locale]/(site)/page.tsx). sira YOK — sıralama her zaman
+// baslangicTarihi'na göre kronolojik (tarihli bir etkinlik için manuel
+// sürükle-sıralama anlamsız).
+model Camp {
+  id         String   @id @default(cuid())
+  slug       String   @unique
+  ad         String
+  adEn       String?
+  adAz       String?
+  yer        String
+  yerEn      String?
+  yerAz      String?
+  detaylar   String   @db.Text
+  detaylarEn String?  @db.Text
+  detaylarAz String?  @db.Text
+  baslangicTarihi DateTime
+  bitisTarihi     DateTime
+  kapasite   Int
+  fiyat      Decimal  @db.Decimal(10, 2)
+  kapakUrl   String?  @db.VarChar(512)
+  // Rezervasyon yapan bir üyenin ödemeyi tamamlaması için tanınan süre (gün) —
+  // admin kampı oluştururken belirler, global bir ayar değil (bkz. lib/kamplar.ts).
+  rezervasyonSuresiGun Int     @default(3)
+  yayindaMi  Boolean  @default(true)
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  reservations CampReservation[]
+}
+
+// Bir üyenin bir kamp için rezervasyon/satın alma kaydı. "Hemen satın al" ve
+// "Rezervasyon yap" aynı REZERVE_EDILDI durumundan başlar — yalnızca
+// sonOdemeTarihi'ne tanınan süre farklıdır (bkz. app/api/camps/[slug]/reserve).
+// Kontenjan hesaplaması ve süre-dolma (lazy expiry) mantığı TEK yerde,
+// lib/kamplar.ts'te toplanır — burada tekrarlanmaz.
+model CampReservation {
+  id             String                @id @default(cuid())
+  camp           Camp                  @relation(fields: [campId], references: [id], onDelete: Cascade)
+  campId         String
+  user           User                  @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId         String
+  status         CampReservationStatus @default(REZERVE_EDILDI)
+  sonOdemeTarihi DateTime
+  odendiTarihi   DateTime?
+  iptalTarihi    DateTime?
+  createdAt      DateTime              @default(now())
+  updatedAt      DateTime              @updatedAt
+
+  payments Payment[]
+
+  @@index([campId, status])
+  @@index([userId])
 }
 
 model LessonProgress {

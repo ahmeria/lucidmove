@@ -6,6 +6,7 @@ import MembershipClient from "./membership/MembershipClient";
 import Canlandir from "@/components/Canlandir";
 import { db } from "@/lib/db";
 import { cevrilenAlan, cevrilenAlanOpsiyonel } from "@/lib/i18nIcerik";
+import { yayindaVeYaklasanKamplariGetir } from "@/lib/kamplar";
 import {
   getSiteSettings,
   getInstructorProfile,
@@ -13,6 +14,7 @@ import {
   satirlaraAyir,
   paragraflaraAyir,
   formatFiyat,
+  intlEtiketi,
 } from "@/lib/settings";
 
 // "Nefesinizin *hızında* bir yoga pratiği." -> yıldızlar arasındaki kısım vurgulanır.
@@ -46,12 +48,14 @@ export default async function Anasayfa({
   searchParams: { durum?: string };
 }) {
   const locale = params.locale as AppLocale;
-  const [ayarlar, egitmen, galeriGorselleri, planlar, t] = await Promise.all([
+  const [ayarlar, egitmen, galeriGorselleri, planlar, yaklasanKamplar, t, tKamplar] = await Promise.all([
     getSiteSettings(),
     getInstructorProfile(),
     getGaleriGorselleri(),
     db.pricingPlan.findMany({ orderBy: { sira: "asc" } }),
+    yayindaVeYaklasanKamplariGetir(),
     getTranslations("home"),
+    getTranslations("camps"),
   ]);
 
   const bio = cevrilenAlan(egitmen.bio, egitmen.bioEn, egitmen.bioAz, locale);
@@ -242,31 +246,96 @@ export default async function Anasayfa({
         )}
       </section>
 
-      {/* GALERİ — admin panelden yönetilir (bkz. app/admin/settings/page-design) */}
-      {galeriGorselleri.length > 0 && (
-        <section className="container-nefes pb-28">
-          <Canlandir className="text-center max-w-xl mx-auto mb-10">
-            <p className="font-mono text-xs tracking-[0.3em] uppercase text-toprak mb-3">{t("studyodanKareler")}</p>
-            <h2 className="font-display text-3xl sm:text-4xl font-bold text-metin">{t("pratikIcinden")}</h2>
+      {/* KAMPLAR — admin panelden yönetilir (bkz. app/admin/camps). Yayında ve
+          yaklaşan bir kamp varsa aşağıdaki galerinin YERİNE geçer (bkz.
+          lib/kamplar.ts > yayindaVeYaklasanKamplariGetir); hiç kamp yoksa
+          galeri değişmeden kalır. */}
+      {yaklasanKamplar.length > 0 ? (
+        <section id="camps" className="container-nefes pb-28">
+          <Canlandir className="text-center max-w-xl mx-auto mb-14">
+            <p className="font-mono text-xs tracking-[0.3em] uppercase text-toprak mb-3">
+              {tKamplar("anasayfaEyebrow")}
+            </p>
+            <h2 className="font-display text-3xl sm:text-4xl font-bold text-metin">{tKamplar("anasayfaBaslik")}</h2>
           </Canlandir>
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-            {galeriGorselleri.map((g, i) => (
-              <Canlandir
-                key={g.id}
-                gecikme={i * 70}
-                className={`relative aspect-square rounded-2xl overflow-hidden ${i % 2 === 1 ? "sm:mt-8" : ""}`}
-              >
-                <Image
-                  src={g.url}
-                  alt={g.alt || t("studyodanBirKare")}
-                  fill
-                  sizes="(min-width: 640px) 25vw, 50vw"
-                  className="object-cover"
-                />
-              </Canlandir>
-            ))}
+          <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
+            {yaklasanKamplar.map((k, i) => {
+              const tarihFormat = new Intl.DateTimeFormat(intlEtiketi(locale), { day: "numeric", month: "short" });
+              return (
+                <Canlandir key={k.id} gecikme={i * 70}>
+                  <Link
+                    href={`/camps/${k.slug}`}
+                    className="group block rounded-[1.5rem] overflow-hidden border border-cizgi bg-kart shadow-organik hover:shadow-organik-hover transition-shadow"
+                  >
+                    <div className="relative aspect-[4/3] bg-koyu overflow-hidden">
+                      {k.kapakUrl && (
+                        <Image
+                          src={k.kapakUrl}
+                          alt=""
+                          fill
+                          sizes="(min-width: 1024px) 33vw, (min-width: 640px) 50vw, 100vw"
+                          className="object-cover group-hover:scale-105 transition-transform duration-500"
+                        />
+                      )}
+                      {k.kalanKontenjan <= 0 && (
+                        <span className="absolute top-4 right-4 font-mono text-[11px] uppercase tracking-wide bg-koyu/80 text-zemin px-3 py-1 rounded-full">
+                          {tKamplar("dolu")}
+                        </span>
+                      )}
+                    </div>
+                    <div className="p-6">
+                      <span className="font-mono text-[11px] tracking-[0.2em] uppercase text-toprak-dark">
+                        {cevrilenAlan(k.yer, k.yerEn, k.yerAz, locale)}
+                      </span>
+                      <h3 className="font-display text-xl font-bold text-metin mt-2 leading-snug">
+                        {cevrilenAlan(k.ad, k.adEn, k.adAz, locale)}
+                      </h3>
+                      <p className="font-body text-sm text-metin/60 mt-2">
+                        {tarihFormat.format(k.baslangicTarihi)} – {tarihFormat.format(k.bitisTarihi)}
+                      </p>
+                      <div className="flex items-center justify-between mt-4">
+                        <span className="font-display text-lg font-bold text-metin">
+                          {formatFiyat(k.fiyat.toNumber(), ayarlar, locale)}
+                        </span>
+                        {k.kalanKontenjan > 0 && (
+                          <span className="font-mono text-xs text-metin/50">
+                            {tKamplar("kalanKontenjan", { count: k.kalanKontenjan })}
+                          </span>
+                        )}
+                      </div>
+                    </div>
+                  </Link>
+                </Canlandir>
+              );
+            })}
           </div>
         </section>
+      ) : (
+        galeriGorselleri.length > 0 && (
+          <section className="container-nefes pb-28">
+            <Canlandir className="text-center max-w-xl mx-auto mb-10">
+              <p className="font-mono text-xs tracking-[0.3em] uppercase text-toprak mb-3">{t("studyodanKareler")}</p>
+              <h2 className="font-display text-3xl sm:text-4xl font-bold text-metin">{t("pratikIcinden")}</h2>
+            </Canlandir>
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+              {galeriGorselleri.map((g, i) => (
+                <Canlandir
+                  key={g.id}
+                  gecikme={i * 70}
+                  className={`relative aspect-square rounded-2xl overflow-hidden ${i % 2 === 1 ? "sm:mt-8" : ""}`}
+                >
+                  <Image
+                    src={g.url}
+                    alt={g.alt || t("studyodanBirKare")}
+                    fill
+                    sizes="(min-width: 640px) 25vw, 50vw"
+                    className="object-cover"
+                  />
+                </Canlandir>
+              ))}
+            </div>
+          </section>
+        )
       )}
     </div>
   );

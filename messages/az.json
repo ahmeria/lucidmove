@@ -39,6 +39,26 @@
     "odemeBasarili": "Ödənişiniz qəbul edildi — üzvlüyünüz aktivdir. Xoş gəldiniz!",
     "odemeBasarisiz": "Ödəniş tamamlanmadı. Yenidən cəhd edin."
   },
+  "camps": {
+    "anasayfaEyebrow": "Kamplar",
+    "anasayfaBaslik": "Yaxınlaşan kamplar",
+    "geriDon": "Bütün kamplar",
+    "kalanKontenjan": "{count} yer qaldı",
+    "dolu": "Dolu",
+    "kampDolu": "Bu kamp üçün kontenjan dolub.",
+    "hemenSatinAl": "İndi al",
+    "rezervasyonYap": "Rezervasiya et",
+    "sonOdemeTarihi": "Son ödəniş tarixi: {tarih}",
+    "kalanSure": "{gun} gün {saat} saat qaldı",
+    "odemeyiTamamla": "Ödənişi tamamla",
+    "rezervasyonSuresiDoldu": "Əvvəlki rezervasiyanızın müddəti bitdi, yeriniz sərbəst buraxıldı. Yenidən rezervasiya edə bilərsiniz.",
+    "odemeTamamlandi": "Rezervasiyanız təsdiqləndi. Görüşənədək!",
+    "odemeBaslatilamadi": "Ödəniş başladıla bilmədi, yenidən cəhd edin.",
+    "baglantiHatasi": "Bağlantı xətası baş verdi. Yenidən cəhd edin.",
+    "iyzicoFormu": "Ödənişinizi təhlükəsiz Iyzico formu vasitəsilə tamamlayın.",
+    "odemeBasarili": "Ödənişiniz qəbul edildi, kampa qatılımınız təsdiqləndi!",
+    "odemeBasarisiz": "Ödəniş tamamlanmadı. Yenidən cəhd edin."
+  },
   "coursesPage": {
     "metaBaslik": "Kurslar — LucidMove",
     "metaAciklama": "Hər kurs tək bir mövzuya yönəlmiş dərslər silsiləsidir. Üzvlər bütün dərslərə məhdudiyyətsiz giriş əldə edir.",

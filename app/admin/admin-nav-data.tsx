@@ -44,6 +44,16 @@ function FiyatlandirmaIkonu({ className }: IkonProps) {
   );
 }
 
+function KamplarIkonu({ className }: IkonProps) {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" className={className}>
+      <path d="M12 4.5 20 19H4Z" strokeLinejoin="round" />
+      <path d="M12 4.5 7 19M12 4.5l5 14.5" strokeLinejoin="round" />
+      <path d="M9.5 14h5" strokeLinecap="round" />
+    </svg>
+  );
+}
+
 function UyeliklerIkonu({ className }: IkonProps) {
   return (
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" className={className}>
@@ -235,6 +245,7 @@ export function adminNavGruplariniAl(): AdminNavGrubu[] {
       baslik: "Ticaret",
       ogeler: [
         { href: "/admin/pricing", label: "Fiyatlandırma", ikon: FiyatlandirmaIkonu },
+        { href: "/admin/camps", label: "Kamplar", ikon: KamplarIkonu },
         { href: "/admin/members", label: "Üyeler", ikon: UyelerIkonu },
         { href: "/admin/subscriptions", label: "Üyelikler", ikon: UyeliklerIkonu },
       ],

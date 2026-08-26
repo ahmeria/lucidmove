@@ -72,6 +72,72 @@ export function odemeFormuBaslat({ conversationId, plan, fiyat, kullanici, callb
   });
 }
 
+interface KampOdemeBaslatParams {
+  conversationId: string;
+  fiyat: string;
+  kamp: { id: string; ad: string };
+  kullanici: { id: string; ad: string; email: string };
+  callbackUrl: string;
+}
+
+// Kamp rezervasyonu/satın alması için Iyzico Checkout Form akışı — üyelikten
+// (odemeFormuBaslat) ayrı bir fonksiyon: burada tek/ürün bazlı bir satış
+// (PAYMENT_GROUP.PRODUCT) söz konusu, plan/periyot kavramı yok. Bilerek
+// odemeFormuBaslat genelleştirilmedi — tek çağrı noktası olan mevcut fonksiyonu
+// gereksiz yere karmaşıklaştırmaktan kaçınmak için.
+export function kampOdemeFormuBaslat({ conversationId, fiyat, kamp, kullanici, callbackUrl }: KampOdemeBaslatParams) {
+  const request = {
+    locale: Iyzipay.LOCALE.TR,
+    conversationId,
+    price: fiyat,
+    paidPrice: fiyat,
+    currency: Iyzipay.CURRENCY.TRY,
+    basketId: `kamp-${kamp.id}-${kullanici.id}`,
+    paymentGroup: Iyzipay.PAYMENT_GROUP.PRODUCT,
+    callbackUrl,
+    enabledInstallments: [1],
+    buyer: {
+      id: kullanici.id,
+      name: kullanici.ad.split(" ")[0] || kullanici.ad,
+      surname: kullanici.ad.split(" ").slice(1).join(" ") || "-",
+      email: kullanici.email,
+      identityNumber: "11111111111", // Not: gerçek üretimde kullanıcıdan alınmalı
+      registrationAddress: "Belirtilmedi",
+      ip: "85.34.78.112",
+      city: "Istanbul",
+      country: "Turkey",
+    },
+    shippingAddress: {
+      contactName: kullanici.ad,
+      city: "Istanbul",
+      country: "Turkey",
+      address: "Dijital ürün — kargo adresi gerekmez",
+    },
+    billingAddress: {
+      contactName: kullanici.ad,
+      city: "Istanbul",
+      country: "Turkey",
+      address: "Dijital ürün — fatura adresi gerekmez",
+    },
+    basketItems: [
+      {
+        id: `kamp-${kamp.id}`,
+        name: `LucidMove — ${kamp.ad}`,
+        category1: "Kamp",
+        itemType: "VIRTUAL",
+        price: fiyat,
+      },
+    ],
+  };
+
+  return new Promise((resolve, reject) => {
+    iyzico.checkoutFormInitialize.create(request, (err, result) => {
+      if (err) reject(err);
+      else resolve(result);
+    });
+  });
+}
+
 export function odemeSonucunuGetir(token: string) {
   return new Promise((resolve, reject) => {
     iyzico.checkoutForm.retrieve(

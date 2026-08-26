@@ -22,10 +22,16 @@ function girdi(pathname: string, oncelik: number, sıklık: MetadataRoute.Sitema
 }
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
-  const kurslar = await db.course.findMany({
-    where: { lessons: { some: {} } },
-    select: { slug: true, lessons: { where: { ucretsizMi: true }, select: { slug: true } } },
-  });
+  const [kurslar, kamplar] = await Promise.all([
+    db.course.findMany({
+      where: { lessons: { some: {} } },
+      select: { slug: true, lessons: { where: { ucretsizMi: true }, select: { slug: true } } },
+    }),
+    // Süresi geçmiş (bitisTarihi < now) kamplar sitemap'ten bilerek dışarıda —
+    // sayfaları yayında kalsa da (bkz. camps/[slug]/page.tsx) artık aranabilir
+    // birer hedef değiller.
+    db.camp.findMany({ where: { yayindaMi: true, bitisTarihi: { gte: new Date() } }, select: { slug: true } }),
+  ]);
 
   const sabitSayfalar: MetadataRoute.Sitemap = [
     girdi("/", 1, "weekly"),
@@ -41,5 +47,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     k.lessons.map((d) => girdi(`/courses/${k.slug}/${d.slug}`, 0.6, "monthly"))
   );
 
-  return [...sabitSayfalar, ...kursSayfalari, ...dersSayfalari];
+  const kampSayfalari: MetadataRoute.Sitemap = kamplar.map((k) => girdi(`/camps/${k.slug}`, 0.7, "weekly"));
+
+  return [...sabitSayfalar, ...kursSayfalari, ...dersSayfalari, ...kampSayfalari];
 }
