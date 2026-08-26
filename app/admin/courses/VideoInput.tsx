@@ -118,21 +118,36 @@ export default function VideoInput({
             </div>
           )}
           {!yukleniyor && value && (
-            <p className="text-xs text-vurgu-dark mt-1.5">
-              {value.startsWith("/uploads/") ? "Yüklendi" : "Mevcut video"}: {value.split("/").pop()}
-              {temizlenebilir && (
-                <>
-                  {" · "}
-                  <button
-                    type="button"
-                    onClick={() => onChange("")}
-                    className="underline hover:text-metin cursor-pointer"
-                  >
-                    Kaldır
-                  </button>
-                </>
-              )}
-            </p>
+            <>
+              <p className="text-xs text-vurgu-dark mt-1.5">
+                {value.startsWith("/uploads/") ? "Yüklendi" : "Mevcut video"}: {value.split("/").pop()}
+                {temizlenebilir && (
+                  <>
+                    {" · "}
+                    <button
+                      type="button"
+                      onClick={() => onChange("")}
+                      className="underline hover:text-metin cursor-pointer"
+                    >
+                      Kaldır
+                    </button>
+                  </>
+                )}
+              </p>
+              {/* GorselInput'un görsel önizlemesine karşılık gelen video
+                  önizlemesi — öncesinde yalnızca bu küçük metin satırı vardı,
+                  video başarıyla yüklense de admin ekranda gözle görülür
+                  hiçbir şey olmadığı için "yüklenmedi/gösterilmiyor" izlenimi
+                  veriyordu. */}
+              <video
+                key={value}
+                src={value}
+                controls
+                muted
+                playsInline
+                className="mt-2.5 max-w-xs w-full rounded-lg bg-koyu"
+              />
+            </>
           )}
         </div>
       )}
