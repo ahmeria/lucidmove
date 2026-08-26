@@ -22,7 +22,7 @@ function girdi(pathname: string, oncelik: number, sıklık: MetadataRoute.Sitema
 }
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
-  const [kurslar, kamplar] = await Promise.all([
+  const [kurslar, kamplar, ozelDersler] = await Promise.all([
     db.course.findMany({
       where: { lessons: { some: {} } },
       select: { slug: true, lessons: { where: { ucretsizMi: true }, select: { slug: true } } },
@@ -31,6 +31,9 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     // sayfaları yayında kalsa da (bkz. camps/[slug]/page.tsx) artık aranabilir
     // birer hedef değiller.
     db.camp.findMany({ where: { yayindaMi: true, bitisTarihi: { gte: new Date() } }, select: { slug: true } }),
+    // Özel ders video izleme sayfaları BİLEREK dışarıda — hiçbir video asla
+    // ücretsiz değil (kurslardaki ücretsiz-olmayan derslerle aynı gerekçe).
+    db.privateLesson.findMany({ where: { yayindaMi: true }, select: { slug: true } }),
   ]);
 
   const sabitSayfalar: MetadataRoute.Sitemap = [
@@ -49,5 +52,9 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
 
   const kampSayfalari: MetadataRoute.Sitemap = kamplar.map((k) => girdi(`/camps/${k.slug}`, 0.7, "weekly"));
 
-  return [...sabitSayfalar, ...kursSayfalari, ...dersSayfalari, ...kampSayfalari];
+  const ozelDersSayfalari: MetadataRoute.Sitemap = ozelDersler.map((d) =>
+    girdi(`/private-lessons/${d.slug}`, 0.7, "monthly")
+  );
+
+  return [...sabitSayfalar, ...kursSayfalari, ...dersSayfalari, ...kampSayfalari, ...ozelDersSayfalari];
 }

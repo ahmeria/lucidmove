@@ -138,6 +138,69 @@ export function kampOdemeFormuBaslat({ conversationId, fiyat, kamp, kullanici, c
   });
 }
 
+interface OzelDersOdemeBaslatParams {
+  conversationId: string;
+  fiyat: string;
+  ders: { id: string; baslik: string };
+  kullanici: { id: string; ad: string; email: string };
+  callbackUrl: string;
+}
+
+// Özel ders satın alması için Iyzico Checkout Form akışı — kampOdemeFormuBaslat
+// ile birebir aynı yapı (PAYMENT_GROUP.PRODUCT), yalnızca basket bilgisi farklı.
+export function ozelDersOdemeFormuBaslat({ conversationId, fiyat, ders, kullanici, callbackUrl }: OzelDersOdemeBaslatParams) {
+  const request = {
+    locale: Iyzipay.LOCALE.TR,
+    conversationId,
+    price: fiyat,
+    paidPrice: fiyat,
+    currency: Iyzipay.CURRENCY.TRY,
+    basketId: `ozel-ders-${ders.id}-${kullanici.id}`,
+    paymentGroup: Iyzipay.PAYMENT_GROUP.PRODUCT,
+    callbackUrl,
+    enabledInstallments: [1],
+    buyer: {
+      id: kullanici.id,
+      name: kullanici.ad.split(" ")[0] || kullanici.ad,
+      surname: kullanici.ad.split(" ").slice(1).join(" ") || "-",
+      email: kullanici.email,
+      identityNumber: "11111111111", // Not: gerçek üretimde kullanıcıdan alınmalı
+      registrationAddress: "Belirtilmedi",
+      ip: "85.34.78.112",
+      city: "Istanbul",
+      country: "Turkey",
+    },
+    shippingAddress: {
+      contactName: kullanici.ad,
+      city: "Istanbul",
+      country: "Turkey",
+      address: "Dijital ürün — kargo adresi gerekmez",
+    },
+    billingAddress: {
+      contactName: kullanici.ad,
+      city: "Istanbul",
+      country: "Turkey",
+      address: "Dijital ürün — fatura adresi gerekmez",
+    },
+    basketItems: [
+      {
+        id: `ozel-ders-${ders.id}`,
+        name: `LucidMove — ${ders.baslik}`,
+        category1: "Özel Ders",
+        itemType: "VIRTUAL",
+        price: fiyat,
+      },
+    ],
+  };
+
+  return new Promise((resolve, reject) => {
+    iyzico.checkoutFormInitialize.create(request, (err, result) => {
+      if (err) reject(err);
+      else resolve(result);
+    });
+  });
+}
+
 export function odemeSonucunuGetir(token: string) {
   return new Promise((resolve, reject) => {
     iyzico.checkoutForm.retrieve(

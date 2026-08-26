@@ -77,3 +77,12 @@ export function KampIkonu({ className }: IkonProps) {
     </svg>
   );
 }
+
+export function OzelDersIkonu({ className }: IkonProps) {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" className={className}>
+      <circle cx="12" cy="12" r="8.5" />
+      <path d="M10 8.5v7l6-3.5Z" strokeLinejoin="round" />
+    </svg>
+  );
+}

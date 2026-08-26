@@ -54,6 +54,15 @@ function KamplarIkonu({ className }: IkonProps) {
   );
 }
 
+function OzelDerslerIkonu({ className }: IkonProps) {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" className={className}>
+      <circle cx="12" cy="12" r="8.5" />
+      <path d="M10 8.5v7l6-3.5Z" strokeLinejoin="round" />
+    </svg>
+  );
+}
+
 function UyeliklerIkonu({ className }: IkonProps) {
   return (
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" className={className}>
@@ -246,6 +255,7 @@ export function adminNavGruplariniAl(): AdminNavGrubu[] {
       ogeler: [
         { href: "/admin/pricing", label: "Fiyatlandırma", ikon: FiyatlandirmaIkonu },
         { href: "/admin/camps", label: "Kamplar", ikon: KamplarIkonu },
+        { href: "/admin/private-lessons", label: "Özel Dersler", ikon: OzelDerslerIkonu },
         { href: "/admin/members", label: "Üyeler", ikon: UyelerIkonu },
         { href: "/admin/subscriptions", label: "Üyelikler", ikon: UyeliklerIkonu },
       ],

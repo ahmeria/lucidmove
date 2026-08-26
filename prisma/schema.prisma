@@ -50,6 +50,13 @@ enum CampReservationStatus {
   IPTAL_EDILDI // admin/üye iptali — yer serbest kaldı
 }
 
+// Kamplardan farklı olarak dijital içerikte kıtlık/tarih yok — rezervasyon/
+// süre-dolma kavramı gerekmiyor, yalnızca "ödeme bekleniyor" / "ödendi" var.
+enum PrivateLessonPurchaseStatus {
+  BEKLEMEDE // ödeme bekleniyor
+  ODENDI // ödendi — içerik erişimi kalıcı olarak açıldı
+}
+
 model User {
   id                 String    @id @default(cuid())
   ad                 String
@@ -79,6 +86,7 @@ model User {
   systemLogs    SystemLog[]
   backups       Backup[]
   campReservations CampReservation[]
+  privateLessonPurchases PrivateLessonPurchase[]
 }
 
 // Admin panelinde özel/kısıtlı erişimli roller — admin panelden oluşturulur
@@ -162,6 +170,11 @@ model Payment {
   // (finansal kayıt) SetNull ile hayatta kalır — bkz. CampReservation.
   campReservation   CampReservation? @relation(fields: [campReservationId], references: [id], onDelete: SetNull)
   campReservationId String?
+  // Özel ders satın alması ise doldurulur — campReservationId ile birebir aynı
+  // desen (unique DEĞİL, başarısız denemeden sonra yeni bir Payment satırıyla
+  // tekrar denenebilir). Bkz. PrivateLessonPurchase.
+  privateLessonPurchase   PrivateLessonPurchase? @relation(fields: [privateLessonPurchaseId], references: [id], onDelete: SetNull)
+  privateLessonPurchaseId String?
   iyzicoPaymentId String?      @unique
   tutar          Decimal       @db.Decimal(10, 2)
   paraBirimi     String        @default("TRY")
@@ -282,6 +295,82 @@ model CampReservation {
   payments Payment[]
 
   @@index([campId, status])
+  @@index([userId])
+}
+
+// Özel Dersler — Kurslar gibi (başlık/açıklama + birden fazla video) ama
+// üyelik dışında ayrı satılan bir ürün (bkz. app/admin/private-lessons,
+// app/[locale]/(site)/private-lessons). Course/Lesson'a BİLEREK dokunulmadı —
+// o tablolar canlı, üyelik-kapılı çalışan kodun parçası; bu yüzden paralel
+// yeni bir yapı kuruldu (Camp/CampReservation'da izlenen aynı yaklaşım).
+// Anasayfada, varsa, Kamplar bölümünün hemen üstünde gösterilir.
+model PrivateLesson {
+  id              String   @id @default(cuid())
+  slug            String   @unique
+  baslik          String
+  baslikEn        String?
+  baslikAz        String?
+  aciklama        String   @db.Text
+  aciklamaEn      String?  @db.Text
+  aciklamaAz      String?  @db.Text
+  kapakUrl        String?  @db.VarChar(512)
+  tanitimVideoUrl String?  @db.VarChar(512)
+  fiyat           Decimal  @db.Decimal(10, 2)
+  yayindaMi       Boolean  @default(true)
+  sira            Int      @default(0)
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  videos    PrivateLessonVideo[]
+  purchases PrivateLessonPurchase[]
+}
+
+// Bir özel dersin içindeki tek bir video/bölüm — Lesson'ın karşılığı, ama
+// filigranlama (kaldırılmış özellik) kalıntısı kaynakVideoUrl/videoUrl
+// ikilisi ve filigranDurumu burada YOK — yeni bir tablo olduğu için o eski
+// mimarinin dead-weight'ini taşımıyor, tek bir videoUrl yeterli. mood/
+// ucretsizMi de yok — özel ders videoları kurs kataloğu filtre sistemine
+// dahil değil, önizleme istenmedi.
+model PrivateLessonVideo {
+  id              String        @id @default(cuid())
+  privateLesson   PrivateLesson @relation(fields: [privateLessonId], references: [id], onDelete: Cascade)
+  privateLessonId String
+  slug            String
+  baslik          String
+  baslikEn        String?
+  baslikAz        String?
+  aciklama        String?  @db.Text
+  aciklamaEn      String?  @db.Text
+  aciklamaAz      String?  @db.Text
+  kapakUrl        String?  @db.VarChar(512)
+  sureDakika      Int
+  videoUrl        String   @db.VarChar(512)
+  sira            Int      @default(0)
+  createdAt       DateTime @default(now())
+
+  @@unique([privateLessonId, slug])
+}
+
+// Bir üyenin bir özel dersi satın alma kaydı — CampReservation'ın basitleş-
+// tirilmiş karşılığı: rezervasyon/son-ödeme-tarihi/iptal kavramı yok (dijital
+// içerikte kıtlık yok), bu yüzden @@unique([privateLessonId, userId]) —
+// Camp'teki gibi "tekrar rezerve etme" senaryosu burada meşru değil, aynı
+// satır upsert edilerek yeniden denenir (bkz. app/api/private-lessons/
+// [slug]/purchase).
+model PrivateLessonPurchase {
+  id              String                      @id @default(cuid())
+  privateLesson   PrivateLesson               @relation(fields: [privateLessonId], references: [id], onDelete: Cascade)
+  privateLessonId String
+  user            User                        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId          String
+  status          PrivateLessonPurchaseStatus @default(BEKLEMEDE)
+  odendiTarihi    DateTime?
+  createdAt       DateTime                    @default(now())
+  updatedAt       DateTime                    @updatedAt
+
+  payments Payment[]
+
+  @@unique([privateLessonId, userId])
   @@index([userId])
 }
 

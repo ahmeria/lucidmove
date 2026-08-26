@@ -6,7 +6,7 @@ import { toplamIzlenmeSayisiniAl } from "@/lib/raporlar";
 import { ayAraligi, ayEtiketi, gosterilecekAy, TUM_ZAMANLAR } from "@/lib/ayFiltresi";
 import { StatKart } from "@/components/admin/Kart";
 import AyFiltresi from "@/components/admin/AyFiltresi";
-import { UyeIkonu, AbonelikIkonu, GelirIkonu, MesajIkonu, KursIkonu, IzlenmeIkonu, KampIkonu } from "@/components/admin/StatIkonlari";
+import { UyeIkonu, AbonelikIkonu, GelirIkonu, MesajIkonu, KursIkonu, IzlenmeIkonu, KampIkonu, OzelDersIkonu } from "@/components/admin/StatIkonlari";
 import { suresiGecenRezervasyonlariGuncelle } from "@/lib/kamplar";
 import { AnalyticsPanel } from "@/components/admin/charts/AnalyticsPanel";
 
@@ -78,6 +78,8 @@ export default async function AdminDashboard({ searchParams }: { searchParams: {
     izlenmeSayisi,
     yaklasanKampSayisi,
     bekleyenRezervasyonSayisi,
+    yayindakiOzelDersSayisi,
+    odenmisSatinAlmaSayisi,
   ] = await Promise.all([
       // "Toplam üye" yalnızca role: UYE olanları sayar — admin hesapları
       // (bu dashboard'u görüntüleyen dahil) buraya karışmasın diye. Bir
@@ -95,6 +97,8 @@ export default async function AdminDashboard({ searchParams }: { searchParams: {
       toplamIzlenmeSayisiniAl(araligi),
       db.camp.count({ where: { yayindaMi: true, bitisTarihi: { gte: new Date() } } }),
       db.campReservation.count({ where: { status: "REZERVE_EDILDI" } }),
+      db.privateLesson.count({ where: { yayindaMi: true } }),
+      db.privateLessonPurchase.count({ where: { status: "ODENDI" } }),
     ]);
 
   return (
@@ -158,6 +162,14 @@ export default async function AdminDashboard({ searchParams }: { searchParams: {
           renk={bekleyenRezervasyonSayisi > 0 ? "amber" : "vurgu"}
           altYazi={`${bekleyenRezervasyonSayisi} bekleyen rezervasyon`}
           ikon={KampIkonu}
+        />
+        <StatKart
+          etiket="Özel Dersler"
+          deger={yayindakiOzelDersSayisi}
+          href="/admin/private-lessons"
+          renk="ikincil"
+          altYazi={`${odenmisSatinAlmaSayisi} satın alma`}
+          ikon={OzelDersIkonu}
         />
       </div>
 

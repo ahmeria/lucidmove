@@ -7,6 +7,7 @@ import Canlandir from "@/components/Canlandir";
 import { db } from "@/lib/db";
 import { cevrilenAlan, cevrilenAlanOpsiyonel } from "@/lib/i18nIcerik";
 import { yayindaVeYaklasanKamplariGetir } from "@/lib/kamplar";
+import { yayindakiOzelDersleriGetir } from "@/lib/ozelDersler";
 import {
   getSiteSettings,
   getInstructorProfile,
@@ -48,15 +49,18 @@ export default async function Anasayfa({
   searchParams: { durum?: string };
 }) {
   const locale = params.locale as AppLocale;
-  const [ayarlar, egitmen, galeriGorselleri, planlar, yaklasanKamplar, t, tKamplar] = await Promise.all([
-    getSiteSettings(),
-    getInstructorProfile(),
-    getGaleriGorselleri(),
-    db.pricingPlan.findMany({ orderBy: { sira: "asc" } }),
-    yayindaVeYaklasanKamplariGetir(),
-    getTranslations("home"),
-    getTranslations("camps"),
-  ]);
+  const [ayarlar, egitmen, galeriGorselleri, planlar, yaklasanKamplar, ozelDersler, t, tKamplar, tOzelDersler] =
+    await Promise.all([
+      getSiteSettings(),
+      getInstructorProfile(),
+      getGaleriGorselleri(),
+      db.pricingPlan.findMany({ orderBy: { sira: "asc" } }),
+      yayindaVeYaklasanKamplariGetir(),
+      yayindakiOzelDersleriGetir(),
+      getTranslations("home"),
+      getTranslations("camps"),
+      getTranslations("privateLessons"),
+    ]);
 
   const bio = cevrilenAlan(egitmen.bio, egitmen.bioEn, egitmen.bioAz, locale);
   const sertifikalarMetin = cevrilenAlan(egitmen.sertifikalar, egitmen.sertifikalarEn, egitmen.sertifikalarAz, locale);
@@ -245,6 +249,60 @@ export default async function Anasayfa({
           </Canlandir>
         )}
       </section>
+
+      {/* ÖZEL DERSLER — admin panelden yönetilir (bkz. app/admin/private-lessons).
+          Kamplar/galeri koşuluna hiç karışmayan BAĞIMSIZ bir bölüm — yalnızca
+          konumu sabit: Kamplar'ın (ya da onun galeri yerine geçtiği durumun)
+          hemen ÜSTÜNDE. Yayında en az bir özel ders varsa gösterilir. */}
+      {ozelDersler.length > 0 && (
+        <section id="private-lessons" className="container-nefes pb-28">
+          <Canlandir className="text-center max-w-xl mx-auto mb-14">
+            <p className="font-mono text-xs tracking-[0.3em] uppercase text-toprak mb-3">
+              {tOzelDersler("anasayfaEyebrow")}
+            </p>
+            <h2 className="font-display text-3xl sm:text-4xl font-bold text-metin">{tOzelDersler("anasayfaBaslik")}</h2>
+          </Canlandir>
+          <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
+            {ozelDersler.map((d, i) => (
+              <Canlandir key={d.id} gecikme={i * 70}>
+                <Link
+                  href={`/private-lessons/${d.slug}`}
+                  className="group block rounded-[1.5rem] overflow-hidden border border-cizgi bg-kart shadow-organik hover:shadow-organik-hover transition-shadow"
+                >
+                  <div className="relative aspect-[4/3] bg-koyu overflow-hidden">
+                    {d.kapakUrl && (
+                      <Image
+                        src={d.kapakUrl}
+                        alt=""
+                        fill
+                        sizes="(min-width: 1024px) 33vw, (min-width: 640px) 50vw, 100vw"
+                        className="object-cover group-hover:scale-105 transition-transform duration-500"
+                      />
+                    )}
+                  </div>
+                  <div className="p-6">
+                    <span className="font-mono text-[11px] tracking-[0.2em] uppercase text-toprak-dark">
+                      {tOzelDersler("etiket")}
+                    </span>
+                    <h3 className="font-display text-xl font-bold text-metin mt-2 leading-snug">
+                      {cevrilenAlan(d.baslik, d.baslikEn, d.baslikAz, locale)}
+                    </h3>
+                    <p className="font-body text-sm text-metin/60 mt-2">
+                      {tOzelDersler("videoSayisi", { count: d.videoSayisi })} ·{" "}
+                      {tOzelDersler("toplamDakika", { count: d.toplamDakika })}
+                    </p>
+                    <div className="flex items-center justify-between mt-4">
+                      <span className="font-display text-lg font-bold text-metin">
+                        {formatFiyat(d.fiyat.toNumber(), ayarlar, locale)}
+                      </span>
+                    </div>
+                  </div>
+                </Link>
+              </Canlandir>
+            ))}
+          </div>
+        </section>
+      )}
 
       {/* KAMPLAR — admin panelden yönetilir (bkz. app/admin/camps). Yayında ve
           yaklaşan bir kamp varsa aşağıdaki galerinin YERİNE geçer (bkz.
