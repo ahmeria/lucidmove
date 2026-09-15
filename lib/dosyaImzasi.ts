@@ -36,26 +36,30 @@ function baytlarEslesiyorMu(buffer: Buffer, imza: number[], offset: number): boo
   return true;
 }
 
-function gercekTipiBul(buffer: Buffer, adaylar: DosyaTipiTanimi[]): DosyaTipiTanimi | null {
-  for (const tip of adaylar) {
-    // ftyp imzalı MP4/MOV dosyalarında kutu boyutu ilk 4 bayt, "ftyp" 4-7 aralığında.
-    const offset = tip.imza[0] === 0x66 && tip.imza[1] === 0x74 ? 4 : 0;
-    if (baytlarEslesiyorMu(buffer, tip.imza, offset)) return tip;
-  }
-  return null;
+// ÖNEMLİ: adayları bildirilenTip'e göre TEK bir tanıma daraltıyoruz, listenin
+// tamamını sırayla denemiyoruz — MP4 ve QuickTime (.mov) aynı "ftyp" imzasını
+// paylaşıyor (ikisi de ISO Base Media kutu formatı), bu yüzden eskiden ilk
+// eşleşen (her zaman MP4) döndürülüyordu: bir iPhone'dan yüklenen HER .mov
+// dosyası, istemci "video/quicktime" bildirse bile sessizce ".mp4" olarak
+// kaydediliyordu. Artık yalnızca istemcinin bildirdiği tipin KENDİ imzası
+// kontrol ediliyor.
+function gercekTipiBul(buffer: Buffer, adaylar: DosyaTipiTanimi[], bildirilenTip: string): DosyaTipiTanimi | null {
+  const aday = adaylar.find((t) => t.mime === bildirilenTip);
+  if (!aday) return null;
+  // ftyp imzalı MP4/MOV dosyalarında kutu boyutu ilk 4 bayt, "ftyp" 4-7 aralığında.
+  const offset = aday.imza[0] === 0x66 && aday.imza[1] === 0x74 ? 4 : 0;
+  return baytlarEslesiyorMu(buffer, aday.imza, offset) ? aday : null;
 }
 
 // İstemcinin bildirdiği MIME tipi izin verilenler arasındaysa VE dosyanın ilk
 // baytları o tiple uyuşuyorsa gerçek tipi (ve güvenli uzantıyı) döndürür;
 // aksi halde null (dosya reddedilmeli).
 export function gorseldenGuvenliTipCikar(buffer: Buffer, bildirilenTip: string): { uzanti: string } | null {
-  if (!IMAJ_TIPLERI.some((t) => t.mime === bildirilenTip)) return null;
-  const gercek = gercekTipiBul(buffer, IMAJ_TIPLERI);
+  const gercek = gercekTipiBul(buffer, IMAJ_TIPLERI, bildirilenTip);
   return gercek ? { uzanti: gercek.uzanti } : null;
 }
 
 export function videodanGuvenliTipCikar(buffer: Buffer, bildirilenTip: string): { uzanti: string } | null {
-  if (!VIDEO_TIPLERI.some((t) => t.mime === bildirilenTip)) return null;
-  const gercek = gercekTipiBul(buffer, VIDEO_TIPLERI);
+  const gercek = gercekTipiBul(buffer, VIDEO_TIPLERI, bildirilenTip);
   return gercek ? { uzanti: gercek.uzanti } : null;
 }
