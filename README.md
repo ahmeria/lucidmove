@@ -359,11 +359,26 @@ Sunucuda hangisi kuruluysa (`sudo systemctl status nginx` veya
 
 *Nginx:*
 
+> **Önemli — `/uploads` MUTLAKA proxy'nin DIŞINDA, doğrudan disk'ten
+> servis edilmeli** (aşağıdaki örneklerde zaten böyle yapılandırıldı).
+> Next.js'in production sunucusu (`next start`), `public/` klasörünün
+> içeriğini sunucu İLK BAŞLARKEN önbelleğe alıyor — bu önbellek bir sonraki
+> restart'a kadar YENİLENMİYOR. Sonuç: `/uploads`'u Node'a proxy'lerseniz,
+> sunucu çalışırken yüklenen HER YENİ video/görsel bir sonraki restart'a
+> kadar 404 verir (bu projede gerçekten yaşandı ve teşhis edildi — bkz. git
+> geçmişi). `next dev` modunda bu sorun hiç görünmez (canlı disk kontrolü
+> yapıyor), bu yüzden yerelde fark etmeden canlıya taşınabilir.
+
 ```nginx
 # /etc/nginx/sites-available/lucidmove.net
 server {
     listen 80;
     server_name lucidmove.net;
+
+    location /uploads/ {
+        alias /home/KULLANICI_ADINIZ/apps/lucidmove/public/uploads/;
+        expires 30d;
+    }
 
     location / {
         proxy_pass http://127.0.0.1:3000;
@@ -388,7 +403,7 @@ sudo nginx -t && sudo systemctl reload nginx
 *Apache:*
 
 ```bash
-sudo a2enmod proxy proxy_http
+sudo a2enmod proxy proxy_http headers
 ```
 
 ```apache
@@ -396,9 +411,17 @@ sudo a2enmod proxy proxy_http
 <VirtualHost *:80>
     ServerName lucidmove.net
     ProxyPreserveHost On
+    ProxyPass /uploads !
     ProxyPass / http://127.0.0.1:3000/
     ProxyPassReverse / http://127.0.0.1:3000/
     LimitRequestBody 0
+
+    Alias /uploads /home/KULLANICI_ADINIZ/apps/lucidmove/public/uploads
+    <Directory /home/KULLANICI_ADINIZ/apps/lucidmove/public/uploads>
+        Require all granted
+        Options -Indexes
+        Header set Cache-Control "public, max-age=2592000"
+    </Directory>
 </VirtualHost>
 ```
 
