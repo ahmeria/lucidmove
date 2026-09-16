@@ -1,5 +1,5 @@
 import { randomUUID } from "crypto";
-import { mkdir, open, rename, stat, truncate, unlink, writeFile } from "fs/promises";
+import { mkdir, open, readdir, readFile, rename, stat, truncate, unlink, writeFile } from "fs/promises";
 import path from "path";
 import { videodanGuvenliTipCikar } from "@/lib/dosyaImzasi";
 
@@ -12,8 +12,14 @@ import { videodanGuvenliTipCikar } from "@/lib/dosyaImzasi";
 //     dosya asla bütün olarak RAM'e alınmıyor.
 //   - Bir parça tekrar gönderilirse (bağlantı hatası sonrası yeniden
 //     deneme) aynı konuma yazıldığı için sorun çıkmıyor (idempotent).
-// Kayıtlar süreç-ömürlü bir Map'te tutuluyor — projenin diğer yerlerinde de
-// kullanılan "tek Node process" varsayımıyla tutarlı (bkz. lib/rateLimit.ts).
+// Kayıtlar bir Map'te önbelleklenir AMA gerçek kaynak diskteki ".json"
+// yanındaş (sidecar) dosyasıdır — yalnızca belleğe güvenilseydi, sunucu
+// süreci yükleme ortasında yeniden başladığında (dev sunucusu yeniden
+// başlatma, pm2 çökme/yeniden başlatma, güncelleme sonrası restart) tüm
+// devam eden yüklemeler "Yükleme oturumu bulunamadı" hatasıyla kaybolurdu —
+// bu canlıda gerçekten yaşandı. Şimdi her parça yazıldığında ilerleme diske
+// de yazılıyor, süreç yeniden başlasa bile bir sonraki istek diskten
+// kaldığı yerden devam edebiliyor.
 export const PARCA_BOYUTU = 8 * 1024 * 1024; // 8 MB
 const MAKSIMUM_VIDEO_BOYUTU = 2 * 1024 * 1024 * 1024; // 2 GB
 const TERK_EDILME_SURESI_MS = 2 * 60 * 60 * 1000; // 2 saat işlem görmeyen yükleme silinir
@@ -30,14 +36,103 @@ interface YuklemeKaydi {
   guncelleme: number;
 }
 
+// Diske yazılan sidecar dosyasının JSON şekli — YuklemeKaydi ile aynı, yalnızca
+// gelenParcalar bir Set değil (JSON'da Set yok) sıralı bir dizi.
+interface Metaveri {
+  toplamBoyut: number;
+  toplamParca: number;
+  bildirilenTip: string;
+  gelenParcalar: number[];
+  sahibiKullaniciId: string;
+  guncelleme: number;
+}
+
 const kayitlar = new Map<string, YuklemeKaydi>();
 
-function eskiKayitlariTemizle() {
+function geciciKlasorYolu() {
+  return path.join(process.cwd(), "storage", "tmp-uploads");
+}
+
+function metaYolu(geciciYol: string) {
+  return `${geciciYol}.json`;
+}
+
+async function metaVeriYaz(kayit: YuklemeKaydi) {
+  const metaveri: Metaveri = {
+    toplamBoyut: kayit.toplamBoyut,
+    toplamParca: kayit.toplamParca,
+    bildirilenTip: kayit.bildirilenTip,
+    gelenParcalar: [...kayit.gelenParcalar],
+    sahibiKullaniciId: kayit.sahibiKullaniciId,
+    guncelleme: kayit.guncelleme,
+  };
+  // Bu bir ilerleme kaydı — yazımı başarısız olsa bile (ör. anlık disk
+  // meşguliyeti) asıl parça yazma işlemini engellememeli, bir sonraki
+  // parçada tekrar denenir.
+  await writeFile(metaYolu(kayit.geciciYol), JSON.stringify(metaveri)).catch(() => {});
+}
+
+// Bellekte yoksa diskteki sidecar'dan (varsa) yeniden kurar — süreç yeniden
+// başlamış olsa bile yükleme kaldığı yerden devam edebilsin diye.
+async function kaydiGetir(uploadId: string): Promise<YuklemeKaydi | undefined> {
+  const bellekteki = kayitlar.get(uploadId);
+  if (bellekteki) return bellekteki;
+
+  const geciciYol = path.join(geciciKlasorYolu(), uploadId);
+  const [metaIcerik] = await Promise.all([readFile(metaYolu(geciciYol), "utf-8").catch(() => null)]);
+  if (!metaIcerik) return undefined;
+
+  try {
+    const metaveri = JSON.parse(metaIcerik) as Metaveri;
+    const kayit: YuklemeKaydi = {
+      toplamBoyut: metaveri.toplamBoyut,
+      toplamParca: metaveri.toplamParca,
+      bildirilenTip: metaveri.bildirilenTip,
+      gelenParcalar: new Set(metaveri.gelenParcalar),
+      geciciYol,
+      sahibiKullaniciId: metaveri.sahibiKullaniciId,
+      guncelleme: metaveri.guncelleme,
+    };
+    kayitlar.set(uploadId, kayit);
+    return kayit;
+  } catch {
+    return undefined;
+  }
+}
+
+async function kaydiSilVeTemizle(uploadId: string, geciciYol: string) {
+  kayitlar.delete(uploadId);
+  await Promise.all([unlink(geciciYol).catch(() => {}), unlink(metaYolu(geciciYol)).catch(() => {})]);
+}
+
+// Bellekteki kayıtların yanı sıra, diskte kalmış (ör. süreç bu terk edilme
+// süresi içinde hiç yeniden başlamadıysa belleğe hiç girmemiş) eski sidecar
+// dosyalarını da tarar — yalnızca Map'e güvenmek, süreç yeniden başladıktan
+// sonra artık kimsenin bilmediği terk edilmiş dosyaların hiç silinmemesine
+// yol açardı.
+async function eskiKayitlariTemizle() {
   const simdi = Date.now();
   for (const [id, kayit] of kayitlar) {
     if (simdi - kayit.guncelleme > TERK_EDILME_SURESI_MS) {
-      unlink(kayit.geciciYol).catch(() => {});
-      kayitlar.delete(id);
+      await kaydiSilVeTemizle(id, kayit.geciciYol);
+    }
+  }
+
+  const klasor = geciciKlasorYolu();
+  const dosyalar = await readdir(klasor).catch(() => [] as string[]);
+  const jsonOlanlar = new Set(dosyalar.filter((d) => d.endsWith(".json")));
+  for (const dosyaAdi of dosyalar) {
+    // Sidecar'ı OLMAYAN bir ikili dosya da temizlenmeli — bu fonksiyon
+    // eklenmeden ÖNCE (ya da sidecar yazımı bir şekilde başarısız olduysa)
+    // oluşmuş, hiçbir zaman kimsenin bilmediği yetim dosyalar bunlar.
+    const uploadId = dosyaAdi.endsWith(".json") ? dosyaAdi.slice(0, -".json".length) : dosyaAdi;
+    if (!dosyaAdi.endsWith(".json") && jsonOlanlar.has(`${dosyaAdi}.json`)) continue; // aşağıda .json üzerinden ele alınacak
+    if (kayitlar.has(uploadId)) continue; // az önce yukarıda ele alındı
+
+    const geciciYol = path.join(klasor, uploadId);
+    const bilgi = await stat(geciciYol).catch(() => null);
+    if (!bilgi || simdi - bilgi.mtimeMs > TERK_EDILME_SURESI_MS) {
+      await kaydiSilVeTemizle(uploadId, geciciYol);
     }
   }
 }
@@ -47,7 +142,7 @@ export async function yuklemeBaslat(params: {
   tip: string;
   kullaniciId: string;
 }): Promise<{ uploadId: string; parcaBoyutu: number; toplamParca: number } | { hata: string }> {
-  eskiKayitlariTemizle();
+  await eskiKayitlariTemizle();
 
   if (!VIDEO_TIPLERI.includes(params.tip)) return { hata: "Desteklenmeyen video türü" };
   if (!Number.isFinite(params.boyut) || params.boyut <= 0) return { hata: "Geçersiz dosya boyutu" };
@@ -56,7 +151,7 @@ export async function yuklemeBaslat(params: {
   }
 
   const uploadId = randomUUID();
-  const geciciKlasor = path.join(process.cwd(), "storage", "tmp-uploads");
+  const geciciKlasor = geciciKlasorYolu();
   await mkdir(geciciKlasor, { recursive: true });
   const geciciYol = path.join(geciciKlasor, uploadId);
 
@@ -67,7 +162,7 @@ export async function yuklemeBaslat(params: {
   await truncate(geciciYol, params.boyut);
 
   const toplamParca = Math.ceil(params.boyut / PARCA_BOYUTU);
-  kayitlar.set(uploadId, {
+  const kayit: YuklemeKaydi = {
     toplamBoyut: params.boyut,
     toplamParca,
     bildirilenTip: params.tip,
@@ -75,7 +170,9 @@ export async function yuklemeBaslat(params: {
     geciciYol,
     sahibiKullaniciId: params.kullaniciId,
     guncelleme: Date.now(),
-  });
+  };
+  kayitlar.set(uploadId, kayit);
+  await metaVeriYaz(kayit);
 
   return { uploadId, parcaBoyutu: PARCA_BOYUTU, toplamParca };
 }
@@ -86,7 +183,7 @@ export async function parcaYaz(params: {
   veri: Buffer;
   kullaniciId: string;
 }): Promise<{ basarili: true } | { hata: string }> {
-  const kayit = kayitlar.get(params.uploadId);
+  const kayit = await kaydiGetir(params.uploadId);
   if (!kayit) return { hata: "Yükleme oturumu bulunamadı ya da zaman aşımına uğradı — sayfayı yenileyip tekrar deneyin" };
   if (kayit.sahibiKullaniciId !== params.kullaniciId) return { hata: "Yetkisiz" };
   if (!Number.isInteger(params.index) || params.index < 0 || params.index >= kayit.toplamParca) {
@@ -103,6 +200,7 @@ export async function parcaYaz(params: {
 
   kayit.gelenParcalar.add(params.index);
   kayit.guncelleme = Date.now();
+  await metaVeriYaz(kayit);
   return { basarili: true };
 }
 
@@ -110,7 +208,7 @@ export async function yuklemeyiBitir(params: {
   uploadId: string;
   kullaniciId: string;
 }): Promise<{ url: string } | { hata: string }> {
-  const kayit = kayitlar.get(params.uploadId);
+  const kayit = await kaydiGetir(params.uploadId);
   if (!kayit) return { hata: "Yükleme oturumu bulunamadı ya da zaman aşımına uğradı — sayfayı yenileyip tekrar deneyin" };
   if (kayit.sahibiKullaniciId !== params.kullaniciId) return { hata: "Yetkisiz" };
   if (kayit.gelenParcalar.size !== kayit.toplamParca) {
@@ -119,8 +217,7 @@ export async function yuklemeyiBitir(params: {
 
   const bilgi = await stat(kayit.geciciYol).catch(() => null);
   if (!bilgi || bilgi.size !== kayit.toplamBoyut) {
-    kayitlar.delete(params.uploadId);
-    unlink(kayit.geciciYol).catch(() => {});
+    await kaydiSilVeTemizle(params.uploadId, kayit.geciciYol);
     return { hata: "Dosya boyutu beklenenle uyuşmuyor — yükleme bozuk, tekrar deneyin" };
   }
 
@@ -133,8 +230,7 @@ export async function yuklemeyiBitir(params: {
 
   const guvenliTip = videodanGuvenliTipCikar(basBuffer, kayit.bildirilenTip);
   if (!guvenliTip) {
-    kayitlar.delete(params.uploadId);
-    unlink(kayit.geciciYol).catch(() => {});
+    await kaydiSilVeTemizle(params.uploadId, kayit.geciciYol);
     return { hata: "Dosya içeriği bildirilen türle uyuşmuyor" };
   }
 
@@ -144,12 +240,12 @@ export async function yuklemeyiBitir(params: {
   await rename(kayit.geciciYol, path.join(hedefKlasor, dosyaAdi));
 
   kayitlar.delete(params.uploadId);
+  await unlink(metaYolu(kayit.geciciYol)).catch(() => {});
   return { url: `/uploads/videos/${dosyaAdi}` };
 }
 
-export function yuklemeyiIptalEt(uploadId: string, kullaniciId: string) {
-  const kayit = kayitlar.get(uploadId);
+export async function yuklemeyiIptalEt(uploadId: string, kullaniciId: string) {
+  const kayit = await kaydiGetir(uploadId);
   if (!kayit || kayit.sahibiKullaniciId !== kullaniciId) return;
-  unlink(kayit.geciciYol).catch(() => {});
-  kayitlar.delete(uploadId);
+  await kaydiSilVeTemizle(uploadId, kayit.geciciYol);
 }
