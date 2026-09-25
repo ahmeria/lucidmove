@@ -523,13 +523,24 @@ test ortamına bağlanır. Gerçek ödeme almaya hazır olduğunuzda:
 Admin panelde (kurs tanıtım videosu ve ders videoları) her video alanı iki
 seçenek sunar:
 
-- **YouTube linki** — video, sayfada gömülü YouTube oynatıcısıyla gösterilir.
-- **Dosya yükle** — video dosyası (`mp4`/`webm`/`ogg`/`mov`, en fazla 500 MB)
-  `app/api/admin/upload/route.ts` üzerinden sunucudaki `public/uploads/videos/`
-  klasörüne kaydedilir ve doğrudan Next.js tarafından servis edilir.
+- **YouTube / Vimeo linki** — video, sayfada gömülü YouTube veya Vimeo
+  oynatıcısıyla gösterilir. Ders videolarında (kurs dersleri ve özel ders
+  videoları) da kullanılabilir; bağlantı kaydedilirken tek bir kanonik biçime
+  çevrilir (`youtube.com/watch?v=…`, `vimeo.com/ID` ya da liste dışı videolar
+  için `vimeo.com/ID/HASH`). Videonun sonuna gelindiğinde "izlendi" kaydı,
+  oynatıcıların kendi JS API'leriyle (YouTube IFrame API / Vimeo player.js)
+  yerel dosyalardaki gibi düşer. Not: Vimeo'da videonun gömme (embed) ayarı
+  yalnızca belirli alan adlarına izin veriyorsa `lucidmove.net`'i ekleyin;
+  YouTube'da video "Herkese açık" ya da "Liste dışı" olmalıdır. Bağlantıdan
+  süre okunamaz, "Süre (dk)" elle girilir.
+- **Dosya yükle** — video dosyası (`mp4`/`webm`/`ogg`/`mov`, en fazla 2 GB,
+  8 MB'lık parçalarla) `app/api/admin/upload/video/*` üzerinden sunucudaki
+  `public/uploads/videos/` klasörüne kaydedilir ve (bkz. bölüm 4, adım 7)
+  reverse proxy tarafından doğrudan diskten servis edilir.
 
 Hangi tür olduğu (`lib/video.ts`) URL'e bakılarak otomatik anlaşılır — ayrı bir
-alan tutulmaz. Bölüm 3'teki XAMPP/Apache reverse-proxy kurulumunu
+alan tutulmaz. Anasayfa arkaplan videosu istisnadır: bir `<video>` etiketiyle
+oynatılması gerektiği için yalnızca dosya yüklemeyi kabul eder. Bölüm 3'teki XAMPP/Apache reverse-proxy kurulumunu
 kullanıyorsanız, büyük dosya yüklemelerinde Apache'nin varsayılan istek boyutu
 sınırına takılabilirsiniz; gerekirse `httpd.conf`'a `LimitRequestBody 0`
 ekleyin.
@@ -540,11 +551,12 @@ optimizasyonu (transcoding, adaptif bitrate) sağlamaz. Büyük ölçekli veya
 korumalı bir kütüphane için [Mux](https://mux.com),
 [Cloudflare Stream](https://developers.cloudflare.com/stream/) veya
 [Bunny Stream](https://bunny.net/stream/) gibi bir servisin verdiği
-oynatma URL'ini video alanına YouTube linki gibi yapıştırabilirsiniz (bu
-servislerin embed URL'leri de `videoUrl`/`tanitimVideoUrl` alanına
-yazılabilir; `lib/video.ts`'teki YouTube algılaması eşleşmezse dosya doğrudan
-`<video>` etiketiyle oynatılmaya çalışılır — bu servisler için ayrı bir embed
-algılaması eklemek isterseniz `isYoutubeUrl`'e benzer bir kontrol ekleyin).
+oynatma URL'ini video alanına yapıştırabilirsiniz: kurs/özel ders TANITIM
+videosu alanları YouTube/Vimeo dışındaki doğrudan (ör. `.mp4`) adresleri de
+kabul eder ve `<video>` etiketiyle oynatır; ders videoları ise yalnızca yüklenmiş
+dosya ya da YouTube/Vimeo bağlantısı kabul eder (`lib/video.ts >
+dersVideoSemasi`). Başka bir embed sağlayıcısı eklemek isterseniz `vimeoBilgisi`
+/ `components/VideoPlayer.tsx`'e benzer bir ayrıştırıcı + oynatıcı ekleyin.
 
 ## 7. Veritabanı şeması
 

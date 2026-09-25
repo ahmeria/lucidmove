@@ -237,7 +237,8 @@ function DersSatiri({
                 value={kaynakVideoUrl}
                 onChange={setKaynakVideoUrl}
                 zorunlu
-                sadeceYukleme
+                linkDogrula
+                varsayilanYukle
                 onSureAlgila={setSureDakika}
               />
               {kaynakVideoUrl.startsWith("/uploads/") && (
@@ -410,7 +411,8 @@ function YeniDersFormu({ courseId, moodlar }: { courseId: string; moodlar: MoodS
             value={kaynakVideoUrl}
             onChange={setKaynakVideoUrl}
             zorunlu
-            sadeceYukleme
+            linkDogrula
+            varsayilanYukle
             onSureAlgila={setSureDakika}
           />
           {kaynakVideoUrl.startsWith("/uploads/") && (

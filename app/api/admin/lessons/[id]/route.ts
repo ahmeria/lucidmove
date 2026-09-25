@@ -4,7 +4,7 @@ import { sayfaYetkisiOlanOturum } from "@/lib/admin-auth";
 import { db } from "@/lib/db";
 import { slugifyTr } from "@/lib/slugify";
 import { derslerinSirasiniYenile } from "@/lib/dersler";
-import { dersVideoYoluSemasi } from "@/lib/video";
+import { dersVideoSemasi } from "@/lib/video";
 import { gorselUrlSemasiOpsiyonel } from "@/lib/gorsel";
 import { logKaydet } from "@/lib/systemLog";
 
@@ -21,7 +21,7 @@ const dersSemasi = z.object({
   aciklamaAz: cevSemasi,
   kapakUrl: gorselUrlSemasiOpsiyonel,
   sureDakika: z.number().int().positive(),
-  kaynakVideoUrl: dersVideoYoluSemasi,
+  kaynakVideoUrl: dersVideoSemasi,
   ucretsizMi: z.boolean(),
   mood: z.string().nullable().optional(),
   sira: z.number().int(),

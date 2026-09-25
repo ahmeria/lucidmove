@@ -201,7 +201,14 @@ function VideoSatiri({
 
             <div className="w-full sm:w-72 sm:shrink-0">
               <label className="block text-xs text-metin/50 mb-1.5">İçerik dosyası</label>
-              <VideoInput value={videoUrl} onChange={setVideoUrl} zorunlu sadeceYukleme onSureAlgila={setSureDakika} />
+              <VideoInput
+                value={videoUrl}
+                onChange={setVideoUrl}
+                zorunlu
+                linkDogrula
+                varsayilanYukle
+                onSureAlgila={setSureDakika}
+              />
               {videoUrl.startsWith("/uploads/") && (
                 <VideoKareSecici videoUrl={videoUrl} onSecildi={setKapakUrl} oran={4 / 3} />
               )}
@@ -341,7 +348,14 @@ function YeniVideoFormu({ privateLessonId }: { privateLessonId: string }) {
 
         <div className="w-full sm:w-72 sm:shrink-0">
           <label className="block text-xs text-metin/50 mb-1.5">İçerik dosyası</label>
-          <VideoInput value={videoUrl} onChange={setVideoUrl} zorunlu sadeceYukleme onSureAlgila={setSureDakika} />
+          <VideoInput
+            value={videoUrl}
+            onChange={setVideoUrl}
+            zorunlu
+            linkDogrula
+            varsayilanYukle
+            onSureAlgila={setSureDakika}
+          />
           {videoUrl.startsWith("/uploads/") && <VideoKareSecici videoUrl={videoUrl} onSecildi={setKapakUrl} />}
         </div>
       </div>

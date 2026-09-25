@@ -3,6 +3,8 @@
 import { useState, ChangeEvent } from "react";
 import { dosyaYukleParcali } from "@/lib/istemciDosyaYukleme";
 import { videoSuresiniOku, saniyeyiDakikayaYuvarla } from "@/lib/istemciVideoSuresi";
+import { isEmbedVideoUrl } from "@/lib/video";
+import VideoPlayer from "@/components/VideoPlayer";
 
 const alan = "w-full border border-cizgi rounded-lg px-3 py-2 bg-zemin text-metin text-sm focus:border-vurgu outline-none";
 
@@ -13,14 +15,24 @@ export default function VideoInput({
   onChange,
   zorunlu,
   sadeceYukleme,
+  linkDogrula,
+  varsayilanYukle,
   temizlenebilir,
   onSureAlgila,
 }: {
   value: string;
   onChange: (v: string) => void;
   zorunlu?: boolean;
-  // Ders videoları artık yalnızca sunucuya yüklenebilir — YouTube sekmesi gizlenir.
+  // Yalnızca dosya yüklenebilir (ör. anasayfa arkaplan videosu, bir <video>
+  // etiketiyle oynatılmak zorunda) — YouTube/Vimeo link sekmesi gizlenir.
   sadeceYukleme?: boolean;
+  // Link sekmesinde yalnızca tanınan YouTube/Vimeo bağlantılarını kabul et
+  // (ders videoları) — aksi halde anında uyarı gösterilir. Tanıtım videosu gibi
+  // alanlarda kapalı: orada doğrudan bir .mp4 adresi de girilebilir.
+  linkDogrula?: boolean;
+  // Alan boşken açılan varsayılan sekme "Dosya yükle" olsun (ders videoları için;
+  // ana yöntem hâlâ yükleme, link ikinci seçenek).
+  varsayilanYukle?: boolean;
   // Alan opsiyonelse (ör. hero arkaplan videosu) mevcut videoyu kaldırıp
   // boşa döndüren küçük bir "Kaldır" bağlantısı gösterir. Ders videosu gibi
   // zorunlu alanlarda gösterilmez.
@@ -30,8 +42,8 @@ export default function VideoInput({
   // geçilir, alan boş/eski değerinde kalır ve admin elle girebilir.
   onSureAlgila?: (dakika: number) => void;
 }) {
-  const [sekme, setSekme] = useState<"youtube" | "yukle">(
-    sadeceYukleme || value.startsWith("/uploads/") ? "yukle" : "youtube"
+  const [sekme, setSekme] = useState<"link" | "yukle">(
+    sadeceYukleme || value.startsWith("/uploads/") ? "yukle" : value ? "link" : varsayilanYukle ? "yukle" : "link"
   );
   const [yukleniyor, setYukleniyor] = useState(false);
   const [yuzde, setYuzde] = useState(0);
@@ -76,10 +88,10 @@ export default function VideoInput({
         <div className="flex items-center gap-3 mb-2 text-xs font-body">
           <button
             type="button"
-            onClick={() => setSekme("youtube")}
-            className={sekme === "youtube" ? "font-bold text-vurgu" : "text-metin/50 hover:text-metin"}
+            onClick={() => setSekme("link")}
+            className={sekme === "link" ? "font-bold text-vurgu" : "text-metin/50 hover:text-metin"}
           >
-            YouTube linki
+            YouTube / Vimeo linki
           </button>
           <span className="text-metin/30">·</span>
           <button
@@ -92,14 +104,33 @@ export default function VideoInput({
         </div>
       )}
 
-      {sekme === "youtube" ? (
-        <input
-          value={value}
-          onChange={(e) => onChange(e.target.value)}
-          placeholder="https://www.youtube.com/watch?v=..."
-          required={zorunlu}
-          className={alan}
-        />
+      {sekme === "link" ? (
+        <div>
+          <input
+            value={value}
+            onChange={(e) => onChange(e.target.value)}
+            placeholder="https://www.youtube.com/watch?v=… veya https://vimeo.com/…"
+            required={zorunlu}
+            className={alan}
+          />
+          {linkDogrula && value.trim() && !isEmbedVideoUrl(value) && (
+            <p className="text-xs text-red-700 mt-1.5">
+              Geçerli bir YouTube veya Vimeo bağlantısı girin (ör. youtube.com/watch?v=… ya da vimeo.com/123456789).
+            </p>
+          )}
+          {isEmbedVideoUrl(value) && (
+            <>
+              <div className="mt-2.5 max-w-xs w-full aspect-video rounded-lg overflow-hidden bg-koyu">
+                <VideoPlayer key={value} url={value} />
+              </div>
+              {onSureAlgila && (
+                <p className="text-xs text-metin/50 mt-1.5">
+                  Bağlantıdan süre okunamaz — &quot;Süre (dk)&quot; alanını elle girin.
+                </p>
+              )}
+            </>
+          )}
+        </div>
       ) : (
         <div>
           <input
@@ -117,7 +148,7 @@ export default function VideoInput({
               <p className="text-xs text-metin/50 mt-1.5">Yükleniyor… %{yuzde} — büyük dosyalarda uzun sürebilir, sayfadan ayrılmayın</p>
             </div>
           )}
-          {!yukleniyor && value && (
+          {!yukleniyor && value && !isEmbedVideoUrl(value) && (
             <>
               <p className="text-xs text-vurgu-dark mt-1.5">
                 {value.startsWith("/uploads/") ? "Yüklendi" : "Mevcut video"}: {value.split("/").pop()}

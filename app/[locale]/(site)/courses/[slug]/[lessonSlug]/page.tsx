@@ -108,8 +108,8 @@ export default async function DersDetay({
 
       <div className="mt-8 aspect-video bg-koyu rounded-2xl overflow-hidden">
         {/*
-          Yerel yüklenen dosyalar sunucudan doğrudan servis edilir; YouTube
-          linkleri gömülü oynatıcıyla gösterilir. Üretimde büyük ölçekli bir
+          Yerel yüklenen dosyalar sunucudan doğrudan servis edilir; YouTube ve
+          Vimeo linkleri gömülü oynatıcıyla gösterilir. Üretimde büyük ölçekli bir
           kütüphane için Mux/Cloudflare Stream/Bunny Stream gibi imzalı-URL
           veren bir servise geçmek isteyebilirsiniz.
         */}
