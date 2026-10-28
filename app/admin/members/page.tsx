@@ -5,14 +5,14 @@ import SayfaBasligi from "@/components/admin/SayfaBasligi";
 
 export const dynamic = "force-dynamic";
 
-// Satın alma geçmişi olan (en az bir Subscription kaydı olan) tüm ÜYE
-// rolündeki hesapların listesi — admin hesapları hiçbir zaman görünmez
-// (role: "UYE" filtresi). "Üyelikler" (bkz. /admin/subscriptions) her abonelik
+// ÜYE rolündeki tüm hesapların listesi (hiç satın alma yapmamışlar dahil —
+// "Üyeliksiz" rozetiyle; dashboard'daki "Toplam üye" sayısıyla birebir aynı
+// küme) — admin hesapları hiçbir zaman görünmez (role: "UYE" filtresi). "Üyelikler" (bkz. /admin/subscriptions) her abonelik
 // kaydını ayrı bir satır olarak gösterirken, burası kişi başına tek satır —
 // her üyenin GÜNCEL durumunu özetler.
 export default async function AdminUyeler() {
   const uyeler = await db.user.findMany({
-    where: { role: "UYE", subscriptions: { some: {} } },
+    where: { role: "UYE" },
     include: {
       subscriptions: { orderBy: { createdAt: "desc" }, take: 1 },
       _count: { select: { payments: { where: { durum: "BASARILI" } } } },

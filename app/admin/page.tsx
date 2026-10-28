@@ -112,7 +112,7 @@ export default async function AdminDashboard({ searchParams }: { searchParams: {
         <StatKart
           etiket={tumZamanlarMi ? "Toplam üye" : "Yeni üye"}
           deger={uyeSayisi}
-          href="/admin/subscriptions"
+          href="/admin/members"
           renk="vurgu"
           altYazi={donemEtiketi}
           ikon={UyeIkonu}
