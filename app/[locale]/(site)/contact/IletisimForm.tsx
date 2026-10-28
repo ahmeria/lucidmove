@@ -9,6 +9,8 @@ export default function IletisimForm() {
   const t = useTranslations("contact");
   const [durum, setDurum] = useState<Durum>("hazir");
   const [hataMesaji, setHataMesaji] = useState("");
+  // Formun açıldığı an — sunucu çok hızlı gönderimleri bot sayar (bkz. app/api/contact).
+  const [acilisZamani] = useState(() => Date.now());
 
   async function handleSubmit(e: FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -20,6 +22,8 @@ export default function IletisimForm() {
       ad: (form.elements.namedItem("ad") as HTMLInputElement).value,
       email: (form.elements.namedItem("email") as HTMLInputElement).value,
       mesaj: (form.elements.namedItem("mesaj") as HTMLTextAreaElement).value,
+      website: (form.elements.namedItem("website") as HTMLInputElement).value,
+      sure: Date.now() - acilisZamani,
     };
 
     try {
@@ -84,6 +88,16 @@ export default function IletisimForm() {
           className="w-full border border-cizgi rounded-xl px-4 py-3 bg-zemin text-metin focus:border-vurgu outline-none resize-none"
         />
       </div>
+
+      {/* Bot tuzağı: ekran dışında, klavye/ekran okuyucu erişimi kapalı — yalnızca botlar doldurur. */}
+      <input
+        type="text"
+        name="website"
+        tabIndex={-1}
+        autoComplete="off"
+        aria-hidden="true"
+        className="absolute -left-[9999px] w-px h-px opacity-0"
+      />
 
       {durum === "hata" && <p className="text-sm text-red-700">{hataMesaji}</p>}
 
